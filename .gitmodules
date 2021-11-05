@@ -1,0 +1,5 @@
+[submodule "External/sse2neon"]
+	path = External/sse2neon
+	url = https://github.com/DLTcollab/sse2neon.git
+	branch = master
+	update = merge
