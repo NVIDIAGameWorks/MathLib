@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021, NVIDIA CORPORATION. All rights reserved.
+Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
 
 NVIDIA CORPORATION and its licensors retain all intellectual property
 and proprietary rights in and to this software, related documentation
@@ -316,6 +316,23 @@ namespace STL
         float4 AcosApprox( float4 x )
         { return _AcosApprox( x ); }
 
+        // Atan(x) (approximate, for x in range [-1; 1])
+        // https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1628884
+        // http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiJhdGFuKHgpIiwiY29sb3IiOiIjMDAwMDAwIn0seyJ0eXBlIjowLCJlcSI6IjAuNzg1Mzk4MTYzMzk3NDQ4MzA5NjIqeC0oYWJzKHgpKngteCkqKDAuMjQ0NyswLjA2NjMqYWJzKHgpKSIsImNvbG9yIjoiIzBERkYwMCJ9LHsidHlwZSI6MTAwMCwid2luZG93IjpbIjAiLCIxMCIsIjAiLCIxLjYiXX1d
+        #define _AtanApprox( x ) ( Math::Pi( 0.25 ) * x - ( abs( x ) * x - x ) * ( 0.2447 + 0.0663 * abs( x ) ) )
+
+        float AtanApprox( float x )
+        { return _AtanApprox( x ); }
+
+        float2 AtanApprox( float2 x )
+        { return _AtanApprox( x ); }
+
+        float3 AtanApprox( float3 x )
+        { return _AtanApprox( x ); }
+
+        float4 AtanApprox( float4 x )
+        { return _AtanApprox( x ); }
+
         // 1 / positive
         #define STL_POSITIVE_RCP_BUILTIN 0
         #define STL_POSITIVE_RCP_BUILTIN_SAFE 1
@@ -425,11 +442,6 @@ namespace STL
 
     namespace Geometry
     {
-        float2 GetPerpendicular( float2 v )
-        {
-            return float2( -v.y, v.x );
-        }
-
         float4 GetRotator( float angle )
         {
             float ca = cos( angle );
@@ -437,9 +449,6 @@ namespace STL
 
             return float4( ca, sa, -sa, ca );
         }
-
-        float4 GetRotator( float sa, float ca )
-        { return float4( ca, sa, -sa, ca ); }
 
         float3x3 GetRotator( float3 axis, float angle )
         {
@@ -461,6 +470,9 @@ namespace STL
                 t2.z, t3.z, t1.z
             );
         }
+
+        float4 GetRotator( float sa, float ca )
+        { return float4( ca, sa, -sa, ca ); }
 
         float4 CombineRotators( float4 r1, float4 r2 )
         { return r1.xyxy * r2.xxzz + r1.zwzw * r2.yyww; }
@@ -497,6 +509,9 @@ namespace STL
 
         float4 ProjectiveTransform( float4x4 m, float4 p )
         { return mul( m, p ); }
+
+        float2 GetPerpendicular( float2 v )
+        { return float2( -v.y, v.x ); }
 
         float3 GetPerpendicularVector( float3 N )
         {
@@ -590,11 +605,13 @@ namespace STL
             return p;
         }
 
-        float2 GetScreenUv( float4x4 worldToClip, float3 X )
+        float2 GetScreenUv( float4x4 worldToClip, float3 X, bool killBackprojection = true )
         {
             float4 clip = Geometry::ProjectiveTransform( worldToClip, X );
             float2 uv = ( clip.xy / clip.w ) * float2( 0.5, -0.5 ) + 0.5;
-            uv = clip.w < 0.0 ? 99999.0 : uv;
+
+            if( killBackprojection )
+                uv = clip.w < 0.0 ? 99999.0 : uv;
 
             return uv;
         }
@@ -644,7 +661,17 @@ namespace STL
             return Math::Pow01( color, 1.0 / gamma );
         }
 
+        float4 LinearToGamma( float4 color, float gamma = 2.2 )
+        {
+            return Math::Pow01( color, 1.0 / gamma );
+        }
+
         float3 GammaToLinear( float3 color, float gamma = 2.2 )
+        {
+            return Math::Pow01( color, gamma );
+        }
+
+        float4 GammaToLinear( float4 color, float gamma = 2.2 )
         {
             return Math::Pow01( color, gamma );
         }
@@ -695,29 +722,23 @@ namespace STL
 
         float3 LinearToYCoCg( float3 color )
         {
-            float Co = color.x - color.z;
-            float t = color.z + Co * 0.5;
-            float Cg = color.y - t;
-            float Y = t + Cg * 0.5;
-
-            // TODO: useful, but not needed in many cases
-            Y = max( Y, 0.0 );
+            float Y = dot( color, float3( 0.25, 0.5, 0.25 ) );
+            float Co = dot( color, float3( 0.5, 0.0, -0.5 ) );
+            float Cg = dot( color, float3( -0.25, 0.5, -0.25 ) );
 
             return float3( Y, Co, Cg );
         }
 
         float3 YCoCgToLinear( float3 color )
         {
-            // TODO: useful, but not needed in many cases
-            color.x = max( color.x, 0.0 );
+            float t = color.x - color.z;
 
-            float t = color.x - color.z * 0.5;
-            float g = color.z + t;
-            float b = t - color.y * 0.5;
-            float r = b + color.y;
-            float3 res = float3( r, g, b );
+            float3 r;
+            r.y = color.x + color.z;
+            r.x = t + color.y;
+            r.z = t - color.y;
 
-            return res;
+            return r;
         }
 
         // Rec.709 to / from CIE XYZ
@@ -1198,7 +1219,9 @@ namespace STL
             return weights;
         }
 
-        #define _ApplyBilinearCustomWeights( s00, s10, s01, s11, w, normalize ) ( ( s00 * w.x + s10 * w.y + s01 * w.z + s11 * w.w ) * ( normalize ? Math::PositiveRcp( dot( w, 1.0 ) ) : 1.0 ) )
+        // Normalization avoids dividing by small numbers to mitigate potential imprecision problems
+        #define _ApplyBilinearCustomWeights( s00, s10, s01, s11, w, normalize ) \
+            ( ( s00 * w.x + s10 * w.y + s01 * w.z + s11 * w.w ) * ( normalize ? ( dot( w, 1.0 ) < 0.0001 ? 0.0 : 1.0 / dot( w, 1.0 ) ) : 1.0 ) )
 
         float ApplyBilinearCustomWeights( float s00, float s10, float s01, float s11, float4 w, compiletime const bool normalize = true )
         { return _ApplyBilinearCustomWeights( s00, s10, s01, s11, w, normalize ); }
@@ -1458,9 +1481,9 @@ namespace STL
         #define STL_RNG_UTOF 0
         #define STL_RNG_MANTISSA_BITS 1
 
-        void Initialize( uint2 samplePos, uint frameIndex, uint spinNum = 16 )
+        void Initialize( uint linearIndex, uint frameIndex, uint spinNum = 16 )
         {
-            g_Seed.x = Sequence::Zorder( samplePos );
+            g_Seed.x = linearIndex;
             g_Seed.y = frameIndex;
 
             uint s = 0;
@@ -1472,6 +1495,9 @@ namespace STL
                 g_Seed.y += ( ( g_Seed.x << 4 ) + 0xAD90777D ) ^ ( g_Seed.x + s ) ^ ( ( g_Seed.x >> 5 ) + 0x7E95761E );
             }
         }
+
+        void Initialize( uint2 samplePos, uint frameIndex, uint spinNum = 16 )
+        { Initialize( Sequence::Zorder( samplePos ), frameIndex, spinNum ); }
 
         uint2 GetUint2( )
         {
@@ -1814,8 +1840,6 @@ namespace STL
             float b = min( linearRoughness, 0.739 + 0.323 * NoV ) - 0.434;
             float scale = 1.0 - bias - m * max( bias, b );
 
-            bias *= FresnelTerm_Shadowing( Rf0 );
-
             return saturate( Rf0 * scale + bias );
         }
 
@@ -1829,8 +1853,6 @@ namespace STL
 
             float scale = 1.0 - f;
             float bias = f;
-
-            bias *= FresnelTerm_Shadowing( Rf0 );
 
             return saturate( Rf0 * scale + bias );
         }
@@ -1861,8 +1883,6 @@ namespace STL
             float bias = dot( mul( M1, X.xy ), Y.xy ) * Math::PositiveRcp( dot( mul( M2, X.xyw ), Y.xyw ) );
             float scale = dot( mul( M3, X.xy ), Y.xy ) * Math::PositiveRcp( dot( mul( M4, X.xzw ), Y.xyw ) );
 
-            bias *= FresnelTerm_Shadowing( Rf0 );
-
             return saturate( Rf0 * scale + bias );
         }
 
@@ -1872,7 +1892,7 @@ namespace STL
             // EnvironmentTerm_Ross
             // EnvironmentTerm_Unknown
 
-            return EnvironmentTerm_Ross( Rf0, NoV, linearRoughness );
+            return EnvironmentTerm_Ross( Rf0, NoV, linearRoughness ) * FresnelTerm_Shadowing( Rf0 );
         }
 
         //======================================================================================================================
@@ -1986,10 +2006,10 @@ namespace STL
 
             float3 GetRay( float2 rnd )
             {
-                float cosTheta = rnd.y;
-
-                float sinTheta = Math::Sqrt01( 1.0 - cosTheta * cosTheta );
                 float phi = rnd.x * Math::Pi( 2.0 );
+
+                float cosTheta = rnd.y;
+                float sinTheta = Math::Sqrt01( 1.0 - cosTheta * cosTheta );
 
                 float3 ray;
                 ray.x = sinTheta * cos( phi );
@@ -2015,10 +2035,10 @@ namespace STL
 
             float3 GetRay( float2 rnd )
             {
-                float cosTheta = Math::Sqrt01( rnd.y );
-
-                float sinTheta = Math::Sqrt01( 1.0 - cosTheta * cosTheta );
                 float phi = rnd.x * Math::Pi( 2.0 );
+
+                float cosTheta = Math::Sqrt01( rnd.y );
+                float sinTheta = Math::Sqrt01( 1.0 - cosTheta * cosTheta );
 
                 float3 ray;
                 ray.x = sinTheta * cos( phi );

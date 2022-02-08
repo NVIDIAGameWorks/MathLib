@@ -76,7 +76,7 @@
     #define PLATFORM_INTRINSIC                          PLATFORM_INTRINSIC_SSE3
 #endif
 
-#define PLATFORM_HAS_TRANSCENDENTAL_INTRINSICS          (_MSC_VER >= 1920)
+#define PLATFORM_HAS_TRANSCENDENTAL_INTRINSICS          (_MSC_VER >= 1920 && __clang__ == 0)
 
 // NOTE: x32 / x64
 
