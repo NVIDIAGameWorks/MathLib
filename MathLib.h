@@ -2,11 +2,8 @@
 
 #define MATHLIB 1
 #define MATHLIB_MAJOR 1
-#define MATHLIB_MINOR 4
-#define MATHLIB_DATE "12 May 2021"
-
-// IMPORTANT: disable - nonstandard extension used: nameless struct/union
-#pragma warning(disable:4201)
+#define MATHLIB_MINOR 5
+#define MATHLIB_DATE "11 February 2022"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
@@ -62,8 +59,19 @@
 #endif
 
 //======================================================================================================================
-//                                                      START
+//                                                    Start
 //======================================================================================================================
+
+#if defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#elif defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wstrict-aliasing"
+#else
+    #pragma warning(push)
+    #pragma warning(disable:4201) // nonstandard extension used: nameless struct/union
+#endif
 
 #include <math.h>
 #include <float.h>
@@ -3053,8 +3061,6 @@ PLATFORM_INLINE bool IsIntersectRayTriangle(const float3& from, const float3& to
 
 #include "Packed.h"
 
-#pragma warning(default:4201)
-
 #ifdef MATH_NAMESPACE
 }
 #endif
@@ -3206,3 +3212,15 @@ template<class T, bool (*cmp)(const T& a, const T& b)> T* Sort_merge(T* t, T* a,
 
     return a;
 }
+
+//======================================================================================================================
+//                                                      End
+//======================================================================================================================
+
+#if defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#elif defined(__clang__)
+    #pragma clang diagnostic pop
+#elif defined(MSVC)
+    #pragma warning(pop)
+#endif

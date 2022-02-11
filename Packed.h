@@ -27,10 +27,10 @@ namespace Packed
 
 // NOTE: pack / unpack float to f16, f11, f10
 
-template<int32_t M_BITS, int32_t E_BITS, int32_t S_MASK> PLATFORM_INLINE uint32_t ToPacked(float val)
+template<uint32_t M_BITS, uint32_t E_BITS, uint32_t S_MASK> PLATFORM_INLINE uint32_t ToPacked(float val)
 {
-    const uint32_t E_MASK = (1 << E_BITS) - 1;
-    const uint32_t INF = E_MASK << M_BITS;
+    const int32_t E_MASK = (1 << E_BITS) - 1;
+    const uint32_t INF = uint32_t(E_MASK) << uint32_t(M_BITS);
     const int32_t BIAS = E_MASK >> 1;
     const int32_t ROUND = 1 << (23 - M_BITS - 1);
 
