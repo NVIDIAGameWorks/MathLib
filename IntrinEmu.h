@@ -383,30 +383,30 @@ typedef __m128i v4i;
     #define emu_mm_permute_ps(a, control) _mm_castsi128_ps( _mm_shuffle_epi32(_mm_castps_si128(a), control ) )
 
     #define emu_mm_shuffle_ps(x, y, imm) \
-        emu__m256{_mm_shuffle_ps(x.emu_128[0], y.emu_128[0], imm), _mm_shuffle_ps(x.emu_128[1], y.emu_128[1], imm)}
+        emu__m256{ { _mm_shuffle_ps(x.emu_128[0], y.emu_128[0], imm), _mm_shuffle_ps(x.emu_128[1], y.emu_128[1], imm) } }
 
     #define emu_mm256_shuffle_pd(x, y, imm) \
-        emu__m256d{_mm_shuffle_pd(x.emu_m128[0], y.emu_m128[0], imm), _mm_shuffle_pd(x.emu_m128[1], y.emu_m128[1], imm)}
+        emu__m256d{ { _mm_shuffle_pd(x.emu_m128[0], y.emu_m128[0], imm), _mm_shuffle_pd(x.emu_m128[1], y.emu_m128[1], imm) } }
 
     #define emu_mm256_permute_ps(m256_param1, param2) \
-        emu__m256d{emu_mm_permute_ps(m256_param1.emu_m128[0],param2), emu_mm_permute_ps(m256_param1.emu_m128[1], param2)}
+        emu__m256d{ { emu_mm_permute_ps(m256_param1.emu_m128[0],param2), emu_mm_permute_ps(m256_param1.emu_m128[1], param2) } }
 
     // FIXME: in this section SSE4 required, not all SSE4 intrinsic emulated!
 
     #define emu_mm256_blend_pd(m256_param1, m256_param2, param3) \
-        emu__m256d{_mm_blend_pd(m256_param1.emu_m128[0], m256_param2.emu_m128[0], param3 & ((1<<2)-1)), _mm_blend_pd(m256_param1.emu_m128[1], m256_param2.emu_m128[1], param3 >> 2)}
+        emu__m256d{ { _mm_blend_pd(m256_param1.emu_m128[0], m256_param2.emu_m128[0], param3 & ((1<<2)-1)), _mm_blend_pd(m256_param1.emu_m128[1], m256_param2.emu_m128[1], param3 >> 2) } }
 
     #define emu_mm256_blend_ps(m256_param1, m256_param2, param3) \
-        emu__m256{_mm_blend_ps(m256_param1.emu_m128[0], m256_param2.emu_m128[0], param3 & ((1<<4)-1)), _mm_blend_ps(m256_param1.emu_m128[1], m256_param2.emu_m128[1], param3 >> 4)}
+        emu__m256{ { _mm_blend_ps(m256_param1.emu_m128[0], m256_param2.emu_m128[0], param3 & ((1<<4)-1)), _mm_blend_ps(m256_param1.emu_m128[1], m256_param2.emu_m128[1], param3 >> 4) } }
 
     #define emu_mm256_dp_ps(m256_param1, m256_param2, param3) \
-        emu__m256{_mm_dp_ps( m256_param1.emu_m128[0], m256_param2.emu_m128[0], param3 ), _mm_dp_ps( m256_param1.emu_m128[1], m256_param2.emu_m128[1], param3 )}
+        emu__m256{ { _mm_dp_ps( m256_param1.emu_m128[0], m256_param2.emu_m128[0], param3 ), _mm_dp_ps( m256_param1.emu_m128[1], m256_param2.emu_m128[1], param3 ) } }
 
     #define emu_mm256_round_pd(m256_param1, param2) \
-        emu__m256d{_mm_round_pd( m256_param1.emu_m128[0], param2 ), _mm_round_pd( m256_param1.emu_m128[1], param2 )}
+        emu__m256d{ { _mm_round_pd( m256_param1.emu_m128[0], param2 ), _mm_round_pd( m256_param1.emu_m128[1], param2 ) } }
 
     #define emu_mm256_round_ps(m256_param1, param2) \
-        emu__m256{_mm_round_ps( m256_param1.emu_m128[0], param2 ), _mm_round_ps( m256_param1.emu_m128[1], param2 )}
+        emu__m256{ { _mm_round_ps( m256_param1.emu_m128[0], param2 ), _mm_round_ps( m256_param1.emu_m128[1], param2 ) } }
 
     __EMU_M256_IMPL_M3( __m256d, blendv_pd );
     __EMU_M256_IMPL_M3( __m256, blendv_ps );
@@ -755,27 +755,27 @@ typedef __m128i v4i;
 
     PLATFORM_INLINE emu__m256d emu_mm256_setzero_pd(void)
     {
-        return emu__m256d{ _mm_setzero_pd(), _mm_setzero_pd() };
+        return emu__m256d{ { _mm_setzero_pd(), _mm_setzero_pd() } };
     }
 
     PLATFORM_INLINE emu__m256 emu_mm256_setzero_ps(void)
     {
-        return emu__m256{ _mm_setzero_ps(), _mm_setzero_ps() };
+        return emu__m256{ { _mm_setzero_ps(), _mm_setzero_ps() } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_setzero_si256(void)
     {
-        return emu__m256i{ _mm_setzero_si128(), _mm_setzero_si128() };
+        return emu__m256i{ { _mm_setzero_si128(), _mm_setzero_si128() } };
     }
 
     PLATFORM_INLINE emu__m256d emu_mm256_set_pd(double a1, double a2, double a3, double a4)
     {
-        return emu__m256d{ _mm_set_pd( a3, a4 ), _mm_set_pd( a1, a2 ) };
+        return emu__m256d{ { _mm_set_pd( a3, a4 ), _mm_set_pd( a1, a2 ) } };
     }
 
     PLATFORM_INLINE emu__m256 emu_mm256_set_ps(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8)
     {
-        return emu__m256{ _mm_set_ps( a5, a6, a7, a8 ), _mm_set_ps( a1, a2, a3, a4 ) };
+        return emu__m256{ { _mm_set_ps( a5, a6, a7, a8 ), _mm_set_ps( a1, a2, a3, a4 ) } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_set_epi8(int8_t a1, int8_t a2, int8_t a3, int8_t a4, int8_t a5, int8_t a6, int8_t a7, int8_t a8,
@@ -783,20 +783,20 @@ typedef __m128i v4i;
                                            int8_t a17, int8_t a18, int8_t a19, int8_t a20, int8_t a21, int8_t a22, int8_t a23, int8_t a24,
                                            int8_t a25, int8_t a26, int8_t a27, int8_t a28, int8_t a29, int8_t a30, int8_t a31, int8_t a32)
     {
-        return emu__m256i{ _mm_set_epi8( a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32 ),
-                          _mm_set_epi8( a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16 ) };
+        return emu__m256i{ { _mm_set_epi8( a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32 ),
+                          _mm_set_epi8( a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16 ) } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_set_epi16(int16_t a1, int16_t a2, int16_t a3, int16_t a4, int16_t a5, int16_t a6, int16_t a7, int16_t a8,
                                                            int16_t a9, int16_t a10, int16_t a11, int16_t a12, int16_t a13, int16_t a14, int16_t a15, int16_t a16)
     {
-        return emu__m256i{ _mm_set_epi16( a9, a10, a11, a12, a13, a14, a15, a16 ),
-                          _mm_set_epi16( a1, a2, a3, a4, a5, a6, a7, a8 ) };
+        return emu__m256i{ { _mm_set_epi16( a9, a10, a11, a12, a13, a14, a15, a16 ),
+                          _mm_set_epi16( a1, a2, a3, a4, a5, a6, a7, a8 ) } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_set_epi32(int32_t a1, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6, int32_t a7, int32_t a8)
     {
-        return emu__m256i{ _mm_set_epi32( a5, a6, a7, a8 ), _mm_set_epi32( a1, a2, a3, a4 ) };
+        return emu__m256i{ { _mm_set_epi32( a5, a6, a7, a8 ), _mm_set_epi32( a1, a2, a3, a4 ) } };
     }
 
     PLATFORM_INLINE __m128i emu_mm_set_epi64x(int64_t a, int64_t b)
@@ -806,17 +806,17 @@ typedef __m128i v4i;
 
     PLATFORM_INLINE emu__m256i emu_mm256_set_epi64x(int64_t a1, int64_t a2, int64_t a3, int64_t a4)
     {
-        return emu__m256i{ emu_mm_set_epi64x( a3, a4 ), emu_mm_set_epi64x( a1, a2 ) };
+        return emu__m256i{ { emu_mm_set_epi64x( a3, a4 ), emu_mm_set_epi64x( a1, a2 ) } };
     }
 
     PLATFORM_INLINE emu__m256d emu_mm256_setr_pd(double a1, double a2, double a3, double a4)
     {
-        return emu__m256d{ _mm_setr_pd( a1, a2 ), _mm_setr_pd( a3, a4 ) };
+        return emu__m256d{ { _mm_setr_pd( a1, a2 ), _mm_setr_pd( a3, a4 ) } };
     }
 
     PLATFORM_INLINE emu__m256 emu_mm256_setr_ps(float a1, float a2, float a3, float a4, float a5, float a6, float a7, float a8)
     {
-        return emu__m256{ _mm_setr_ps( a1, a2, a3, a4 ), _mm_setr_ps( a5, a6, a7, a8 ) };
+        return emu__m256{ { _mm_setr_ps( a1, a2, a3, a4 ), _mm_setr_ps( a5, a6, a7, a8 ) } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_setr_epi8(int8_t a1, int8_t a2, int8_t a3, int8_t a4, int8_t a5, int8_t a6, int8_t a7, int8_t a8,
@@ -824,25 +824,25 @@ typedef __m128i v4i;
                                                           int8_t a17, int8_t a18, int8_t a19, int8_t a20, int8_t a21, int8_t a22, int8_t a23, int8_t a24,
                                                           int8_t a25, int8_t a26, int8_t a27, int8_t a28, int8_t a29, int8_t a30, int8_t a31, int8_t a32)
     {
-        return emu__m256i{ _mm_setr_epi8( a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16 ),
-                          _mm_setr_epi8( a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32 )};
+        return emu__m256i{ { _mm_setr_epi8( a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16 ),
+                          _mm_setr_epi8( a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32 ) } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_setr_epi16(int16_t a1, int16_t a2, int16_t a3, int16_t a4, int16_t a5, int16_t a6, int16_t a7, int16_t a8,
                                                            int16_t a9, int16_t a10, int16_t a11, int16_t a12, int16_t a13, int16_t a14, int16_t a15, int16_t a16)
     {
-        return emu__m256i{ _mm_setr_epi16( a1, a2, a3, a4, a5, a6, a7, a8 ),
-                          _mm_setr_epi16( a9, a10, a11, a12, a13, a14, a15, a16 ) };
+        return emu__m256i{ { _mm_setr_epi16( a1, a2, a3, a4, a5, a6, a7, a8 ),
+                          _mm_setr_epi16( a9, a10, a11, a12, a13, a14, a15, a16 ) } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_setr_epi32(int32_t a1, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6, int32_t a7, int32_t a8)
     {
-        return emu__m256i{ _mm_setr_epi32( a1, a2, a3, a4 ), _mm_setr_epi32( a5, a6, a7, a8 ) };
+        return emu__m256i{ { _mm_setr_epi32( a1, a2, a3, a4 ), _mm_setr_epi32( a5, a6, a7, a8 ) } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_setr_epi64x(int64_t a1, int64_t a2, int64_t a3, int64_t a4)
     {
-        return emu__m256i{ emu_mm_set_epi64x( a2, a1 ), emu_mm_set_epi64x( a4, a3 ) };
+        return emu__m256i{ { emu_mm_set_epi64x( a2, a1 ), emu_mm_set_epi64x( a4, a3 ) } };
     }
 
     __EMU_M256_IMPL_M1P_DUP( __m256d, double, set1_pd );
@@ -889,17 +889,17 @@ typedef __m128i v4i;
 
     PLATFORM_INLINE emu__m256 emu_mm256_castps128_ps256(const __m128& a)
     {
-        return emu__m256{ a, _mm_setzero_ps() };
+        return emu__m256{ { a, _mm_setzero_ps() } };
     }
 
     PLATFORM_INLINE emu__m256d emu_mm256_castpd128_pd256(const __m128d& a)
     {
-        return emu__m256d{ a, _mm_setzero_pd() };
+        return emu__m256d{ { a, _mm_setzero_pd() } };
     }
 
     PLATFORM_INLINE emu__m256i emu_mm256_castsi128_si256(const __m128i& a)
     {
-        return emu__m256i{ a, _mm_setzero_si128() };
+        return emu__m256i{ { a, _mm_setzero_si128() } };
     }
 
     #undef _mm256_add_pd

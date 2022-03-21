@@ -2,8 +2,8 @@
 
 #define MATHLIB 1
 #define MATHLIB_MAJOR 1
-#define MATHLIB_MINOR 5
-#define MATHLIB_DATE "11 February 2022"
+#define MATHLIB_MINOR 6
+#define MATHLIB_DATE "21 March 2022"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]

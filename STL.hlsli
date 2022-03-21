@@ -595,11 +595,12 @@ namespace STL
             return Math::Pi( 2.0 ) * ( 1.0 - cosHalfAngle );
         }
 
-        float3 ReconstructViewPosition( float2 uv, float4 cameraFrustum, float viewZ = 1.0, float isOrtho = 0.0 )
+        // orthoMode = { 0 - perspective, -1 - right handed ortho, 1 - left handed ortho }
+        float3 ReconstructViewPosition( float2 uv, float4 cameraFrustum, float viewZ = 1.0, float orthoMode = 0.0 )
         {
             float3 p;
             p.xy = uv * cameraFrustum.zw + cameraFrustum.xy;
-            p.xy *= viewZ * ( 1.0 - abs( isOrtho ) ) + isOrtho; // isOrtho = { 0 - perspective, -1 - right handed ortho, 1 - left handed ortho }
+            p.xy *= viewZ * ( 1.0 - abs( orthoMode ) ) + orthoMode;
             p.z = viewZ;
 
             return p;
@@ -1221,7 +1222,7 @@ namespace STL
 
         // Normalization avoids dividing by small numbers to mitigate potential imprecision problems
         #define _ApplyBilinearCustomWeights( s00, s10, s01, s11, w, normalize ) \
-            ( ( s00 * w.x + s10 * w.y + s01 * w.z + s11 * w.w ) * ( normalize ? ( dot( w, 1.0 ) < 0.0001 ? 0.0 : 1.0 / dot( w, 1.0 ) ) : 1.0 ) )
+            ( ( s00 * w.x + s10 * w.y + s01 * w.z + s11 * w.w ) * ( normalize ? ( dot( w, 1.0 ) < 0.0001 ? 0.0 : rcp( dot( w, 1.0 ) ) ) : 1.0 ) )
 
         float ApplyBilinearCustomWeights( float s00, float s10, float s01, float s11, float4 w, compiletime const bool normalize = true )
         { return _ApplyBilinearCustomWeights( s00, s10, s01, s11, w, normalize ); }
@@ -2109,11 +2110,19 @@ namespace STL
 
                 float m = linearRoughness * linearRoughness;
                 float m2 = m * m;
+
                 float a = NoV + Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 ); // see GeometryTerm_Smith
 
-                float pdf = Math::PositiveRcp( a );
-                pdf *= BRDF::DistributionTerm_GGX( linearRoughness, NoH );
-                pdf *= 0.5;
+                #if 0
+                    float pdf = Math::PositiveRcp( a );
+                    pdf *= BRDF::DistributionTerm_GGX( linearRoughness, NoH );
+                    pdf *= 0.5;
+                #else
+                    // A numerically stable version producing values in (0; less than 25] range
+                    float t = ( NoH * m2 - NoH ) * NoH + 1.0; // see DistributionTerm_GGX
+                    float pdf = ( m2 + 1e-6 ) / ( t * t * a + 1e-6 );
+                    pdf *= 0.5 / Math::Pi( 1.0 );
+                #endif
 
                 return max( pdf, 1e-7 );
             }
