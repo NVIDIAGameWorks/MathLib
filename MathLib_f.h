@@ -42,9 +42,7 @@ class float2
         {
         }
 
-        PLATFORM_INLINE float2(const float2& v) : x(v.x), y(v.y)
-        {
-        }
+        PLATFORM_INLINE float2(const float2& v) = default;
 
         // NOTE: set
 
@@ -281,6 +279,8 @@ class float3
         PLATFORM_INLINE float3(const v4f& vec) : xmm(vec)
         {
         }
+
+        PLATFORM_INLINE float3(const float3& v) = default;
 
         // NOTE: set
 
@@ -533,6 +533,8 @@ class float4
         PLATFORM_INLINE float4(const float* v4) : xmm( _mm_loadu_ps(v4) )
         {
         }
+
+        PLATFORM_INLINE float4(const float4& v) = default;
 
         PLATFORM_INLINE float4(const float3& vec)
         {
@@ -1536,22 +1538,24 @@ class float4x4
             float qwz = q.w * q.z;
 
             a00 = 1.0f - 2.0f * (qyy +  qzz);
-            a01 = 2.0f * (qxy + qwz);
-            a02 = 2.0f * (qxz - qwy);
-
-            a10 = 2.0f * (qxy - qwz);
-            a11 = 1.0f - 2.0f * (qxx +  qzz);
-            a12 = 2.0f * (qyz + qwx);
-
-            a20 = 2.0f * (qxz + qwy);
-            a21 = 2.0f * (qyz - qwx);
-            a22 = 1.0f - 2.0f * (qxx +  qyy);
-
+            a10 = 2.0f * (qxy + qwz);
+            a20 = 2.0f * (qxz - qwy);
             a30 = 0.0f;
+
+            a01 = 2.0f * (qxy - qwz);
+            a11 = 1.0f - 2.0f * (qxx +  qzz);
+            a21 = 2.0f * (qyz + qwx);
             a31 = 0.0f;
+
+            a02 = 2.0f * (qxz + qwy);
+            a12 = 2.0f * (qyz - qwx);
+            a22 = 1.0f - 2.0f * (qxx +  qyy);
             a32 = 0.0f;
 
-            col3 = c_v4f_0001;
+            a03 = 0.0f;
+            a13 = 0.0f;
+            a23 = 0.0f;
+            a33 = 1.0f;
         }
 
         PLATFORM_INLINE void SetupByRotationX(float angleX)

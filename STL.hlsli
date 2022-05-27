@@ -1108,10 +1108,12 @@ namespace STL
         // oct     12:12      0.02091   0.05874
         float2 EncodeUnitVector( float3 v, compiletime const bool bSigned = false )
         {
-            v /= abs( v.x ) + abs( v.y ) + abs( v.z );
-            v.xy = v.z >= 0.0 ? v.xy : ( 1.0 - abs( v.yx ) ) * Math::Sign( v.xy );
+            v /= dot( abs( v ), 1.0 );
 
-            return bSigned ? v.xy : saturate( v.xy * 0.5 + 0.5 );
+            float2 octWrap = ( 1.0 - abs( v.yx ) ) * ( v.xy >= 0.0 ? 1.0 : -1.0 );
+            v.xy = v.z >= 0.0 ? v.xy : octWrap;
+
+            return bSigned ? v.xy : v.xy * 0.5 + 0.5;
         }
 
         float3 DecodeUnitVector( float2 p, compiletime const bool bSigned = false, compiletime const bool bNormalize = true )
@@ -1942,6 +1944,21 @@ namespace STL
                 return atan( m * percentOfVolume / ( 1.0 - percentOfVolume ) );
             #else
                 return Math::DegToRad( 180.0 ) * m / ( 1.0 + m );
+            #endif
+        }
+
+        float GetSpecularLobeTanHalfAngle( float linearRoughness, float percentOfVolume = 0.75 )
+        {
+            float m = linearRoughness * linearRoughness;
+
+            // Comparison of two methods:
+            // http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiJhdGFuKDAuNzUqeCp4LygxLTAuNzUpKSoxODAvMy4xNDE1OTIiLCJjb2xvciI6IiMxOUYwMEUifSx7InR5cGUiOjAsImVxIjoiYXRhbigwLjk5KngqeC8oMS0wLjk5KSkqMTgwLzMuMTQxNTkyIiwiY29sb3IiOiIjMEY1Q0Y3In0seyJ0eXBlIjowLCJlcSI6IjE4MCp4KngvKDEreCp4KSIsImNvbG9yIjoiI0ZGMDAyQiJ9LHsidHlwZSI6MTAwMCwid2luZG93IjpbIjAiLCIxIiwiMCIsIjkwIl19XQ--
+            #if 1
+                // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 72)
+                // TODO: % of NDF volume - is it the trimming factor from VNDF sampling?
+                return m * percentOfVolume / ( 1.0 - percentOfVolume );
+            #else
+                return tan( Math::DegToRad( 180.0 ) * m / ( 1.0 + m ) );
             #endif
         }
 

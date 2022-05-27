@@ -51,6 +51,8 @@ class double3
         {
         }
 
+        PLATFORM_INLINE double3(const double3& v) = default;
+
         // NOTE: set
 
         PLATFORM_INLINE void Set0()
@@ -302,6 +304,8 @@ class double4
         PLATFORM_INLINE double4(const v4d& m) : ymm(m)
         {
         }
+
+        PLATFORM_INLINE double4(const double4& v) = default;
 
         // NOTE: set
 
@@ -1295,22 +1299,24 @@ class double4x4
             double qwz = q.w * q.z;
 
             a00 = 1.0 - 2.0 * (qyy +  qzz);
-            a01 = 2.0 * (qxy + qwz);
-            a02 = 2.0 * (qxz - qwy);
-
-            a10 = 2.0 * (qxy - qwz);
-            a11 = 1.0 - 2.0 * (qxx +  qzz);
-            a12 = 2.0 * (qyz + qwx);
-
-            a20 = 2.0 * (qxz + qwy);
-            a21 = 2.0 * (qyz - qwx);
-            a22 = 1.0 - 2.0 * (qxx +  qyy);
-
+            a10 = 2.0 * (qxy + qwz);
+            a20 = 2.0 * (qxz - qwy);
             a30 = 0.0;
+
+            a01 = 2.0 * (qxy - qwz);
+            a11 = 1.0 - 2.0 * (qxx +  qzz);
+            a21 = 2.0 * (qyz + qwx);
             a31 = 0.0;
+
+            a02 = 2.0 * (qxz + qwy);
+            a12 = 2.0 * (qyz - qwx);
+            a22 = 1.0 - 2.0 * (qxx +  qyy);
             a32 = 0.0;
 
-            col3 = c_v4d_0001;
+            a03 = 0.0;
+            a13 = 0.0;
+            a23 = 0.0;
+            a33 = 1.0;
         }
 
         PLATFORM_INLINE void SetupByRotationX(double angleX)
