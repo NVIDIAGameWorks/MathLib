@@ -12,7 +12,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_H
 
 #define STL_VERSION_MAJOR 1
-#define STL_VERSION_MINOR 3
+#define STL_VERSION_MINOR 4
 
 // Settings
 #define STL_SIGN_DEFAULT                            STL_SIGN_FAST
@@ -20,7 +20,6 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_RSQRT_DEFAULT                           STL_POSITIVE_RSQRT_ACCURATE_SAFE
 #define STL_POSITIVE_RCP_DEFAULT                    STL_POSITIVE_RCP_ACCURATE_SAFE
 #define STL_LUMINANCE_DEFAULT                       STL_LUMINANCE_BT601
-#define STL_COLOR_CLAMPING_DEFAULT                  STL_COLOR_CLAMPING_AABB
 #define STL_RNG_DEFAULT                             STL_RNG_MANTISSA_BITS
 #define STL_BAYER_DEFAULT                           STL_BAYER_REVERSEBITS
 #define STL_RF0_DIELECTRICS                         0.04
@@ -948,35 +947,31 @@ namespace STL
         }
 
         // Color clamping
-        #define STL_COLOR_CLAMPING_SIMPLE 0
-        #define STL_COLOR_CLAMPING_AABB 1
+        #define _Clamp( m1, sigma, input ) clamp( input, m1 - sigma, m1 + sigma )
 
-        float4 Clamp( float4 m1, float4 sigma, float4 prevSample, compiletime const uint mode = STL_COLOR_CLAMPING_DEFAULT )
+        float4 Clamp( float4 m1, float4 sigma, float4 color )
+        { return _Clamp( m1, sigma, color ); }
+
+        float3 Clamp( float3 m1, float3 sigma, float3 color )
+        { return _Clamp( m1, sigma, color ); }
+
+        float2 Clamp( float2 m1, float2 sigma, float2 color )
+        { return _Clamp( m1, sigma, color ); }
+
+        float Clamp( float m1, float sigma, float color )
+        { return _Clamp( m1, sigma, color ); }
+
+        // More correct color clamping for RGB color space
+        float3 ClampAabb( float3 m1, float3 sigma, float3 color )
         {
-            float4 a = m1 - sigma;
-            float4 b = m1 + sigma;
-            float4 clampedSample = clamp( prevSample, a, b );
+            float3 center = m1;
+            float3 extents = sigma;
 
-            if( mode == STL_COLOR_CLAMPING_AABB )
-            {
-                // m1 - aabb center, sigma - aabb extents
-                float3 d = prevSample.xyz - m1.xyz;
-                float3 dn = abs( d * Math::PositiveRcp( sigma.xyz ) );
-                float maxd = max( dn.x, max( dn.y, dn.z ) );
-                float3 t = m1.xyz + d * Math::PositiveRcp( maxd );
+            float3 d = color - center;
+            float3 ts = abs( extents / ( d + 0.0001 ) );
+            float t = min( ts.x, min( ts.y, ts.z ) );
 
-                clampedSample.xyz = maxd > 1.0 ? t : prevSample.xyz;
-            }
-
-            return clampedSample;
-        }
-
-        float Clamp( float m1, float sigma, float prevSample )
-        {
-            float a = m1 - sigma;
-            float b = m1 + sigma;
-
-            return clamp( prevSample, a, b );
+            return center + d * saturate( t );
         }
 
         // Misc
@@ -1860,10 +1855,10 @@ namespace STL
             return saturate( Rf0 * scale + bias );
         }
 
-        // Another fit from an unknown source
-        float3 EnvironmentTerm_Unknown(float3 Rf0, float NoV, float roughness)
+        // "Ray Tracing Gems", Chapter 32, Equation 4 - the approximation assumes GGX VNDF and Schlick's approximation
+        float3 EnvironmentTerm_Rtg( float3 Rf0, float NoV, float linearRoughness )
         {
-            float m = roughness * roughness;
+            float m = linearRoughness * linearRoughness;
 
             float4 X;
             X.x = 1.0;
@@ -2110,36 +2105,30 @@ namespace STL
             float GetPDF( float NoV, float NoH, float linearRoughness )
             {
                 /*
-                pdf = Dv(Ni) / (4 * VoNi), where Ni = H - current microfacet normal
-                    => pdf = Dv(H) / (4 * VoH)
+                Eq 3  : Dv( H ) = G1 * D * VoH / NoV
+                Eq 17 : PDF = Dv( H ) / ( 4 * VoH )
 
-                Dv(H) = G1(V) * VoH * D(H) / VoZ
-                VoZ (local space, Z = {0, 0, 1}) = NoV (world space)
-                    => pdf = [ G1(V) * VoH * D(H) / NoV ] / [ 4 * VoH ]
-                    => pdf = [ G1(V) * D(H) / NoV ] / [ 4 ]
-                    => pdf = [ G1(V) * D(H) ] / [ 4 * NoV ]
+                Simplification:
+                    G1 = BRDF::GeometryTerm_Smith( materialProps.roughness, NoV )
+                    D = BRDF::DistributionTerm_GGX( materialProps.roughness, NoH )
 
-                G1(V) = 2 * NoV * Math::PositiveRcp( ... )
-                    => pdf = [ 2 * NoV * Math::PositiveRcp( ... ) * D(H) ] / [ 4 * NoV ]
-                    => pdf = [ 2 * Math::PositiveRcp( ... ) * D(H) ] / 4
-                    => pdf = [ Math::PositiveRcp( ... ) * D(H) ] / 2
+                    m2 = m * m
+                    G1mod = 1 / [ NoV + Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 ) ]
+                    G1 = 2 * G1mod * NoV
+
+                    => PDF = ( 2 * G1mod * NoV * D * VoH / NoV ) / ( 4 * VoH )
+                    => PDF = ( 2 * G1mod * D * VoH ) / ( 4 * VoH )
+                    => PDF = ( 2 * G1mod * D ) / 4
+                    => PDF = ( G1mod * D ) / 2
                 */
 
                 float m = linearRoughness * linearRoughness;
                 float m2 = m * m;
+                float G1mod = Math::PositiveRcp( NoV + Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 ) ); // see GeometryTerm_Smith
 
-                float a = NoV + Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 ); // see GeometryTerm_Smith
+                float D = BRDF::DistributionTerm_GGX( linearRoughness, NoH );
 
-                #if 0
-                    float pdf = Math::PositiveRcp( a );
-                    pdf *= BRDF::DistributionTerm_GGX( linearRoughness, NoH );
-                    pdf *= 0.5;
-                #else
-                    // A numerically stable version producing values in (0; less than 25] range
-                    float t = ( NoH * m2 - NoH ) * NoH + 1.0; // see DistributionTerm_GGX
-                    float pdf = ( m2 + 1e-6 ) / ( t * t * a + 1e-6 );
-                    pdf *= 0.5 / Math::Pi( 1.0 );
-                #endif
+                float pdf = G1mod * D * 0.5;
 
                 return max( pdf, 1e-7 );
             }
@@ -2187,9 +2176,8 @@ namespace STL
 
     struct SH1
     {
-        float c0;
+        float3 c0_chroma;
         float3 c1;
-        float2 chroma;
     };
 
     namespace SphericalHarmonics
@@ -2199,18 +2187,17 @@ namespace STL
             float3 YCoCg = Color::LinearToYCoCg( color );
 
             SH1 sh;
-            sh.c0 = 0.282095 * YCoCg.x;
+            sh.c0_chroma = 0.282095 * YCoCg;
             sh.c1 = 0.488603 * YCoCg.x * direction;
-            sh.chroma = YCoCg.yz;
 
             return sh;
         }
 
         float3 ExtractColor( SH1 sh )
         {
-            float Y = sh.c0 / 0.282095;
+            float Y = sh.c0_chroma.x / 0.282095;
 
-            return Color::YCoCgToLinear( float3( Y, sh.chroma.x, sh.chroma.y ) );
+            return Color::YCoCgToLinear( float3( Y, sh.c0_chroma.yz ) );
         }
 
         float3 ExtractDirection( SH1 sh )
@@ -2218,23 +2205,34 @@ namespace STL
             return sh.c1 * Math::Rsqrt( Math::LengthSquared( sh.c1 ) );
         }
 
-        // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
-        float3 ResolveColorToDiffuse( SH1 sh, float3 N, float cosHalfAngle = 0.0 )
+        void Add( inout SH1 result, SH1 x )
         {
-            float d = dot( sh.c1, N );
-            float Y = 1.023326 * d + 0.886226 * sh.c0;
+            result.c0_chroma += x.c0_chroma;
+            result.c1 += x.c1;
+        }
 
-            // Ignore negative values
-            Y = max( Y, 0 );
+        void Mul( inout SH1 result, float x )
+        {
+            result.c0_chroma *= x;
+            result.c1 *= x;
+        }
+
+        // directionalPart = BRDF, where L = sh.c1 ( for example, directionalPart = dot( sh.c1, N ) for diffuse )
+        // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
+        float3 ResolveColor( SH1 sh, float3 N, float cosHalfAngle = 0.0 )
+        {
+            float d = dot( N, sh.c1 );
+            float Y = 1.023326 * max( d, 0.0 ) + 0.886226 * max( sh.c0_chroma.x, 0.0 );
 
             // Pages 45-53 ( Y *= 2.0 - hemisphere, Y *= 4.0 - sphere )
             Y *= Geometry::SolidAngle( cosHalfAngle ) / Math::Pi( 1.0 );
 
-            // Corrected color-reproduction
-            float modifier = 0.282095 * Y * Math::PositiveRcp( sh.c0 );
-            float2 CoCg = sh.chroma * saturate( modifier );
+            // Corrected color reproduction
+            float eps = 1e-6;
+            float modifier = ( Y + eps ) / ( sh.c0_chroma.x + eps );
+            float2 CoCg = sh.c0_chroma.yz * modifier;
 
-            return Color::YCoCgToLinear( float3( Y, CoCg.x, CoCg.y ) );
+            return Color::YCoCgToLinear( float3( Y, CoCg ) );
         }
     };
 }
@@ -2243,6 +2241,7 @@ namespace STL
 
 /*
 Changelog:
+
 v1.1
 - removed bicubic filter
 - added Catmull-Rom filter with custom weights
@@ -2255,4 +2254,21 @@ v1.2
 
 v1.3
 - fixed PDFs
+
+v1.4
+- added "float" variants for some functions
+- "GetPDF" accepts NoV instead of vectors
+- added another pre-integrated env BRDF
+- fixed pre-integrated F-terms
+- switched to native "reversebits"
+- added float4 support for "GammaToLinear" and "LinearToGamma"
+- added option to keep back projection in "GetScreenUv"
+- better YCoCg
+- more flexible "Rng::Initialize"
+- fixed imprecision problem in "_ApplyBilinearCustomWeights"
+- added "atan" approximation
+- fixed numerical instabilities in "VNDF::GetPDF"
+- refactored oct-pack
+- added GetSpecularLobeTanHalfAngle
+- added "Add" and "Mul" operations to "SphericalHarmonics"
 */

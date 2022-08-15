@@ -1313,10 +1313,7 @@ class double4x4
             a22 = 1.0 - 2.0 * (qxx +  qyy);
             a32 = 0.0;
 
-            a03 = 0.0;
-            a13 = 0.0;
-            a23 = 0.0;
-            a33 = 1.0;
+            col3 = c_v4d_0001;
         }
 
         PLATFORM_INLINE void SetupByRotationX(double angleX)

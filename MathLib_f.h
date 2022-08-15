@@ -1552,10 +1552,7 @@ class float4x4
             a22 = 1.0f - 2.0f * (qxx +  qyy);
             a32 = 0.0f;
 
-            a03 = 0.0f;
-            a13 = 0.0f;
-            a23 = 0.0f;
-            a33 = 1.0f;
+            col3 = c_v4f_0001;
         }
 
         PLATFORM_INLINE void SetupByRotationX(float angleX)
