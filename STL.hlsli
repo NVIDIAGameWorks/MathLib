@@ -12,7 +12,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_H
 
 #define STL_VERSION_MAJOR 1
-#define STL_VERSION_MINOR 4
+#define STL_VERSION_MINOR 5
 
 // Settings
 #define STL_SIGN_DEFAULT                            STL_SIGN_FAST
@@ -575,7 +575,7 @@ namespace STL
         float3 UnpackLocalNormal( float2 localNormal, bool isUnorm = true )
         {
             float3 n;
-            n.xy = isUnorm ? ( localNormal * ( 255.0 / 127.0 ) - 1.0 ) : localNormal;
+            n.xy = isUnorm ? min( localNormal * ( 255.0 / 127.0 ) - 1.0, 1.0 ) : localNormal;
             n.z = Math::Sqrt01( 1.0 - Math::LengthSquared( n.xy ) );
 
             return n;
@@ -2240,22 +2240,16 @@ namespace STL
 #endif
 
 /*
-Changelog:
+History:
 
-v1.1
-- removed bicubic filter
-- added Catmull-Rom filter with custom weights
-- removed "STL::" inside the namespace
-- added tone mapping curves
-- added more specular dominant direction calculation variants
+v1.5:
+- found source of "EnvironmentTerm_Unknown"
+- massaged "VNDF::GetPDF"
+- improved SH resolve
+- refactored color clamping
+- fixed incorrect UNORM to SNORM coversion in "UnpackLocalNormal"
 
-v1.2
-- fixed messed up "roughness" and "linearRoughness" entities
-
-v1.3
-- fixed PDFs
-
-v1.4
+v1.4:
 - added "float" variants for some functions
 - "GetPDF" accepts NoV instead of vectors
 - added another pre-integrated env BRDF
@@ -2271,4 +2265,17 @@ v1.4
 - refactored oct-pack
 - added GetSpecularLobeTanHalfAngle
 - added "Add" and "Mul" operations to "SphericalHarmonics"
+
+v1.3:
+- fixed PDFs
+
+v1.2:
+- fixed messed up "roughness" and "linearRoughness" entities
+
+v1.1:
+- removed bicubic filter
+- added Catmull-Rom filter with custom weights
+- removed "STL::" inside the namespace
+- added tone mapping curves
+- added more specular dominant direction calculation variants
 */
