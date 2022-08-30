@@ -12,7 +12,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_H
 
 #define STL_VERSION_MAJOR 1
-#define STL_VERSION_MINOR 5
+#define STL_VERSION_MINOR 6
 
 // Settings
 #define STL_SIGN_DEFAULT                            STL_SIGN_FAST
@@ -22,16 +22,17 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_LUMINANCE_DEFAULT                       STL_LUMINANCE_BT601
 #define STL_RNG_DEFAULT                             STL_RNG_MANTISSA_BITS
 #define STL_BAYER_DEFAULT                           STL_BAYER_REVERSEBITS
+#define STL_SPECULAR_DOMINANT_DIRECTION_DEFAULT     STL_SPECULAR_DOMINANT_DIRECTION_APPROX
+
 #define STL_RF0_DIELECTRICS                         0.04
 #define STL_GTR_GAMMA                               1.5
-#define STL_SPECULAR_DOMINANT_DIRECTION_DEFAULT     STL_SPECULAR_DOMINANT_DIRECTION_APPROX
+#define STL_SMALL_EPS                               1e-15
+#define STL_EPS                                     1e-6
 
 #define compiletime
 
 namespace STL
 {
-    static const float FLT_MIN = 1e-15;
-
     //=======================================================================================================================
     // MATH
     //=======================================================================================================================
@@ -270,33 +271,33 @@ namespace STL
         float Rsqrt( float x, compiletime const uint mode = STL_RSQRT_DEFAULT )
         {
             if( mode <= STL_POSITIVE_RSQRT_BUILTIN_SAFE )
-                return rsqrt( mode == STL_POSITIVE_RSQRT_BUILTIN ? x : max( x, FLT_MIN ) );
+                return rsqrt( mode == STL_POSITIVE_RSQRT_BUILTIN ? x : max( x, STL_SMALL_EPS ) );
 
-            return 1.0 / sqrt( mode == STL_POSITIVE_RSQRT_ACCURATE ? x : max( x, FLT_MIN ) );
+            return 1.0 / sqrt( mode == STL_POSITIVE_RSQRT_ACCURATE ? x : max( x, STL_SMALL_EPS ) );
         }
 
         float2 Rsqrt( float2 x, compiletime const uint mode = STL_RSQRT_DEFAULT )
         {
             if( mode <= STL_POSITIVE_RSQRT_BUILTIN_SAFE )
-                return rsqrt( mode == STL_POSITIVE_RSQRT_BUILTIN ? x : max( x, FLT_MIN ) );
+                return rsqrt( mode == STL_POSITIVE_RSQRT_BUILTIN ? x : max( x, STL_SMALL_EPS ) );
 
-            return 1.0 / sqrt( mode == STL_POSITIVE_RSQRT_ACCURATE ? x : max( x, FLT_MIN ) );
+            return 1.0 / sqrt( mode == STL_POSITIVE_RSQRT_ACCURATE ? x : max( x, STL_SMALL_EPS ) );
         }
 
         float3 Rsqrt( float3 x, compiletime const uint mode = STL_RSQRT_DEFAULT )
         {
             if( mode <= STL_POSITIVE_RSQRT_BUILTIN_SAFE )
-                return rsqrt( mode == STL_POSITIVE_RSQRT_BUILTIN ? x : max( x, FLT_MIN ) );
+                return rsqrt( mode == STL_POSITIVE_RSQRT_BUILTIN ? x : max( x, STL_SMALL_EPS ) );
 
-            return 1.0 / sqrt( mode == STL_POSITIVE_RSQRT_ACCURATE ? x : max( x, FLT_MIN ) );
+            return 1.0 / sqrt( mode == STL_POSITIVE_RSQRT_ACCURATE ? x : max( x, STL_SMALL_EPS ) );
         }
 
         float4 Rsqrt( float4 x, compiletime const uint mode = STL_RSQRT_DEFAULT )
         {
             if( mode <= STL_POSITIVE_RSQRT_BUILTIN_SAFE )
-                return rsqrt( mode == STL_POSITIVE_RSQRT_BUILTIN ? x : max( x, FLT_MIN ) );
+                return rsqrt( mode == STL_POSITIVE_RSQRT_BUILTIN ? x : max( x, STL_SMALL_EPS ) );
 
-            return 1.0 / sqrt( mode == STL_POSITIVE_RSQRT_ACCURATE ? x : max( x, FLT_MIN ) );
+            return 1.0 / sqrt( mode == STL_POSITIVE_RSQRT_ACCURATE ? x : max( x, STL_SMALL_EPS ) );
         }
 
         // Acos(x) (approximate)
@@ -341,33 +342,33 @@ namespace STL
         float PositiveRcp( float x, compiletime const uint mode = STL_POSITIVE_RCP_DEFAULT )
         {
             if( mode <= STL_POSITIVE_RCP_BUILTIN_SAFE )
-                return rcp( mode == STL_POSITIVE_RCP_BUILTIN ? x : max( x, FLT_MIN ) );
+                return rcp( mode == STL_POSITIVE_RCP_BUILTIN ? x : max( x, STL_SMALL_EPS ) );
 
-            return 1.0 / ( mode == STL_POSITIVE_RCP_ACCURATE ? x : max( x, FLT_MIN ) );
+            return 1.0 / ( mode == STL_POSITIVE_RCP_ACCURATE ? x : max( x, STL_SMALL_EPS ) );
         }
 
         float2 PositiveRcp( float2 x, compiletime const uint mode = STL_POSITIVE_RCP_DEFAULT )
         {
             if( mode <= STL_POSITIVE_RCP_BUILTIN_SAFE )
-                return rcp( mode == STL_POSITIVE_RCP_BUILTIN ? x : max( x, FLT_MIN ) );
+                return rcp( mode == STL_POSITIVE_RCP_BUILTIN ? x : max( x, STL_SMALL_EPS ) );
 
-            return 1.0 / ( mode == STL_POSITIVE_RCP_ACCURATE ? x : max( x, FLT_MIN ) );
+            return 1.0 / ( mode == STL_POSITIVE_RCP_ACCURATE ? x : max( x, STL_SMALL_EPS ) );
         }
 
         float3 PositiveRcp( float3 x, compiletime const uint mode = STL_POSITIVE_RCP_DEFAULT )
         {
             if( mode <= STL_POSITIVE_RCP_BUILTIN_SAFE )
-                return rcp( mode == STL_POSITIVE_RCP_BUILTIN ? x : max( x, FLT_MIN ) );
+                return rcp( mode == STL_POSITIVE_RCP_BUILTIN ? x : max( x, STL_SMALL_EPS ) );
 
-            return 1.0 / ( mode == STL_POSITIVE_RCP_ACCURATE ? x : max( x, FLT_MIN ) );
+            return 1.0 / ( mode == STL_POSITIVE_RCP_ACCURATE ? x : max( x, STL_SMALL_EPS ) );
         }
 
         float4 PositiveRcp( float4 x, compiletime const uint mode = STL_POSITIVE_RCP_DEFAULT )
         {
             if( mode <= STL_POSITIVE_RCP_BUILTIN_SAFE )
-                return rcp( mode == STL_POSITIVE_RCP_BUILTIN ? x : max( x, FLT_MIN ) );
+                return rcp( mode == STL_POSITIVE_RCP_BUILTIN ? x : max( x, STL_SMALL_EPS ) );
 
-            return 1.0 / ( mode == STL_POSITIVE_RCP_ACCURATE ? x : max( x, FLT_MIN ) );
+            return 1.0 / ( mode == STL_POSITIVE_RCP_ACCURATE ? x : max( x, STL_SMALL_EPS ) );
         }
 
         // LengthSquared
@@ -433,7 +434,7 @@ namespace STL
 
             return x;
         }
-    };
+    }
 
     //=======================================================================================================================
     // GEOMETRY
@@ -630,7 +631,7 @@ namespace STL
 
             return uvPrev;
         }
-    };
+    }
 
     //=======================================================================================================================
     // COLOR
@@ -861,7 +862,7 @@ namespace STL
         float3 LinearToHdr( float3 color )
         {
             float3 x0 = color / 0.38317;
-            float3 x1 = -log( max( 1.0 - LinearToGamma( color ), 1e-6 ) );
+            float3 x1 = -log( max( 1.0 - LinearToGamma( color ), STL_EPS ) );
             float3 colorMulExposure = lerp( x0, x1, step( 1.413, x0 ) );
 
             return colorMulExposure;
@@ -1014,7 +1015,7 @@ namespace STL
 
             return saturate( a + b );
         }
-    };
+    }
 
     //=======================================================================================================================
     // PACKING
@@ -1122,7 +1123,7 @@ namespace STL
 
             return bNormalize ? normalize( n ) : n;
         }
-    };
+    }
 
     //=======================================================================================================================
     // FILTERING
@@ -1397,7 +1398,7 @@ namespace STL
         // offsets = { 0, offsets.xy, offsets.zw, offsets.wx, offsets.yz };
         float4 GetBlurOffsets2D( float2 invTexSize )
         { return float4( 0.4, 0.9, -0.4, -0.9 ) * invTexSize.xyxy; }
-    };
+    }
 
     //=======================================================================================================================
     // SEQUENCE
@@ -1466,7 +1467,7 @@ namespace STL
         {
             return IntegerExplode( xy.x ) | ( IntegerExplode( xy.y ) << 1 );
         }
-    };
+    }
 
     //=======================================================================================================================
     // RNG
@@ -1534,7 +1535,7 @@ namespace STL
 
             return float4( r >> 8 ) * ( 1.0 / float( 1 << 24 ) );
         }
-    };
+    }
 
     //=======================================================================================================================
     // BRDF
@@ -1656,7 +1657,7 @@ namespace STL
 
             #if 1
                 float t = 1.0 - NoH * NoH * ( 0.99999994 - m2 );
-                float a = max( m, 1e-6 ) / t;
+                float a = max( m, STL_EPS ) / t;
             #else
                 float t = ( NoH * m2 - NoH ) * NoH + 1.0;
                 float a = m * Math::PositiveRcp( t );
@@ -1735,7 +1736,7 @@ namespace STL
             float a = NoL * ( 1.0 - k ) + k;
             float b = NoV * ( 1.0 - k ) + k;
 
-            return 0.25 / max( a * b, 1e-6 );
+            return 0.25 / max( a * b, STL_EPS );
         }
 
         // [Smith 1967, "Geometrical shadowing of a random rough surface"]
@@ -1918,7 +1919,7 @@ namespace STL
 
             Cspec = saturate( Cspec );
         }
-    };
+    }
 
     //=======================================================================================================================
     // IMPORTANCE SAMPLING
@@ -2168,11 +2169,13 @@ namespace STL
                 return Ne;
             }
         }
-    };
+    }
 
     //=======================================================================================================================
     // SPHERICAL HARMONICS
     //=======================================================================================================================
+
+    // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
 
     struct SH1
     {
@@ -2187,17 +2190,15 @@ namespace STL
             float3 YCoCg = Color::LinearToYCoCg( color );
 
             SH1 sh;
-            sh.c0_chroma = 0.282095 * YCoCg;
-            sh.c1 = 0.488603 * YCoCg.x * direction;
+            sh.c0_chroma = YCoCg;
+            sh.c1 = YCoCg.x * direction;
 
             return sh;
         }
 
         float3 ExtractColor( SH1 sh )
         {
-            float Y = sh.c0_chroma.x / 0.282095;
-
-            return Color::YCoCgToLinear( float3( Y, sh.c0_chroma.yz ) );
+            return Color::YCoCgToLinear( sh.c0_chroma );
         }
 
         float3 ExtractDirection( SH1 sh )
@@ -2217,30 +2218,31 @@ namespace STL
             result.c1 *= x;
         }
 
-        // directionalPart = BRDF, where L = sh.c1 ( for example, directionalPart = dot( sh.c1, N ) for diffuse )
-        // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
-        float3 ResolveColor( SH1 sh, float3 N, float cosHalfAngle = 0.0 )
+        float3 ResolveColor( SH1 sh, float3 N )
         {
-            float d = dot( N, sh.c1 );
-            float Y = 1.023326 * max( d, 0.0 ) + 0.886226 * max( sh.c0_chroma.x, 0.0 );
+            float Y = 0.5 * dot( N, sh.c1 ) + 0.25 * sh.c0_chroma.x;
 
-            // Pages 45-53 ( Y *= 2.0 - hemisphere, Y *= 4.0 - sphere )
-            Y *= Geometry::SolidAngle( cosHalfAngle ) / Math::Pi( 1.0 );
+            // 2 - hemisphere, 4 - sphere
+            Y *= 2.0;
 
             // Corrected color reproduction
-            float eps = 1e-6;
-            float modifier = ( Y + eps ) / ( sh.c0_chroma.x + eps );
+            Y = max( Y, 0.0 );
+
+            float modifier = ( Y + STL_EPS ) / ( sh.c0_chroma.x + STL_EPS );
             float2 CoCg = sh.c0_chroma.yz * modifier;
 
             return Color::YCoCgToLinear( float3( Y, CoCg ) );
         }
-    };
+    }
 }
 
 #endif
 
 /*
 History:
+
+v1.6:
+- introduced STL_EPS and STL_SMALL_EPS
 
 v1.5:
 - found source of "EnvironmentTerm_Unknown"
