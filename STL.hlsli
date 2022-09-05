@@ -301,7 +301,7 @@ namespace STL
         }
 
         // Acos(x) (approximate)
-        // http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiJhY29zKHgpIiwiY29sb3IiOiIjMDAwMDAwIn0seyJ0eXBlIjowLCJlcSI6InNxcnQoMS14KSpzcXJ0KDIpIiwiY29sb3IiOiIjRjIwQzBDIn0seyJ0eXBlIjoxMDAwLCJ3aW5kb3ciOlsiMCIsIjEiLCIwIiwiMiJdLCJzaXplIjpbMTE1MCw5MDBdfV0-
+        // https://www.desmos.com/calculator/x6ut8ros1u
         #define _AcosApprox( x ) ( sqrt( 2.0 ) * sqrt( saturate( 1.0 - x ) ) )
 
         float AcosApprox( float x )
@@ -318,7 +318,7 @@ namespace STL
 
         // Atan(x) (approximate, for x in range [-1; 1])
         // https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1628884
-        // http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiJhdGFuKHgpIiwiY29sb3IiOiIjMDAwMDAwIn0seyJ0eXBlIjowLCJlcSI6IjAuNzg1Mzk4MTYzMzk3NDQ4MzA5NjIqeC0oYWJzKHgpKngteCkqKDAuMjQ0NyswLjA2NjMqYWJzKHgpKSIsImNvbG9yIjoiIzBERkYwMCJ9LHsidHlwZSI6MTAwMCwid2luZG93IjpbIjAiLCIxMCIsIjAiLCIxLjYiXX1d
+        // https://www.desmos.com/calculator/0h8hv7kfp6
         #define _AtanApprox( x ) ( Math::Pi( 0.25 ) * x - ( abs( x ) * x - x ) * ( 0.2447 + 0.0663 * abs( x ) ) )
 
         float AtanApprox( float x )
@@ -1106,7 +1106,7 @@ namespace STL
         {
             v /= dot( abs( v ), 1.0 );
 
-            float2 octWrap = ( 1.0 - abs( v.yx ) ) * ( v.xy >= 0.0 ? 1.0 : -1.0 );
+            float2 octWrap = ( 1.0 - abs( v.yx ) ) * Math::Sign( v.xy );
             v.xy = v.z >= 0.0 ? v.xy : octWrap;
 
             return bSigned ? v.xy : v.xy * 0.5 + 0.5;
@@ -1119,7 +1119,7 @@ namespace STL
             // https://twitter.com/Stubbesaurus/status/937994790553227264
             float3 n = float3( p.xy, 1.0 - abs( p.x ) - abs( p.y ) );
             float t = saturate( -n.z );
-            n.xy += n.xy >= 0.0 ? -t : t;
+            n.xy -= t * Math::Sign( n.xy );
 
             return bNormalize ? normalize( n ) : n;
         }
@@ -1933,7 +1933,7 @@ namespace STL
             float m = linearRoughness * linearRoughness;
 
             // Comparison of two methods:
-            // http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiJhdGFuKDAuNzUqeCp4LygxLTAuNzUpKSoxODAvMy4xNDE1OTIiLCJjb2xvciI6IiMxOUYwMEUifSx7InR5cGUiOjAsImVxIjoiYXRhbigwLjk5KngqeC8oMS0wLjk5KSkqMTgwLzMuMTQxNTkyIiwiY29sb3IiOiIjMEY1Q0Y3In0seyJ0eXBlIjowLCJlcSI6IjE4MCp4KngvKDEreCp4KSIsImNvbG9yIjoiI0ZGMDAyQiJ9LHsidHlwZSI6MTAwMCwid2luZG93IjpbIjAiLCIxIiwiMCIsIjkwIl19XQ--
+            // https://www.desmos.com/calculator/4vvg1qrec7
             #if 1
                 // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 72)
                 // TODO: % of NDF volume - is it the trimming factor from VNDF sampling?
@@ -1947,8 +1947,6 @@ namespace STL
         {
             float m = linearRoughness * linearRoughness;
 
-            // Comparison of two methods:
-            // http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiJhdGFuKDAuNzUqeCp4LygxLTAuNzUpKSoxODAvMy4xNDE1OTIiLCJjb2xvciI6IiMxOUYwMEUifSx7InR5cGUiOjAsImVxIjoiYXRhbigwLjk5KngqeC8oMS0wLjk5KSkqMTgwLzMuMTQxNTkyIiwiY29sb3IiOiIjMEY1Q0Y3In0seyJ0eXBlIjowLCJlcSI6IjE4MCp4KngvKDEreCp4KSIsImNvbG9yIjoiI0ZGMDAyQiJ9LHsidHlwZSI6MTAwMCwid2luZG93IjpbIjAiLCIxIiwiMCIsIjkwIl19XQ--
             #if 1
                 // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 72)
                 // TODO: % of NDF volume - is it the trimming factor from VNDF sampling?

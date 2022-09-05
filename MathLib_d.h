@@ -429,6 +429,11 @@ class double4
             return v4d_test4_all(r);
         }
 
+        static PLATFORM_INLINE double4 Zero()
+        {
+            return v4d_zero;
+        }
+
         // NOTE: swizzle
 
         PLATFORM_INLINE double4 xxxx() const { return v4d_swizzle(ymm, COORD_X, COORD_X, COORD_X, COORD_X); }

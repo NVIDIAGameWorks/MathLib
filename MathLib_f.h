@@ -667,6 +667,11 @@ class float4
             return v4f_test4_all(r);
         }
 
+        static PLATFORM_INLINE float4 Zero()
+        {
+            return v4f_zero;
+        }
+
         // NOTE: swizzle
 
         PLATFORM_INLINE float4 xxxx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_X); }
