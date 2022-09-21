@@ -12,7 +12,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_H
 
 #define STL_VERSION_MAJOR 1
-#define STL_VERSION_MINOR 6
+#define STL_VERSION_MINOR 8
 
 // Settings
 #define STL_SIGN_DEFAULT                            STL_SIGN_FAST
@@ -380,6 +380,20 @@ namespace STL
 
         float LengthSquared( float4 v )
         { return dot( v, v ); }
+
+        // Distance
+        float Distance( float2 a, float2 b )
+        { return length( a - b ); }
+
+        float Distance( float3 a, float3 b )
+        { return length( a - b ); }
+
+        // Manhattan distance
+        float ManhattanDistance( float2 a, float2 b )
+        { return dot( abs( a - b ), 1.0 ); }
+
+        float ManhattanDistance( float3 a, float3 b )
+        { return dot( abs( a - b ), 1.0 ); }
 
         // Bit operations
         uint ReverseBits4( uint x )
@@ -1093,15 +1107,18 @@ namespace STL
             return c.xyz * exp2( c.w * 255.0 - 128.0 );
         }
 
-        // Octahedron packing for unit vectors - xonverts a 3D unit vector to a 2D vector with [0; 1] range
+        // Octahedron packing for unit vectors
         // https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
         // [Cigolle 2014, "A Survey of Efficient Representations for Independent Unit Vectors"]
+        // Error ( deg )
         //                    Mean      Max
-        // oct     8:8        0.33709   0.94424
+        // oct     8:8        0.31485   0.63575
         // snorm   8:8:8      0.17015   0.38588
-        // oct     10:10      0.08380   0.23467
+        // oct     10:10      0.07829   0.15722
         // snorm   10:10:10   0.04228   0.09598
-        // oct     12:12      0.02091   0.05874
+        // oct     12:12      0.01953   0.03928
+        // oct     16:16      0.00122   0.00246
+        // snorm   16:16:16   0.00066   0.00149
         float2 EncodeUnitVector( float3 v, compiletime const bool bSigned = false )
         {
             v /= dot( abs( v ), 1.0 );
@@ -1543,20 +1560,41 @@ namespace STL
 
     /*
     LINKS:
+    https://www.pbr-book.org/3ed-2018/contents
     https://google.github.io/filament/Filament.html#materialsystem/specularbrdf
     https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
     https://blog.selfshadow.com/publications/
     */
 
-    // "roughness" (aka "alpha", aka "m") = specular or real roughness
-    // "linearRoughness" (aka "perceptual roughness", aka "artistic roughness") = sqrt( roughness )
-    // G1 = G1(V, m) is % visible in one direction
-    // G2 = G2(L, V, m) is % visible in two directions (in practice, derived from G1)
-    // G2(uncorellated) = G1(L, m) * G1(V, m)
-    // Specular BRDF = F * D * G2 / (4.0 * NoV * NoL)
+    // "roughness" ( aka "alpha", aka "m" ) = specular or real roughness
+    // "linearRoughness" ( aka "perceptual roughness", aka "artistic roughness" ) = sqrt( roughness )
+    // G1 = G1( V, m ) is % visible in one direction
+    // G2 = G2( L, V, m ) is % visible in two directions ( in practice, derived from G1 )
+    // G2( uncorellated ) = G1( L, m ) * G1( V, m )
+    // Specular BRDF = F * D * G2 / ( 4.0 * NoV * NoL )
 
     namespace BRDF
     {
+        //======================================================================================================================
+        // Constants
+        //======================================================================================================================
+
+        namespace IOR
+        {
+            static const float Vacuum      = 1.0;
+            static const float Air         = 1.00029; // at sea level
+            static const float Ice         = 1.31;
+            static const float Water       = 1.333;
+            static const float Quartz      = 1.46;
+            static const float Glass       = 1.55;
+            static const float Sapphire    = 1.77;
+            static const float Diamond     = 2.42;
+        };
+
+        //======================================================================================================================
+        // Misc
+        //======================================================================================================================
+
         float Pow5( float x )
         { return Math::Pow01( 1.0 - x, 5.0 ); }
 
@@ -1708,7 +1746,7 @@ namespace STL
 
         //======================================================================================================================
         // Geometry terms - how much the microfacet is blocked by other microfacet
-        // G(mod) = G / ( 4.0 * NoV * NoL ): BRDF = F * D * G / (4 * NoV * NoL) => BRDF = F * D * Gmod
+        // G(mod) = G / ( 4.0 * NoV * NoL ): BRDF = F * D * G / ( 4 * NoV * NoL ) => BRDF = F * D * Gmod
         //======================================================================================================================
 
         float GeometryTermMod_Implicit( float linearRoughness, float NoL, float NoV, float VoH, float NoH )
@@ -1812,6 +1850,21 @@ namespace STL
             float3 c = ( g * VoNH + k ) / ( g * VoNH - k );
 
             return 0.5 * a * a * ( c * c + 1.0 );
+        }
+
+        // http://www.pbr-book.org/3ed-2018/Reflection_Models/Specular_Reflection_and_Transmission.html
+        // eta - relative index of refraction "from" / "to"
+        float FresnelTerm_Dielectric( float eta, float VoN )
+        {
+            float saSq = eta * eta * ( 1.0 - VoN * VoN );
+
+            // Cosine of angle between negative normal and transmitted direction ( 0 for total internal reflection )
+            float ca = Math::Sqrt01( 1.0 - saSq );
+
+            float Rs = ( eta * VoN - ca ) * STL::Math::PositiveRcp( eta * VoN + ca );
+            float Rp = ( eta * ca - VoN ) * STL::Math::PositiveRcp( eta * ca + VoN );
+
+            return 0.5 * ( Rs * Rs + Rp * Rp );
         }
 
         float3 FresnelTerm( float3 Rf0, float VoNH )
@@ -2238,6 +2291,13 @@ namespace STL
 
 /*
 History:
+
+v1.8:
+- introduced Constants section in BRDF namespace
+- added Fresnel for dielectrics
+
+v1.7:
+- added Euclidean & Manhattan distance
 
 v1.6:
 - introduced STL_EPS and STL_SMALL_EPS
