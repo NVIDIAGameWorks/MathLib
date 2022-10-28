@@ -580,9 +580,11 @@ struct half_float
 {
     uint16_t us;
 
-    PLATFORM_INLINE half_float()
-    {
-    }
+    PLATFORM_INLINE half_float() : us(0)
+    {}
+
+    PLATFORM_INLINE half_float(uint16_t x) : us(x)
+    {}
 
     PLATFORM_INLINE half_float(float x)
     {
@@ -598,11 +600,6 @@ struct half_float
             us = (uint16_t)Packed::ToPacked<F16_M_BITS, F16_E_BITS, F16_S_MASK>(x);
 
         #endif
-    }
-
-    PLATFORM_INLINE half_float(uint16_t x) :
-        us(x)
-    {
     }
 
     PLATFORM_INLINE operator float() const

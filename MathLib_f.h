@@ -30,17 +30,14 @@ class float2
 
         // NOTE: constructors
 
-        PLATFORM_INLINE float2()
-        {
-        }
+        PLATFORM_INLINE float2() : x(0.0f), y(0.0f)
+        {}
 
         PLATFORM_INLINE float2(float a, float b) : x(a), y(b)
-        {
-        }
+        {}
 
         PLATFORM_INLINE float2(float a) : x(a), y(a)
-        {
-        }
+        {}
 
         PLATFORM_INLINE float2(const float2& v) = default;
 
@@ -253,9 +250,8 @@ class float3
 
         // NOTE: constructors
 
-        PLATFORM_INLINE float3()
-        {
-        }
+        PLATFORM_INLINE float3() : xmm( v4f_zero )
+        {}
 
         PLATFORM_INLINE float3(float a, float b, float c)
         {
@@ -268,16 +264,14 @@ class float3
         }
 
         PLATFORM_INLINE float3(float a) : xmm( _mm_broadcast_ss(&a) )
-        {
-        }
+        {}
+
+        PLATFORM_INLINE float3(const v4f& vec) : xmm(vec)
+        {}
 
         PLATFORM_INLINE float3(const float* v3)
         {
             xmm = float3(v3[0], v3[1], v3[2]).xmm;
-        }
-
-        PLATFORM_INLINE float3(const v4f& vec) : xmm(vec)
-        {
         }
 
         PLATFORM_INLINE float3(const float3& v) = default;
@@ -514,25 +508,20 @@ class float4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE float4()
-        {
-        }
+        PLATFORM_INLINE float4() : xmm( v4f_zero )
+        {}
 
         PLATFORM_INLINE float4(float a) : xmm( _mm_broadcast_ss(&a) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE float4(float a, float b, float c, float d) : xmm( v4f_set(a, b, c, d) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE float4(float a, float b, float c) : xmm( v4f_set(a, b, c, 1.0f) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE float4(const float* v4) : xmm( _mm_loadu_ps(v4) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE float4(const float4& v) = default;
 
@@ -1014,9 +1003,12 @@ class float4x4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE float4x4()
-        {
-        }
+        PLATFORM_INLINE float4x4() :
+            col0( v4f_zero )
+            , col1( v4f_zero )
+            , col2( v4f_zero )
+            , col3( v4f_zero )
+        {}
 
         PLATFORM_INLINE float4x4
         (

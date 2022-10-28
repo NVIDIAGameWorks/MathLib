@@ -30,25 +30,21 @@ class double3
 
         // NOTE: constructors
 
-        PLATFORM_INLINE double3()
-        {
-        }
+        PLATFORM_INLINE double3() : ymm( v4d_zero )
+        {}
 
         PLATFORM_INLINE double3(double a, double b, double c) : ymm( v4d_set(a, b, c, 0.0) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE double3(double a) : ymm( _mm256_broadcast_sd(&a) )
-        {
-        }
+        {}
+
+        PLATFORM_INLINE double3(const v4d& vec) : ymm(vec)
+        {}
 
         PLATFORM_INLINE double3(const double* v3)
         {
             ymm = double3(v3[0], v3[1], v3[2]).ymm;
-        }
-
-        PLATFORM_INLINE double3(const v4d& vec) : ymm(vec)
-        {
         }
 
         PLATFORM_INLINE double3(const double3& v) = default;
@@ -285,25 +281,20 @@ class double4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE double4()
-        {
-        }
+        PLATFORM_INLINE double4() : ymm( v4d_zero )
+        {}
 
         PLATFORM_INLINE double4(double a) : ymm( _mm256_broadcast_sd(&a) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE double4(double a, double b, double c, double d) : ymm( v4d_set(a, b, c, d) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE double4(const double* v4) : ymm( _mm256_loadu_pd(v4) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE double4(const v4d& m) : ymm(m)
-        {
-        }
+        {}
 
         PLATFORM_INLINE double4(const double4& v) = default;
 
@@ -776,9 +767,12 @@ class double4x4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE double4x4()
-        {
-        }
+        PLATFORM_INLINE double4x4() :
+            col0( v4d_zero )
+            , col1( v4d_zero )
+            , col2( v4d_zero )
+            , col3( v4d_zero )
+        {}
 
         PLATFORM_INLINE double4x4
         (

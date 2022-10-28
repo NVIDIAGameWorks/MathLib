@@ -2,8 +2,8 @@
 
 #define MATHLIB 1
 #define MATHLIB_MAJOR 1
-#define MATHLIB_MINOR 7
-#define MATHLIB_DATE "25 May 2022"
+#define MATHLIB_MINOR 8
+#define MATHLIB_DATE "28 October 2022"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
@@ -324,13 +324,11 @@ class int2
 
     public:
 
-        PLATFORM_INLINE int2()
-        {
-        }
+        PLATFORM_INLINE int2() : x(0), y(0)
+        {}
 
         PLATFORM_INLINE int2(int32_t a, int32_t b) : x(a), y(b)
-        {
-        }
+        {}
 };
 
 class uint2
@@ -352,17 +350,14 @@ class uint2
 
     public:
 
-        PLATFORM_INLINE uint2()
-        {
-        }
+        PLATFORM_INLINE uint2() : x(0), y(0)
+        {}
 
         PLATFORM_INLINE uint2(uint32_t a, uint32_t b) : x(a), y(b)
-        {
-        }
+        {}
 
         PLATFORM_INLINE uint2(const float2& v) : x( uint32_t(v.x) ), y( uint32_t(v.y) )
-        {
-        }
+        {}
 };
 
 class int4
@@ -391,25 +386,20 @@ class int4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE int4()
-        {
-        }
+        PLATFORM_INLINE int4() : xmm( _mm_setzero_si128() )
+        {}
 
         PLATFORM_INLINE int4(int32_t a) : xmm( _mm_set1_epi32(a) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE int4(int32_t a, int32_t b, int32_t c, int32_t d) : xmm( _mm_setr_epi32(a, b, c, d) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE int4(const int32_t* v4) : xmm( _mm_loadu_si128((v4i*)v4) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE int4(const v4i& vec) : xmm(vec)
-        {
-        }
+        {}
 
         // NOTE: set
 
@@ -466,25 +456,20 @@ class uint4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE uint4()
-        {
-        }
+        PLATFORM_INLINE uint4() : xmm( _mm_setzero_si128() )
+        {}
 
         PLATFORM_INLINE uint4(int32_t a) : xmm( _mm_set1_epi32(a) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE uint4(int32_t a, int32_t b, int32_t c, int32_t d) : xmm( _mm_setr_epi32(a, b, c, d) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE uint4(const int32_t* v4) : xmm( _mm_loadu_si128((v4i*)v4) )
-        {
-        }
+        {}
 
         PLATFORM_INLINE uint4(const v4i& vec) : xmm(vec)
-        {
-        }
+        {}
 
         // NOTE: set
 
@@ -524,17 +509,14 @@ union uFloat
     float f;
     uint32_t i;
 
-    PLATFORM_INLINE uFloat()
-    {
-    }
+    PLATFORM_INLINE uFloat() : i(0)
+    {}
 
     PLATFORM_INLINE uFloat(float x) : f(x)
-    {
-    }
+    {}
 
     PLATFORM_INLINE uFloat(uint32_t x) : i(x)
-    {
-    }
+    {}
 
     PLATFORM_INLINE void Abs()
     {
@@ -588,17 +570,14 @@ union uDouble
     double f;
     uint64_t i;
 
-    PLATFORM_INLINE uDouble()
-    {
-    }
+    PLATFORM_INLINE uDouble() : i(0)
+    {}
 
     PLATFORM_INLINE uDouble(double x) : f(x)
-    {
-    }
+    {}
 
     PLATFORM_INLINE uDouble(uint64_t x) : i(x)
-    {
-    }
+    {}
 
     PLATFORM_INLINE bool IsNegative() const
     {
@@ -814,13 +793,13 @@ struct sFastRand
     // Copyright (c) 2012, Ivan Dimkovic, http://www.digicortex.net/node/22
     // MWC1616: http://www.helsbreth.org/random/rng_mwc1616.html
 
-    v4i m_a;
-    v4i m_b;
+    v4i m_a = _mm_setzero_si128();
+    v4i m_b = _mm_setzero_si128();
 
     // NOTE: scalar part
     // https://software.intel.com/en-us/articles/fast-random-number-generator-on-the-intel-pentiumr-4-processor
 
-    uint32_t m_uiSeed;
+    uint32_t m_uiSeed = 0;
 
     PLATFORM_INLINE sFastRand()
     {
@@ -2274,15 +2253,11 @@ class cFrustum
 {
     private:
 
-        float4 m_vPlane[PLANES_NUM];
-        float4x4 m_mPlanesT;
-        v4f m_vMask[PLANES_NUM];
+        float4 m_vPlane[PLANES_NUM] = {};
+        float4x4 m_mPlanesT = {};
+        v4f m_vMask[PLANES_NUM] = {};
 
     public:
-
-        PLATFORM_INLINE cFrustum()
-        {
-        }
 
         PLATFORM_INLINE void Setup(uint8_t ucNdcDepthRange, const float4x4& mMvp)
         {
