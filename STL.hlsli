@@ -11,23 +11,33 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #ifndef STL_H
 #define STL_H
 
-#define STL_VERSION_MAJOR 1
-#define STL_VERSION_MINOR 8
-
+//===========================================================================================================================
 // Settings
+//===========================================================================================================================
+
+// Math
 #define STL_SIGN_DEFAULT                            STL_SIGN_FAST
 #define STL_SQRT_DEFAULT                            STL_SQRT_SAFE
 #define STL_RSQRT_DEFAULT                           STL_POSITIVE_RSQRT_ACCURATE_SAFE
 #define STL_POSITIVE_RCP_DEFAULT                    STL_POSITIVE_RCP_ACCURATE_SAFE
-#define STL_LUMINANCE_DEFAULT                       STL_LUMINANCE_BT601
-#define STL_RNG_DEFAULT                             STL_RNG_MANTISSA_BITS
-#define STL_BAYER_DEFAULT                           STL_BAYER_REVERSEBITS
-#define STL_SPECULAR_DOMINANT_DIRECTION_DEFAULT     STL_SPECULAR_DOMINANT_DIRECTION_APPROX
-
-#define STL_RF0_DIELECTRICS                         0.04
-#define STL_GTR_GAMMA                               1.5
 #define STL_SMALL_EPS                               1e-15
 #define STL_EPS                                     1e-6
+
+// Color
+#define STL_LUMINANCE_DEFAULT                       STL_LUMINANCE_BT601
+
+// BRDF
+#define STL_SPECULAR_DOMINANT_DIRECTION_DEFAULT     STL_SPECULAR_DOMINANT_DIRECTION_APPROX
+#define STL_RF0_DIELECTRICS                         0.04
+#define STL_GTR_GAMMA                               1.5
+
+// Text
+#define STL_TEXT_DIGIT_FORMAT                       10000
+#define STL_TEXT_WITH_NICE_ONE_PIXEL_BACKGROUND     0
+
+// Other
+#define STL_RNG_DEFAULT                             STL_RNG_MANTISSA_BITS
+#define STL_BAYER_DEFAULT                           STL_BAYER_REVERSEBITS
 
 #define compiletime
 
@@ -2285,57 +2295,461 @@ namespace STL
             return Color::YCoCgToLinear( float3( Y, CoCg ) );
         }
     }
+
+    //=======================================================================================================================
+    // TEXT
+    //=======================================================================================================================
+
+    namespace Text
+    {
+        //===================================================================================================================
+        // Constants
+        //===================================================================================================================
+
+        static const uint Char_0            = 0;
+        static const uint Char_Minus        = 10;
+        static const uint Char_Dot          = 11;
+        static const uint Char_Space        = 12;
+        static const uint Char_Ampersand    = 13;
+        static const uint Char_A            = 14;
+
+        //===================================================================================================================
+        // Private
+        //===================================================================================================================
+
+        static const uint CHAR_W            = 5;
+        static const uint CHAR_H            = 6;
+
+        static const uint BACKGROUND        = 1;
+        static const uint FOREGROUND        = 2;
+
+        #define X                           1
+        #define _                           0
+
+        #define CHAR( a1, a2, a3, a4, a5, \
+                      b1, b2, b3, b4, b5, \
+                      c1, c2, c3, c4, c5, \
+                      d1, d2, d3, d4, d5, \
+                      e1, e2, e3, e4, e5, \
+                      f1, f2, f3, f4, f5 )        ( ( a1 <<  0 ) | ( a2 <<  1 ) | ( a3 <<  2 ) | ( a4 <<  3 ) | ( a5 <<  4 ) | \
+                                                    ( b1 <<  5 ) | ( b2 <<  6 ) | ( b3 <<  7 ) | ( b4 <<  8 ) | ( b5 <<  9 ) | \
+                                                    ( c1 << 10 ) | ( c2 << 11 ) | ( c3 << 12 ) | ( c4 << 13 ) | ( c5 << 14 ) | \
+                                                    ( d1 << 15 ) | ( d2 << 16 ) | ( d3 << 17 ) | ( d4 << 18 ) | ( d5 << 19 ) | \
+                                                    ( e1 << 20 ) | ( e2 << 21 ) | ( e3 << 22 ) | ( e4 << 23 ) | ( e5 << 24 ) | \
+                                                    ( f1 << 25 ) | ( f2 << 26 ) | ( f3 << 27 ) | ( f4 << 28 ) | ( f5 << 29 ) )
+
+        static const uint font[ ] =
+        {
+            CHAR( _, X, X, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  _, X, X, X, _ ),
+
+            CHAR( _, _, _, _, X,
+                  _, _, _, X, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X ),
+
+            CHAR( X, X, X, X, _,
+                  _, _, _, _, X,
+                  X, X, X, X, X,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, X, X, X, X ),
+
+            CHAR( X, X, X, X, _,
+                  _, _, _, _, X,
+                  _, X, X, X, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  X, X, X, X, _ ),
+
+            CHAR( X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, X, X, X, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X ),
+
+            CHAR( X, X, X, X, _,
+                  X, _, _, _, _,
+                  X, X, X, X, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  X, X, X, X, _ ),
+
+            CHAR( _, X, X, X, X,
+                  X, _, _, _, _,
+                  X, X, X, X, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, X, X, X, _ ),
+
+            CHAR( _, X, X, X, _,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X ),
+
+            CHAR( _, X, X, X, _,
+                  X, _, _, _, X,
+                  X, X, X, X, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  _, X, X, X, _ ),
+
+            CHAR( _, X, X, X, _,
+                  X, _, _, _, X,
+                  X, X, X, X, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  X, X, X, X, _ ),
+
+            CHAR( _, _, _, _, _,
+                  _, _, _, _, _,
+                  X, X, X, X, X,
+                  _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, _, _, _ ),
+
+            CHAR( _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, X, _, _ ),
+
+            CHAR( _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, _, _, _,
+                  _, _, _, _, _ ),
+
+            CHAR( _, _, X, _, _,
+                  _, X, _, X, _,
+                  _, _, X, _, _,
+                  _, X, _, X, _,
+                  X, _, _, X, _,
+                  _, X, X, _, X ),
+
+            CHAR( _, _, X, X, X,
+                  _, X, _, _, X,
+                  X, _, _, _, X,
+                  X, X, X, X, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X ),
+
+            CHAR( X, X, X, X, _,
+                  X, _, _, _, X,
+                  X, X, X, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, X, X, X, _ ),
+
+            CHAR( _, X, X, X, X,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  _, X, X, X, X ),
+
+            CHAR( X, X, X, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, X, X, X, _ ),
+
+            CHAR( X, X, X, X, X,
+                  X, _, _, _, _,
+                  X, X, X, X, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, X, X, X, X ),
+
+            CHAR( X, X, X, X, X,
+                  X, _, _, _, _,
+                  X, X, X, X, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _ ),
+
+            CHAR( _, X, X, X, X,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, _, _, X, X,
+                  X, _, _, _, X,
+                  _, X, X, X, X ),
+
+            CHAR( X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, X, X, X, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X ),
+
+            CHAR( _, X, X, X, _,
+                  _, _, X, _, _,
+                  _, _, X, _, _,
+                  _, _, X, _, _,
+                  _, _, X, _, _,
+                  _, X, X, X, _ ),
+
+            CHAR( _, _, _, _, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  X, _, _, _, X,
+                  _, X, X, X, _ ),
+
+            CHAR( X, _, _, _, X,
+                  X, _, _, X, _,
+                  X, X, X, _, _,
+                  X, _, _, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X ),
+
+            CHAR( X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _,
+                  X, X, X, X, X ),
+
+            CHAR( X, _, _, _, X,
+                  X, X, _, X, X,
+                  X, _, X, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X ),
+
+            CHAR( X, _, _, _, X,
+                  X, X, _, _, X,
+                  X, _, X, _, X,
+                  X, _, _, X, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X ),
+
+            CHAR( _, X, X, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  _, X, X, X, _ ),
+
+            CHAR( X, X, X, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, X, X, X, _,
+                  X, _, _, _, _,
+                  X, _, _, _, _ ),
+
+            CHAR( _, X, X, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, X, _, X,
+                  X, _, _, X, _,
+                  _, X, X, _, X ),
+
+            CHAR( X, X, X, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, X, X, X, _,
+                  X, _, _, X, _,
+                  X, _, _, _, X ),
+
+            CHAR( _, X, X, X, X,
+                  X, _, _, _, _,
+                  _, X, X, X, _,
+                  _, _, _, _, X,
+                  _, _, _, _, X,
+                  X, X, X, X, _ ),
+
+            CHAR( X, X, X, X, X,
+                  _, _, X, _, _,
+                  _, _, X, _, _,
+                  _, _, X, _, _,
+                  _, _, X, _, _,
+                  _, _, X, _, _ ),
+
+            CHAR( X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  _, X, X, X, _ ),
+
+            CHAR( X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, _, _, X,
+                  _, X, _, X, _,
+                  _, _, X, _, _ ),
+
+            CHAR( X, _, _, _, X,
+                  X, _, _, _, X,
+                  X, _, X, _, X,
+                  X, _, X, _, X,
+                  X, X, X, X, X,
+                  _, X, _, X, _ ),
+
+            CHAR( X, _, _, _, X,
+                  _, X, _, X, _,
+                  _, _, X, _, _,
+                  _, X, _, X, _,
+                  X, _, _, _, X,
+                  X, _, _, _, X ),
+
+            CHAR( X, _, _, _, X,
+                  _, X, _, X, _,
+                  _, X, _, X, _,
+                  _, _, X, _, _,
+                  _, _, X, _, _,
+                  _, _, X, _, _ ),
+
+            CHAR( X, X, X, X, X,
+                  _, _, _, X, _,
+                  _, _, X, _, _,
+                  _, X, _, _, _,
+                  X, _, _, _, _,
+                  X, X, X, X, X ),
+        };
+
+        #undef CHAR
+        #undef _
+        #undef X
+
+        #if( STL_TEXT_WITH_NICE_ONE_PIXEL_BACKGROUND == 1 )
+
+            #define _RenderChar( ch )  \
+                if( all( int2( state.xy ) >= -int( state.z ) && int2( state.xy ) < int2( CHAR_W + 1, CHAR_H + 1 ) * int( state.z ) ) ) \
+                { \
+                    state.w = BACKGROUND; \
+                    if( all( state.xy < uint2( CHAR_W, CHAR_H ) * state.z ) ) \
+                    { \
+                        uint2 p = state.xy / state.z; \
+                        uint bits = font[ ch ]; \
+                        uint bit = bits & ( 1u << ( p.y * CHAR_W + p.x ) ); \
+                        state.w = bit ? FOREGROUND : BACKGROUND; \
+                    } \
+                }
+
+        #else
+
+            #define _RenderChar( ch )  \
+                [flatten] \
+                if( all( state.xy < uint2( CHAR_W, CHAR_H ) * state.z ) ) \
+                { \
+                    uint2 p = state.xy / state.z; \
+                    uint bits = font[ ch ]; \
+                    uint bit = bits & ( 1u << ( p.y * CHAR_W + p.x ) ); \
+                    state.w = bit ? FOREGROUND : BACKGROUND; \
+                }
+
+        #endif
+
+        //===================================================================================================================
+        // Interface
+        //===================================================================================================================
+
+        uint4 Init( uint2 pixelPos, uint2 origin, uint scale )
+        {
+            uint4 state;
+            state.xy = pixelPos - origin;
+            state.z = scale;
+            state.w = 0;
+
+            return state;
+        }
+
+        bool IsBackground( uint4 state )
+        { return state.w == BACKGROUND; }
+
+        bool IsForeground( uint4 state )
+        { return state.w == FOREGROUND; }
+
+        void NextChar( inout uint4 state )
+        { state.x -= ( CHAR_W + 1 ) * state.z; }
+
+        void NextDigit( inout uint4 state )
+        { state.x += ( CHAR_W + 1 ) * state.z; }
+
+        void Print_ui( uint x, inout uint4 state )
+        {
+            while( x )
+            {
+                uint a = x / 10;
+                uint digit = x - a * 10;
+
+                NextDigit( state );
+                _RenderChar( digit );
+
+                x = a;
+            }
+        }
+
+        void Print_i( int x, inout uint4 state )
+        {
+            // Absolute value
+            Print_ui( abs( x ), state );
+
+            // Minus
+            if( x < 0 )
+            {
+                NextDigit( state );
+                _RenderChar( Char_Minus );
+            }
+        }
+
+        void Print_f( float x, inout uint4 state )
+        {
+            // Fractional part
+            uint f = uint( frac( abs( x ) ) * STL_TEXT_DIGIT_FORMAT + 0.5 );
+            Print_ui( f, state );
+
+            // Zeros after dot
+            [unroll]
+            for( uint n = 10; n < STL_TEXT_DIGIT_FORMAT; n *= 10 )
+            {
+                if( f < n )
+                {
+                    NextDigit( state );
+                    _RenderChar( Char_0 );
+                }
+            }
+
+            // Dot
+            NextDigit( state );
+            _RenderChar( Char_Dot );
+
+            // Integer part
+            int i = int( floor( x ) + 0.5 );
+            Print_i( i, state );
+        }
+
+        void Print_ch( uint ch, inout uint4 state )
+        {
+            if( ch == Char_Minus || ch == '-' )
+                ch = Char_Minus;
+            else if( ch == Char_Dot || ch == '.' )
+                ch = Char_Dot;
+            else if( ch == Char_Space || ch == ' ' )
+                ch = Char_Space;
+            else if( ch == Char_Ampersand || ch == '&' )
+                ch = Char_Ampersand;
+            else
+                ch = Char_A + ch - 'A';
+
+            _RenderChar( ch );
+            NextChar( state );
+        }
+    }
 }
 
 #endif
-
-/*
-History:
-
-v1.8:
-- introduced Constants section in BRDF namespace
-- added Fresnel for dielectrics
-
-v1.7:
-- added Euclidean & Manhattan distance
-
-v1.6:
-- introduced STL_EPS and STL_SMALL_EPS
-
-v1.5:
-- found source of "EnvironmentTerm_Unknown"
-- massaged "VNDF::GetPDF"
-- improved SH resolve
-- refactored color clamping
-- fixed incorrect UNORM to SNORM coversion in "UnpackLocalNormal"
-
-v1.4:
-- added "float" variants for some functions
-- "GetPDF" accepts NoV instead of vectors
-- added another pre-integrated env BRDF
-- fixed pre-integrated F-terms
-- switched to native "reversebits"
-- added float4 support for "GammaToLinear" and "LinearToGamma"
-- added option to keep back projection in "GetScreenUv"
-- better YCoCg
-- more flexible "Rng::Initialize"
-- fixed imprecision problem in "_ApplyBilinearCustomWeights"
-- added "atan" approximation
-- fixed numerical instabilities in "VNDF::GetPDF"
-- refactored oct-pack
-- added GetSpecularLobeTanHalfAngle
-- added "Add" and "Mul" operations to "SphericalHarmonics"
-
-v1.3:
-- fixed PDFs
-
-v1.2:
-- fixed messed up "roughness" and "linearRoughness" entities
-
-v1.1:
-- removed bicubic filter
-- added Catmull-Rom filter with custom weights
-- removed "STL::" inside the namespace
-- added tone mapping curves
-- added more specular dominant direction calculation variants
-*/
