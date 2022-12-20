@@ -630,7 +630,7 @@ namespace STL
             return p;
         }
 
-        float2 GetScreenUv( float4x4 worldToClip, float3 X, bool killBackprojection = true )
+        float2 GetScreenUv( float4x4 worldToClip, float3 X, bool killBackprojection = false )
         {
             float4 clip = Geometry::ProjectiveTransform( worldToClip, X );
             float2 uv = ( clip.xy / clip.w ) * float2( 0.5, -0.5 ) + 0.5;
