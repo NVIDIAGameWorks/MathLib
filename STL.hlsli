@@ -1517,6 +1517,7 @@ namespace STL
         #define STL_RNG_UTOF 0
         #define STL_RNG_MANTISSA_BITS 1
 
+        // TEA ( Tiny Encryption Algorithm )
         void Initialize( uint linearIndex, uint frameIndex, uint spinNum = 16 )
         {
             g_Seed.x = linearIndex;
@@ -1647,7 +1648,8 @@ namespace STL
         // [Burley 2012, "Physically-Based Shading at Disney"]
         float DiffuseTerm_Burley( float linearRoughness, float NoL, float NoV, float VoH )
         {
-            float f = 2.0 * VoH * VoH * linearRoughness - 0.5;
+            float m = linearRoughness * linearRoughness;
+            float f = 2.0 * VoH * VoH * m - 0.5;
             float FdV = f * Pow5( NoV ) + 1.0;
             float FdL = f * Pow5( NoL ) + 1.0;
             float d = FdV * FdL;

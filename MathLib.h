@@ -1,8 +1,8 @@
 #pragma once
 
 #define MATHLIB_VERSION_MAJOR 1
-#define MATHLIB_VERSION_MINOR 12
-#define MATHLIB_VERSION_DATE "19 January 2023"
+#define MATHLIB_VERSION_MINOR 13
+#define MATHLIB_VERSION_DATE "23 March 2023"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
