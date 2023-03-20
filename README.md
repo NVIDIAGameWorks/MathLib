@@ -1,4 +1,4 @@
-# MathLib v1.12
+# MathLib v1.13
 
 *MathLib* is a cross-platform header-only *SSE/AVX/NEON*-accelerated math library, designed for computer graphics.
 
