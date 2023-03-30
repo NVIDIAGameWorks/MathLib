@@ -24,7 +24,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_EPS                                     1e-6
 
 // Color
-#define STL_LUMINANCE_DEFAULT                       STL_LUMINANCE_BT601
+#define STL_LUMINANCE_DEFAULT                       STL_LUMINANCE_BT709
 
 // BRDF
 #define STL_SPECULAR_DOMINANT_DIRECTION_DEFAULT     STL_SPECULAR_DOMINANT_DIRECTION_APPROX
