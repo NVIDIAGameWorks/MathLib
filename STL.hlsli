@@ -36,7 +36,8 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_TEXT_WITH_NICE_ONE_PIXEL_BACKGROUND     0
 
 // Other
-#define STL_RNG_DEFAULT                             STL_RNG_MANTISSA_BITS
+#define STL_RNG_NEXT_MODE                           STL_RNG_HASH
+#define STL_RNG_FLOAT01_MODE                        STL_RNG_MANTISSA_BITS
 #define STL_BAYER_DEFAULT                           STL_BAYER_REVERSEBITS
 
 #define compiletime
@@ -1504,6 +1505,52 @@ namespace STL
         {
             return IntegerExplode( xy.x ) | ( IntegerExplode( xy.y ) << 1 );
         }
+
+        uint Lcg( uint x )
+        {
+            // http://en.wikipedia.org/wiki/Linear_congruential_generator
+            return 1664525u * x + 1013904223u;
+        }
+
+        uint XorShift( uint x )
+        {
+            // Xorshift algorithm from George Marsaglia's paper
+            x ^= x << 13;
+            x ^= x >> 17;
+            x ^= x << 5;
+
+            return x;
+        }
+
+        // NOTE: Hash( 0 ) = 0! If that's a problem do "Hash32( x + constant )". HashCombine does something similar already
+        uint Hash( uint x )
+        {
+            // This little gem is from https://nullprogram.com/blog/2018/07/31/, "Prospecting for Hash Functions" by Chris Wellons
+            #if 1 // faster, higher bias
+                x ^= x >> 16;
+                x *= 0x7FEB352D;
+                x ^= x >> 15;
+                x *= 0x846CA68B;
+                x ^= x >> 16;
+
+                return x;
+            #else // slower, lower bias
+                x ^= x >> 17;
+                x *= 0xED5AD4BB;
+                x ^= x >> 11;
+                x *= 0xAC4C1B51;
+                x ^= x >> 15;
+                x *= 0x31848BAB;
+                x ^= x >> 14;
+
+                return x;
+            #endif
+        }
+
+        uint HashCombine( uint seed, uint value )
+        {
+            return seed ^ ( Hash( value ) + 0x9E3779B9 + ( seed << 6 ) + ( seed >> 2 ) );
+        }
     }
 
     //=======================================================================================================================
@@ -1512,66 +1559,115 @@ namespace STL
 
     namespace Rng
     {
-        static uint2 g_Seed;
+        #define STL_RNG_LCG 0
+        #define STL_RNG_XORSHIFT 1
+        #define STL_RNG_HASH 2
+
+        uint _Next( uint seed )
+        {
+            #if( STL_RNG_NEXT_MODE == STL_RNG_LCG )
+                seed = Sequence::Lcg( seed );
+            #elif( STL_RNG_NEXT_MODE == STL_RNG_XORSHIFT )
+                seed = Sequence::XorShift( seed );
+            #else
+                seed = Sequence::Hash( seed );
+            #endif
+
+            return seed;
+        }
 
         #define STL_RNG_UTOF 0
         #define STL_RNG_MANTISSA_BITS 1
 
-        // TEA ( Tiny Encryption Algorithm )
-        void Initialize( uint linearIndex, uint frameIndex, uint spinNum = 16 )
-        {
-            g_Seed.x = linearIndex;
-            g_Seed.y = frameIndex;
+        #if( STL_RNG_FLOAT01_MODE == STL_RNG_UTOF )
+            #define _UintToFloat01( x ) ( ( x >> 8 ) * ( 1.0 / float( 1 << 24 ) ) )
+        #else
+            #define _UintToFloat01( x ) ( 2.0 - asfloat( ( x >> 9 ) | 0x3F800000 ) )
+        #endif
 
-            uint s = 0;
-            [unroll]
-            for( uint n = 0; n < spinNum; n++ )
+        // Tiny Encryption Algorithm
+        namespace Tea
+        {
+            static uint2 g_TeaSeed;
+
+            void Initialize( uint linearIndex, uint frameIndex, uint spinNum = 16 )
             {
-                s += 0x9E3779B9;
-                g_Seed.x += ( ( g_Seed.y << 4 ) + 0xA341316C ) ^ ( g_Seed.y + s ) ^ ( ( g_Seed.y >> 5 ) + 0xC8013EA4 );
-                g_Seed.y += ( ( g_Seed.x << 4 ) + 0xAD90777D ) ^ ( g_Seed.x + s ) ^ ( ( g_Seed.x >> 5 ) + 0x7E95761E );
+                g_TeaSeed.x = linearIndex;
+                g_TeaSeed.y = frameIndex;
+
+                uint s = 0;
+                [unroll]
+                for( uint n = 0; n < spinNum; n++ )
+                {
+                    s += 0x9E3779B9;
+                    g_TeaSeed.x += ( ( g_TeaSeed.y << 4 ) + 0xA341316C ) ^ ( g_TeaSeed.y + s ) ^ ( ( g_TeaSeed.y >> 5 ) + 0xC8013EA4 );
+                    g_TeaSeed.y += ( ( g_TeaSeed.x << 4 ) + 0xAD90777D ) ^ ( g_TeaSeed.x + s ) ^ ( ( g_TeaSeed.x >> 5 ) + 0x7E95761E );
+                }
             }
+
+            void Initialize( uint2 samplePos, uint frameIndex, uint spinNum = 16 )
+            { Initialize( Sequence::Zorder( samplePos ), frameIndex, spinNum ); }
+
+            uint GetUint( )
+            {
+                g_TeaSeed.x = _Next( g_TeaSeed.x );
+
+                return g_TeaSeed.x;
+            }
+
+            uint2 GetUint2( )
+            {
+                g_TeaSeed.x = _Next( g_TeaSeed.x );
+                g_TeaSeed.y = _Next( g_TeaSeed.y );
+
+                return g_TeaSeed;
+            }
+
+            uint4 GetUint4( )
+            { return float4( GetUint2( ), GetUint2( ) ); }
+
+            float GetFloat( )
+            { uint x = GetUint( ); return _UintToFloat01( x ); }
+
+            float2 GetFloat2( )
+            { uint2 x = GetUint2( ); return _UintToFloat01( x ); }
+
+            float4 GetFloat4( )
+            { uint4 x = GetUint4( ); return _UintToFloat01( x ); }
         }
 
-        void Initialize( uint2 samplePos, uint frameIndex, uint spinNum = 16 )
-        { Initialize( Sequence::Zorder( samplePos ), frameIndex, spinNum ); }
-
-        uint2 GetUint2( )
+        // Hash-based
+        namespace Hash
         {
-            #if 0
-                // http://en.wikipedia.org/wiki/Linear_congruential_generator
-                g_Seed = 1664525u * g_Seed + 1013904223u;
-            #else
-                // Xorshift algorithm from George Marsaglia's paper
-                g_Seed ^= g_Seed << 13;
-                g_Seed ^= g_Seed >> 17;
-                g_Seed ^= g_Seed << 5;
-            #endif
+            static uint g_HashSeed;
 
-            return g_Seed;
-        }
+            void Initialize( uint linearIndex, uint frameIndex )
+            { g_HashSeed = Sequence::HashCombine( Sequence::Hash( frameIndex + 0x035F9F29 ), linearIndex ); }
 
-        // RESULT: [0; 1)
-        float2 GetFloat2( compiletime const uint mode = STL_RNG_DEFAULT )
-        {
-            uint2 r = GetUint2( );
+            void Initialize( uint2 samplePos, uint frameIndex )
+            { Initialize( Sequence::Zorder( samplePos ), frameIndex ); }
 
-            if( mode == STL_RNG_MANTISSA_BITS )
-                return 2.0 - asfloat( ( r >> 9 ) | 0x3F800000 );
+            uint GetUint( )
+            {
+                g_HashSeed = _Next( g_HashSeed );
 
-            return float2( r >> 8 ) * ( 1.0 / float( 1 << 24 ) );
-        }
+                return g_HashSeed;
+            }
 
-        float4 GetFloat4( compiletime const uint mode = STL_RNG_DEFAULT )
-        {
-            uint4 r;
-            r.xy = GetUint2( );
-            r.zw = GetUint2( );
+            uint2 GetUint2( )
+            { return uint2( GetUint( ), GetUint( ) ); }
 
-            if( mode == STL_RNG_MANTISSA_BITS )
-                return 2.0 - asfloat( ( r >> 9 ) | 0x3F800000 );
+            uint4 GetUint4( )
+            { return float4( GetUint2( ), GetUint2( ) ); }
 
-            return float4( r >> 8 ) * ( 1.0 / float( 1 << 24 ) );
+            float GetFloat( )
+            { uint x = GetUint( ); return _UintToFloat01( x ); }
+
+            float2 GetFloat2( )
+            { uint2 x = GetUint2( ); return _UintToFloat01( x ); }
+
+            float4 GetFloat4( )
+            { uint4 x = GetUint4( ); return _UintToFloat01( x ); }
         }
     }
 
