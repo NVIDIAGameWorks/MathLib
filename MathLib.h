@@ -1,8 +1,8 @@
 #pragma once
 
 #define MATHLIB_VERSION_MAJOR 1
-#define MATHLIB_VERSION_MINOR 14
-#define MATHLIB_VERSION_DATE "5 April 2023"
+#define MATHLIB_VERSION_MINOR 15
+#define MATHLIB_VERSION_DATE "16 May 2023"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
@@ -189,7 +189,7 @@ enum eProjectionFlag
 {
     PROJ_ORTHO          = 0x00000001,
     PROJ_REVERSED_Z     = 0x00000002,
-    PROJ_LEFT_HANDED    = 0x00000004,
+    PROJ_POSITIVE_Z     = 0x00000004,
 };
 
 //======================================================================================================================
@@ -2680,24 +2680,21 @@ PLATFORM_INLINE float2 Halton2D( uint32_t idx )
 PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth, const float4x4& proj, uint32_t* puiFlags, float* pfSettings15, float* pfUnproject2, float* pfFrustum4, float* pfProject3, float* pfSafeNearZ)
 {
     float4 vPlane[PLANES_NUM];
-    bool bReversedZ = MvpToPlanes(ucNdcDepth, proj, vPlane);
+    bool bIsReversedZ = MvpToPlanes(ucNdcDepth, proj, vPlane);
 
     bool bIsOrtho = proj.a33 == 1.0f ? true : false;
+    bool bIsPositiveZ = proj.a22 > 0.0f;
 
     float fNearZ = -vPlane[PLANE_NEAR].w;
     float fFarZ = vPlane[PLANE_FAR].w;
 
     float x0, x1, y0, y1;
-    bool bLeftHanded;
-
     if( bIsOrtho )
     {
         x0 = -vPlane[PLANE_LEFT].w;
         x1 = vPlane[PLANE_RIGHT].w;
         y0 = -vPlane[PLANE_BOTTOM].w;
         y1 = vPlane[PLANE_TOP].w;
-
-        bLeftHanded = proj.a22 > 0.0f;
     }
     else
     {
@@ -2705,15 +2702,13 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
         x1 = vPlane[PLANE_RIGHT].z / vPlane[PLANE_RIGHT].x;
         y0 = vPlane[PLANE_BOTTOM].z / vPlane[PLANE_BOTTOM].y;
         y1 = vPlane[PLANE_TOP].z / vPlane[PLANE_TOP].y;
-
-        bLeftHanded = x0 > x1 && y0 > y1;
     }
 
     if( puiFlags )
     {
         *puiFlags = bIsOrtho ? PROJ_ORTHO : 0;
-        *puiFlags |= bReversedZ ? PROJ_REVERSED_Z : 0;
-        *puiFlags |= bLeftHanded ? PROJ_LEFT_HANDED : 0;
+        *puiFlags |= bIsReversedZ ? PROJ_REVERSED_Z : 0;
+        *puiFlags |= bIsPositiveZ ? PROJ_POSITIVE_Z : 0;
     }
 
     if( pfUnproject2 )
@@ -2789,14 +2784,6 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
 
     if( pfSettings15 )
     {
-        // NOTE: swap is possible, because it is the last pass...
-
-        if( bLeftHanded )
-        {
-            Swap(x0, x1);
-            Swap(y0, y1);
-        }
-
         float fAngleY0 = Atan(bIsOrtho ? 0.0f : y0);
         float fAngleY1 = Atan(bIsOrtho ? 0.0f : y1);
         float fAngleX0 = Atan(bIsOrtho ? 0.0f : x0);
@@ -2806,9 +2793,9 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
 
         pfSettings15[PROJ_ZNEAR]        = fNearZ;
         pfSettings15[PROJ_ZFAR]         = fFarZ;
-        pfSettings15[PROJ_ASPECT]       = fAspect;
-        pfSettings15[PROJ_FOVX]         = fAngleX1 - fAngleX0;
-        pfSettings15[PROJ_FOVY]         = fAngleY1 - fAngleY0;
+        pfSettings15[PROJ_ASPECT]       = Abs(fAspect);
+        pfSettings15[PROJ_FOVX]         = Abs(fAngleX1 - fAngleX0);
+        pfSettings15[PROJ_FOVY]         = Abs(fAngleY1 - fAngleY0);
         pfSettings15[PROJ_MINX]         = x0 * fNearZ;
         pfSettings15[PROJ_MAXX]         = x1 * fNearZ;
         pfSettings15[PROJ_MINY]         = y0 * fNearZ;
