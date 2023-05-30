@@ -1260,7 +1260,7 @@ class float4x4
 
             Swap(col1, col2);
 
-            if( (uiProjFlags & PROJ_POSITIVE_Z) == 0 )
+            if( (uiProjFlags & PROJ_LEFT_HANDED) == 0 )
                 col2 = v4f_negate(col2);
 
             Transpose3x4();
@@ -1270,7 +1270,7 @@ class float4x4
         {
             Transpose3x4();
 
-            if( (uiProjFlags & PROJ_POSITIVE_Z) == 0 )
+            if( (uiProjFlags & PROJ_LEFT_HANDED) == 0 )
                 col2 = v4f_negate(col2);
 
             Swap(col1, col2);
@@ -1785,7 +1785,7 @@ class float4x4
             a22 = Zbuffer::ModifyProjZ(bReverseZ, a22, a32);
             a23 = Zbuffer::ModifyProjZ(bReverseZ, a23, a33);
 
-            if( uiProjFlags & PROJ_POSITIVE_Z )
+            if( uiProjFlags & PROJ_LEFT_HANDED )
                 col2 = v4f_negate(col2);
         }
 
@@ -1823,7 +1823,7 @@ class float4x4
             a22 = Zbuffer::ModifyProjZ(bReverseZ, a22, a32);
             a23 = Zbuffer::ModifyProjZ(bReverseZ, a23, a33);
 
-            if( uiProjFlags & PROJ_POSITIVE_Z )
+            if( uiProjFlags & PROJ_LEFT_HANDED )
                 col2 = v4f_negate(col2);
         }
 
@@ -1860,7 +1860,7 @@ class float4x4
             a22 = Zbuffer::ModifyProjZ(bReverseZ, a22, a32);
             a23 = Zbuffer::ModifyProjZ(bReverseZ, a23, a33);
 
-            if( uiProjFlags & PROJ_POSITIVE_Z )
+            if( uiProjFlags & PROJ_LEFT_HANDED )
                 col2 = v4f_negate(col2);
         }
 

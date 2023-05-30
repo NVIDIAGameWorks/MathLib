@@ -2,7 +2,7 @@
 
 #define MATHLIB_VERSION_MAJOR 1
 #define MATHLIB_VERSION_MINOR 15
-#define MATHLIB_VERSION_DATE "16 May 2023"
+#define MATHLIB_VERSION_DATE "23 May 2023"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
@@ -189,7 +189,7 @@ enum eProjectionFlag
 {
     PROJ_ORTHO          = 0x00000001,
     PROJ_REVERSED_Z     = 0x00000002,
-    PROJ_POSITIVE_Z     = 0x00000004,
+    PROJ_LEFT_HANDED    = 0x00000004,
 };
 
 //======================================================================================================================
@@ -1309,7 +1309,7 @@ template<> PLATFORM_INLINE double3 Snap(const double3& x, const double3& step)
 
 template<eCmp cmp, class T> PLATFORM_INLINE bool All(const T&, const T&)
 {
-    DEBUG_StaticAssertMsg(false, "All::only vector types supported");
+    DEBUG_StaticAssertMsg(sizeof(T) == 0, "All::only vector types supported");
 
     return false;
 }
@@ -1346,7 +1346,7 @@ template<eCmp cmp> PLATFORM_INLINE bool All(const double4& x, const double4& y)
 
 template<eCmp cmp, class T> PLATFORM_INLINE bool Any(const T&, const T&)
 {
-    DEBUG_StaticAssertMsg(false, "Any::only vector types supported");
+    DEBUG_StaticAssertMsg(sizeof(T) == 0, "Any::only vector types supported");
 
     return false;
 }
@@ -1982,19 +1982,19 @@ template<> PLATFORM_INLINE double4 Exp(const double4& x)
 
 template<class T> PLATFORM_INLINE T Pi(const T& mul)
 {
-    DEBUG_StaticAssertMsg(false, "Pi::only floating point types are supported!");
+    DEBUG_StaticAssertMsg(sizeof(T) == 0, "Pi::only floating point types are supported!");
     return mul;
 }
 
 template<class T> PLATFORM_INLINE T RadToDeg(const T& a)
 {
-    DEBUG_StaticAssertMsg(false, "RadToDeg::only floating point types are supported!");
+    DEBUG_StaticAssertMsg(sizeof(T) == 0, "RadToDeg::only floating point types are supported!");
     return a;
 }
 
 template<class T> PLATFORM_INLINE T DegToRad(const T& a)
 {
-    DEBUG_StaticAssertMsg(false, "DegToRad::only floating point types are supported!");
+    DEBUG_StaticAssertMsg(sizeof(T) == 0, "DegToRad::only floating point types are supported!");
     return a;
 }
 
@@ -2680,10 +2680,9 @@ PLATFORM_INLINE float2 Halton2D( uint32_t idx )
 PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth, const float4x4& proj, uint32_t* puiFlags, float* pfSettings15, float* pfUnproject2, float* pfFrustum4, float* pfProject3, float* pfSafeNearZ)
 {
     float4 vPlane[PLANES_NUM];
-    bool bIsReversedZ = MvpToPlanes(ucNdcDepth, proj, vPlane);
+    bool bReversedZ = MvpToPlanes(ucNdcDepth, proj, vPlane);
 
     bool bIsOrtho = proj.a33 == 1.0f ? true : false;
-    bool bIsPositiveZ = proj.a22 > 0.0f;
 
     float fNearZ = -vPlane[PLANE_NEAR].w;
     float fFarZ = vPlane[PLANE_FAR].w;
@@ -2695,6 +2694,9 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
         x1 = vPlane[PLANE_RIGHT].w;
         y0 = -vPlane[PLANE_BOTTOM].w;
         y1 = vPlane[PLANE_TOP].w;
+
+        if( proj.a11 < 0.0f )
+            Swap(y0, y1);
     }
     else
     {
@@ -2704,11 +2706,17 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
         y1 = vPlane[PLANE_TOP].z / vPlane[PLANE_TOP].y;
     }
 
+    //const float3& col2 = bReversedZ ? proj.col3 : proj.col2;//LengthSquared( float3(proj.col2) ) == 0.0f ? proj.col3 : proj.col2;
+    float4 clip = proj * float4(0.0f, 0.0f, fNearZ, 1.0f);
+    float3 col2 = bIsOrtho ? float3(proj.col2) * (bReversedZ ? -1.0f : 1.0f) : float3(0.0f, 0.0f, clip.w > 0.0f ? 1.0f : -1.0f);
+    bool cmp = Dot33(Cross(proj.col0, proj.col1), col2) > 0.0f;
+    bool bLeftHanded = proj.a11 > 0.0f ? cmp : !cmp;
+
     if( puiFlags )
     {
         *puiFlags = bIsOrtho ? PROJ_ORTHO : 0;
-        *puiFlags |= bIsReversedZ ? PROJ_REVERSED_Z : 0;
-        *puiFlags |= bIsPositiveZ ? PROJ_POSITIVE_Z : 0;
+        *puiFlags |= bReversedZ ? PROJ_REVERSED_Z : 0;
+        *puiFlags |= bLeftHanded ? PROJ_LEFT_HANDED : 0;
     }
 
     if( pfUnproject2 )
@@ -2784,6 +2792,13 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
 
     if( pfSettings15 )
     {
+        // NOTE: swap is possible, because it is the last pass...
+        if( x0 > x1 )
+            Swap(x0, x1);
+
+        if( y0 > y1 )
+            Swap(y0, y1);
+
         float fAngleY0 = Atan(bIsOrtho ? 0.0f : y0);
         float fAngleY1 = Atan(bIsOrtho ? 0.0f : y1);
         float fAngleX0 = Atan(bIsOrtho ? 0.0f : x0);
@@ -2793,9 +2808,9 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
 
         pfSettings15[PROJ_ZNEAR]        = fNearZ;
         pfSettings15[PROJ_ZFAR]         = fFarZ;
-        pfSettings15[PROJ_ASPECT]       = Abs(fAspect);
-        pfSettings15[PROJ_FOVX]         = Abs(fAngleX1 - fAngleX0);
-        pfSettings15[PROJ_FOVY]         = Abs(fAngleY1 - fAngleY0);
+        pfSettings15[PROJ_ASPECT]       = fAspect;
+        pfSettings15[PROJ_FOVX]         = fAngleX1 - fAngleX0;
+        pfSettings15[PROJ_FOVY]         = fAngleY1 - fAngleY0;
         pfSettings15[PROJ_MINX]         = x0 * fNearZ;
         pfSettings15[PROJ_MAXX]         = x1 * fNearZ;
         pfSettings15[PROJ_MINY]         = y0 * fNearZ;

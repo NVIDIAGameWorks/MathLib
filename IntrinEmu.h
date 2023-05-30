@@ -121,7 +121,7 @@ typedef __m128i v4i;
 
     template<int32_t imm> PLATFORM_INLINE __m128 emu_mm_round_ps(const __m128& x)
     {
-        DEBUG_StaticAssertMsg(false, "Unsupported rounding mode!");
+        DEBUG_StaticAssertMsg(sizeof(imm) == 0, "Unsupported rounding mode!");
 
         return _mm_setzero_ps();
     }
@@ -158,7 +158,7 @@ typedef __m128i v4i;
 
     template<int32_t imm> PLATFORM_INLINE __m128d emu_mm_round_pd(const __m128d& x)
     {
-        DEBUG_StaticAssertMsg(false, "Unsupported rounding mode!");
+        DEBUG_StaticAssertMsg(sizeof(imm) == 0, "Unsupported rounding mode!");
 
         return _mm_setzero_pd();
     }
@@ -197,7 +197,7 @@ typedef __m128i v4i;
 
     template<int32_t imm> PLATFORM_INLINE __m128 emu_mm_dp_ps(const __m128& x, const __m128& y)
     {
-        DEBUG_StaticAssertMsg(false, "Unsupported dp mode!");
+        DEBUG_StaticAssertMsg(sizeof(imm) == 0, "Unsupported dp mode!");
 
         return _mm_setzero_ps();
     }
