@@ -962,22 +962,37 @@ class double4x4
 
         PLATFORM_INLINE double4 GetQuaternion() const
         {
-            // Pain in the ass for mirror transformations...
-            // TODO: replace with http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf
-
             double4 q;
+            double t;
 
-            double tr = a00 + a11 + a22;
-            if (tr > 0.0f)
-                q = double4( a12 - a21, a20 - a02, a01 - a10, tr + 1.0);
-            else if (a00 > a11 && a00 > a22)
-                q = double4( 1.0 + a00 - a11 - a22, a10 + a01, a20 + a02, a12 - a21 );
-            else if (a11 > a22)
-                q = double4( a10 + a01, 1.0 + a11 - a00 - a22, a21 + a12, a20 - a02 );
+            if( a22 < 0.0 )
+            {
+                if( a00 > a11 )
+                {
+                    t = 1.0 + a00 - a11 - a22;
+                    q = double4( t, a10 + a01, a02 + a20, a21 - a12 );
+                }
+                else
+                {
+                    t = 1.0 - a00 + a11 - a22;
+                    q = double4( a10 + a01, t, a21 + a12, a02 - a20 );
+                }
+            }
             else
-                q = double4( a20 + a02, a21 + a12, 1.0 + a22 - a00 - a11, a01 - a10 );
+            {
+                if( a00 < -a11 )
+                {
+                    t = 1.0 - a00 - a11 + a22;
+                    q = double4( a02 + a20, a21 + a12, t, a10 - a01 );
+                }
+                else
+                {
+                    t = 1.0 + a00 + a11 + a22;
+                    q = double4( a21 - a12, a02 - a20, a10 - a01, t );
+                }
+            }
 
-            q *= Rsqrt( Dot44(q, q) );
+            q *= 0.5 / Sqrt(t);
 
             return q;
         }
@@ -1287,31 +1302,23 @@ class double4x4
 
         PLATFORM_INLINE void SetupByQuaternion(const double4& q)
         {
-            double qxx = q.x * q.x;
-            double qyy = q.y * q.y;
-            double qzz = q.z * q.z;
-            double qxz = q.x * q.z;
-            double qxy = q.x * q.y;
-            double qyz = q.y * q.z;
-            double qwx = q.w * q.x;
-            double qwy = q.w * q.y;
-            double qwz = q.w * q.z;
+            // NOTE: assuming the quaternion is normalized
+            double x2  = q.x + q.x;
+            double y2  = q.y + q.y;
+            double z2  = q.z + q.z;
+            double xx2 = q.x * x2;
+            double xy2 = q.x * y2;
+            double xz2 = q.x * z2;
+            double yy2 = q.y * y2;
+            double yz2 = q.y * z2;
+            double zz2 = q.z * z2;
+            double wx2 = q.w * x2;
+            double wy2 = q.w * y2;
+            double wz2 = q.w * z2;
 
-            a00 = 1.0 - 2.0 * (qyy +  qzz);
-            a10 = 2.0 * (qxy + qwz);
-            a20 = 2.0 * (qxz - qwy);
-            a30 = 0.0;
-
-            a01 = 2.0 * (qxy - qwz);
-            a11 = 1.0 - 2.0 * (qxx +  qzz);
-            a21 = 2.0 * (qyz + qwx);
-            a31 = 0.0;
-
-            a02 = 2.0 * (qxz + qwy);
-            a12 = 2.0 * (qyz - qwx);
-            a22 = 1.0 - 2.0 * (qxx +  qyy);
-            a32 = 0.0;
-
+            col0 = double4(1.0f - (yy2 + zz2),  xy2 + wz2, xz2 - wy2, 0.0f).ymm;
+            col1 = double4(xy2 - wz2, 1.0f - (xx2 + zz2),  yz2 + wx2, 0.0f).ymm;
+            col2 = double4(xz2 + wy2, yz2 - wx2, 1.0f - (xx2 + yy2), 0.0f).ymm;
             col3 = c_v4d_0001;
         }
 

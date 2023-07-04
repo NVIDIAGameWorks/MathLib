@@ -1198,22 +1198,37 @@ class float4x4
 
         PLATFORM_INLINE float4 GetQuaternion() const
         {
-            // Pain in the ass for mirror transformations...
-            // TODO: replace with http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf
-
             float4 q;
+            float t;
 
-            float tr = a00 + a11 + a22;
-            if (tr > 0.0f)
-                q = float4( a12 - a21, a20 - a02, a01 - a10, tr + 1.0f);
-            else if (a00 > a11 && a00 > a22)
-                q = float4( 1.0f + a00 - a11 - a22, a10 + a01, a20 + a02, a12 - a21 );
-            else if (a11 > a22)
-                q = float4( a10 + a01, 1.0f + a11 - a00 - a22, a21 + a12, a20 - a02 );
+            if( a22 < 0.0f )
+            {
+                if( a00 > a11 )
+                {
+                    t = 1.0f + a00 - a11 - a22;
+                    q = float4( t, a10 + a01, a02 + a20, a21 - a12 );
+                }
+                else
+                {
+                    t = 1.0f - a00 + a11 - a22;
+                    q = float4( a10 + a01, t, a21 + a12, a02 - a20 );
+                }
+            }
             else
-                q = float4( a20 + a02, a21 + a12, 1.0f + a22 - a00 - a11, a01 - a10 );
+            {
+                if( a00 < -a11 )
+                {
+                    t = 1.0f - a00 - a11 + a22;
+                    q = float4( a02 + a20, a21 + a12, t, a10 - a01 );
+                }
+                else
+                {
+                    t = 1.0f + a00 + a11 + a22;
+                    q = float4( a21 - a12, a02 - a20, a10 - a01, t );
+                }
+            }
 
-            q *= Rsqrt( Dot44(q, q) );
+            q *= 0.5f / Sqrt(t);
 
             return q;
         }
@@ -1524,31 +1539,23 @@ class float4x4
 
         PLATFORM_INLINE void SetupByQuaternion(const float4& q)
         {
-            float qxx = q.x * q.x;
-            float qyy = q.y * q.y;
-            float qzz = q.z * q.z;
-            float qxz = q.x * q.z;
-            float qxy = q.x * q.y;
-            float qyz = q.y * q.z;
-            float qwx = q.w * q.x;
-            float qwy = q.w * q.y;
-            float qwz = q.w * q.z;
+            // NOTE: assuming the quaternion is normalized
+            float x2  = q.x + q.x;
+            float y2  = q.y + q.y;
+            float z2  = q.z + q.z;
+            float xx2 = q.x * x2;
+            float xy2 = q.x * y2;
+            float xz2 = q.x * z2;
+            float yy2 = q.y * y2;
+            float yz2 = q.y * z2;
+            float zz2 = q.z * z2;
+            float wx2 = q.w * x2;
+            float wy2 = q.w * y2;
+            float wz2 = q.w * z2;
 
-            a00 = 1.0f - 2.0f * (qyy +  qzz);
-            a10 = 2.0f * (qxy + qwz);
-            a20 = 2.0f * (qxz - qwy);
-            a30 = 0.0f;
-
-            a01 = 2.0f * (qxy - qwz);
-            a11 = 1.0f - 2.0f * (qxx +  qzz);
-            a21 = 2.0f * (qyz + qwx);
-            a31 = 0.0f;
-
-            a02 = 2.0f * (qxz + qwy);
-            a12 = 2.0f * (qyz - qwx);
-            a22 = 1.0f - 2.0f * (qxx +  qyy);
-            a32 = 0.0f;
-
+            col0 = float4(1.0f - (yy2 + zz2),  xy2 + wz2, xz2 - wy2, 0.0f).xmm;
+            col1 = float4(xy2 - wz2, 1.0f - (xx2 + zz2),  yz2 + wx2, 0.0f).xmm;
+            col2 = float4(xz2 + wy2, yz2 - wx2, 1.0f - (xx2 + yy2), 0.0f).xmm;
             col3 = c_v4f_0001;
         }
 
