@@ -1979,8 +1979,8 @@ namespace STL
             // Cosine of angle between negative normal and transmitted direction ( 0 for total internal reflection )
             float ca = Math::Sqrt01( 1.0 - saSq );
 
-            float Rs = ( eta * VoN - ca ) * STL::Math::PositiveRcp( eta * VoN + ca );
-            float Rp = ( eta * ca - VoN ) * STL::Math::PositiveRcp( eta * ca + VoN );
+            float Rs = ( eta * VoN - ca ) * Math::PositiveRcp( eta * VoN + ca );
+            float Rp = ( eta * ca - VoN ) * Math::PositiveRcp( eta * ca + VoN );
 
             return 0.5 * ( Rs * Rs + Rp * Rp );
         }
@@ -2305,37 +2305,48 @@ namespace STL
 
             float3 GetRay( float2 rnd, float2 linearRoughness, float3 Vlocal, float trimFactor = 1.0 )
             {
-                const float EPS = 1e-7;
+                /*
+                Trimming:
+                    0.0  - dominant direction
+                    1.0  - full lobe
+                    0.95 - allows to cut off samples with very low probabilities ( good for denoising )
+                */
+                rnd.y *= trimFactor;
 
                 // TODO: instead of using 2 roughness values introduce "anisotropy" parameter
                 // https://blog.selfshadow.com/publications/s2013-shading-course/rad/s2013_pbs_rad_notes.pdf (page 3)
-
                 float2 m = linearRoughness * linearRoughness;
 
-                // Section 3.2: transforming the view direction to the hemisphere configuration
-                float3 Vh = normalize( float3( m * Vlocal.xy, Vlocal.z ) );
+                // Warp to the hemisphere configuration
+                float3 wi = normalize( float3( m * Vlocal.xy, Vlocal.z ) );
 
-                // Section 4.1: orthonormal basis (with special case if cross product is zero)
-                float lensq = dot( Vh.xy, Vh.xy );
-                float3 T1 = lensq > EPS ? float3( -Vh.y, Vh.x, 0.0 ) * rsqrt( lensq ) : float3( 1.0, 0.0, 0.0 );
-                float3 T2 = cross( Vh, T1 );
+                #if 0
+                    // Original
+                    float lenSq = dot( wi.xy, wi.xy );
+                    float3 X = lenSq > STL_EPS ? float3( -wi.y, wi.x, 0.0 ) * rsqrt( lenSq ) : float3( 1.0, 0.0, 0.0 );
+                    float3 Y = cross( wi, X );
 
-                // Section 4.2: parameterization of the projected area
-                // trimFactor: 1 - full lobe, 0 - true mirror
-                float r = Math::Sqrt01( rnd.x * trimFactor );
-                float phi = rnd.y * Math::Pi( 2.0 );
-                float t1 = r * cos( phi );
-                float t2 = r * sin( phi );
-                float s = 0.5 * ( 1.0 + Vh.z );
-                t2 = ( 1.0 - s ) * Math::Sqrt01( 1.0 - t1 * t1 ) + s * t2;
+                    float z = 0.5 * ( 1.0 + wi.z );
+                    float phi = STL::Math::Pi( 2.0 ) * rnd.x;
+                    float r = STL::Math::Sqrt01( rnd.y );
+                    float x = r * cos( phi );
+                    float y = lerp( STL::Math::Sqrt01( 1.0 - x * x ), r * sin( phi ), z );
 
-                // Section 4.3: reprojection onto hemisphere
-                float3 Nh = t1 * T1 + t2 * T2 + Math::Sqrt01( 1.0 - t1 * t1 - t2 * t2 ) * Vh;
+                    float3 h = x * X + y * Y + STL::Math::Sqrt01( 1.0 - x * x - y * y ) * wi;
+                #else
+                    // Optimized
+                    // https://diglib.eg.org/bitstream/handle/10.1111/cgf14867/v42i8_03_14867.pdf
+                    float z = 1.0 - rnd.y * ( 1.0 + wi.z );
+                    float phi = STL::Math::Pi( 2.0 ) * rnd.x;
+                    float r = STL::Math::Sqrt01( 1.0 - z * z );
+                    float x = r * cos( phi );
+                    float y = r * sin( phi );
 
-                // Section 3.4: transforming the normal back to the ellipsoid configuration
-                float3 Ne = normalize( float3( m * Nh.xy, max( Nh.z, EPS ) ) );
+                    float3 h = float3( x, y, z ) + wi;
+                #endif
 
-                return Ne;
+                // Warp back to the ellipsoid configuration
+                return normalize( float3( m * h.xy, max( h.z, STL_EPS ) ) );
             }
         }
     }
