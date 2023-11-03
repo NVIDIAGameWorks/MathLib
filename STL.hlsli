@@ -1226,7 +1226,7 @@ namespace STL
 
             Bilinear result;
             result.origin = floor( t );
-            result.weights = t - result.origin;
+            result.weights = saturate( t - result.origin );
 
             return result;
         }
@@ -1245,7 +1245,7 @@ namespace STL
 
         float4 GetBilinearCustomWeights( Bilinear f, float4 customWeights )
         {
-            float2 oneMinusWeights = 1.0 - f.weights;
+            float2 oneMinusWeights = saturate( 1.0 - f.weights );
 
             float4 weights = customWeights;
             weights.x *= oneMinusWeights.x * oneMinusWeights.y;
