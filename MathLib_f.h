@@ -30,111 +30,111 @@ class float2
 
         // NOTE: constructors
 
-        PLATFORM_INLINE float2() : x(0.0f), y(0.0f)
+        ML_INLINE float2() : x(0.0f), y(0.0f)
         {}
 
-        PLATFORM_INLINE float2(float a, float b) : x(a), y(b)
+        ML_INLINE float2(float a, float b) : x(a), y(b)
         {}
 
-        PLATFORM_INLINE float2(float a) : x(a), y(a)
+        ML_INLINE float2(float a) : x(a), y(a)
         {}
 
-        PLATFORM_INLINE float2(const float2& v) = default;
+        ML_INLINE float2(const float2& v) = default;
 
         // NOTE: set
 
-        PLATFORM_INLINE void Set0()
+        ML_INLINE void Set0()
         {
             Set(0.0f);
         }
 
-        PLATFORM_INLINE void Set(const float2& v)
+        ML_INLINE void Set(const float2& v)
         {
             x = v.x;
             y = v.y;
         }
 
-        PLATFORM_INLINE void Set(float a, float b)
+        ML_INLINE void Set(float a, float b)
         {
             x = a;
             y = b;
         }
 
-        PLATFORM_INLINE void Set(float xy)
+        ML_INLINE void Set(float xy)
         {
             x = y = xy;
         }
 
-        PLATFORM_INLINE void operator = (const float2& v)
+        ML_INLINE void operator = (const float2& v)
         {
             Set(v);
         }
 
         // NOTE: compare
 
-        PLATFORM_INLINE bool operator == (const float2& v) const
+        ML_INLINE bool operator == (const float2& v) const
         {
             return x == v.x && y == v.y;
         }
 
-        PLATFORM_INLINE bool operator != (const float2& v) const
+        ML_INLINE bool operator != (const float2& v) const
         {
             return x != v.x || y != v.y;
         }
 
         // NOTE: arithmetic
 
-        PLATFORM_INLINE float2 operator - () const
+        ML_INLINE float2 operator - () const
         {
             return float2(-x, -y);
         }
 
-        PLATFORM_INLINE float2 operator + (const float2& v) const
+        ML_INLINE float2 operator + (const float2& v) const
         {
             return float2(x + v.x, y + v.y);
         }
 
-        PLATFORM_INLINE float2 operator - (const float2& v) const
+        ML_INLINE float2 operator - (const float2& v) const
         {
             return float2(x - v.x, y - v.y);
         }
 
-        PLATFORM_INLINE float2 operator / (float u) const
+        ML_INLINE float2 operator / (float u) const
         {
-            DEBUG_Assert( u != 0.0f );
+            ML_Assert( u != 0.0f );
 
             float ou = 1.0f / u;
 
             return float2(x * ou, y * ou);
         }
 
-        PLATFORM_INLINE float2 operator * (float v) const
+        ML_INLINE float2 operator * (float v) const
         {
             return float2(x * v, y * v);
         }
 
-        PLATFORM_INLINE float2 operator * (const float2& v) const
+        ML_INLINE float2 operator * (const float2& v) const
         {
             return float2(x * v.x, y * v.y);
         }
 
-        PLATFORM_INLINE float2 operator / (const float2& v) const
+        ML_INLINE float2 operator / (const float2& v) const
         {
             return float2(x / v.x, y / v.y);
         }
 
-        PLATFORM_INLINE void operator /= (const float2& v)
+        ML_INLINE void operator /= (const float2& v)
         {
-            DEBUG_Assert( v.x != 0.0f );
-            DEBUG_Assert( v.y != 0.0f );
+            ML_Assert( v.x != 0.0f );
+            ML_Assert( v.y != 0.0f );
 
             x /= v.x;
             y /= v.y;
         }
 
-        PLATFORM_INLINE void operator /= (float v)
+        ML_INLINE void operator /= (float v)
         {
-            DEBUG_Assert( v != 0.0f );
+            ML_Assert( v != 0.0f );
 
             float rv = 1.0f / v;
 
@@ -142,69 +142,69 @@ class float2
             y *= rv;
         }
 
-        PLATFORM_INLINE void operator *= (const float2& v)
+        ML_INLINE void operator *= (const float2& v)
         {
             x *= v.x;
             y *= v.y;
         }
 
-        PLATFORM_INLINE void operator *= (float v)
+        ML_INLINE void operator *= (float v)
         {
             x *= v;
             y *= v;
         }
 
-        PLATFORM_INLINE void operator += (const float2& v)
+        ML_INLINE void operator += (const float2& v)
         {
             x += v.x;
             y += v.y;
         }
 
-        PLATFORM_INLINE void operator -= (const float2& v)
+        ML_INLINE void operator -= (const float2& v)
         {
             x -= v.x;
             y -= v.y;
         }
 
-        PLATFORM_INLINE friend float2 operator * (float s, const float2& v)
+        ML_INLINE friend float2 operator * (float s, const float2& v)
         {
             return float2(v.x * s, v.y * s);
         }
 
         // NOTE: swizzle
 
-        PLATFORM_INLINE float2 xx() const { return float2(x, x); }
-        PLATFORM_INLINE float2 xy() const { return float2(x, y); }
-        PLATFORM_INLINE float2 yx() const { return float2(y, x); }
-        PLATFORM_INLINE float2 yy() const { return float2(y, y); }
+        ML_INLINE float2 xx() const { return float2(x, x); }
+        ML_INLINE float2 xy() const { return float2(x, y); }
+        ML_INLINE float2 yx() const { return float2(y, x); }
+        ML_INLINE float2 yy() const { return float2(y, y); }
 };
 
-PLATFORM_INLINE float Dot22(const float2& a, const float2& b)
+ML_INLINE float Dot22(const float2& a, const float2& b)
 {
     return a.x * b.x + a.y * b.y;
 }
 
-PLATFORM_INLINE float LengthSquared(const float2& x)
+ML_INLINE float LengthSquared(const float2& x)
 {
     return Dot22(x, x);
 }
 
-PLATFORM_INLINE float Length(const float2& x)
+ML_INLINE float Length(const float2& x)
 {
     return Sqrt( LengthSquared(x) );
 }
 
-PLATFORM_INLINE float2 Normalize(const float2& x)
+ML_INLINE float2 Normalize(const float2& x)
 {
     return x / Length(x);
 }
 
-PLATFORM_INLINE float2 Perpendicular(const float2& a)
+ML_INLINE float2 Perpendicular(const float2& a)
 {
     return float2(-a.y, a.x);
 }
 
-PLATFORM_INLINE float2 Rotate(const float2& v, float angle)
+ML_INLINE float2 Rotate(const float2& v, float angle)
 {
     float sa = Sin(angle);
     float ca = Cos(angle);
@@ -250,10 +250,10 @@ class float3
 
         // NOTE: constructors
 
-        PLATFORM_INLINE float3() : xmm( v4f_zero )
+        ML_INLINE float3() : xmm( v4f_zero )
         {}
 
-        PLATFORM_INLINE float3(float a, float b, float c)
+        ML_INLINE float3(float a, float b, float c)
         {
             v4f x1 = _mm_load_ss(&a);
             v4f y1 = _mm_load_ss(&b);
@@ -263,41 +263,41 @@ class float3
             xmm = _mm_movelh_ps(xy, z1);
         }
 
-        PLATFORM_INLINE float3(float a) : xmm( _mm_broadcast_ss(&a) )
+        ML_INLINE float3(float a) : xmm( _mm_broadcast_ss(&a) )
         {}
 
-        PLATFORM_INLINE float3(const v4f& vec) : xmm(vec)
+        ML_INLINE float3(const v4f& vec) : xmm(vec)
         {}
 
-        PLATFORM_INLINE float3(const float* v3)
+        ML_INLINE float3(const float* v3)
         {
             xmm = float3(v3[0], v3[1], v3[2]).xmm;
         }
 
-        PLATFORM_INLINE float3(const float3& v) = default;
+        ML_INLINE float3(const float3& v) = default;
 
         // NOTE: set
 
-        PLATFORM_INLINE void Set0()
+        ML_INLINE void Set0()
         {
             xmm = v4f_zero;
         }
 
-        PLATFORM_INLINE void operator = (const float3& vec)
+        ML_INLINE void operator = (const float3& vec)
         {
             xmm = vec.xmm;
         }
 
         // NOTE: compare
 
-        PLATFORM_INLINE bool operator == (const float3& v) const
+        ML_INLINE bool operator == (const float3& v) const
         {
             v4f r = v4f_equal(xmm, v.xmm);
 
             return v4f_test3_all(r);
         }
 
-        PLATFORM_INLINE bool operator != (const float3& v) const
+        ML_INLINE bool operator != (const float3& v) const
         {
             v4f r = v4f_notequal(xmm, v.xmm);
 
@@ -306,171 +306,171 @@ class float3
 
         // NOTE: arithmetic
 
-        PLATFORM_INLINE float3 operator - () const
+        ML_INLINE float3 operator - () const
         {
             return v4f_negate(xmm);
         }
 
-        PLATFORM_INLINE float3 operator + (const float3& v) const
+        ML_INLINE float3 operator + (const float3& v) const
         {
             return _mm_add_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE float3 operator - (const float3& v) const
+        ML_INLINE float3 operator - (const float3& v) const
         {
             return _mm_sub_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE float3 operator * (const float3& v) const
+        ML_INLINE float3 operator * (const float3& v) const
         {
             return _mm_mul_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE float3 operator / (const float3& v) const
+        ML_INLINE float3 operator / (const float3& v) const
         {
-            DEBUG_Assert( v4f_not0_all(v.xmm) );
+            ML_Assert( v4f_not0_all(v.xmm) );
 
             return _mm_div_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator += (const float3& v)
+        ML_INLINE void operator += (const float3& v)
         {
             xmm = _mm_add_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator -= (const float3& v)
+        ML_INLINE void operator -= (const float3& v)
         {
             xmm = _mm_sub_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator *= (const float3& v)
+        ML_INLINE void operator *= (const float3& v)
         {
             xmm = _mm_mul_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator /= (const float3& v)
+        ML_INLINE void operator /= (const float3& v)
         {
-            DEBUG_Assert( v4f_not0_all(v.xmm) );
+            ML_Assert( v4f_not0_all(v.xmm) );
 
             xmm = _mm_div_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator *= (float s)
+        ML_INLINE void operator *= (float s)
         {
             xmm = _mm_mul_ps(xmm, _mm_broadcast_ss(&s));
         }
 
-        PLATFORM_INLINE void operator /= (float s)
+        ML_INLINE void operator /= (float s)
         {
-            DEBUG_Assert( s != 0.0f );
+            ML_Assert( s != 0.0f );
 
             xmm = _mm_div_ps(xmm, _mm_broadcast_ss(&s));
         }
 
-        PLATFORM_INLINE float3 operator / (float s) const
+        ML_INLINE float3 operator / (float s) const
         {
-            DEBUG_Assert( s != 0.0f );
+            ML_Assert( s != 0.0f );
 
             return _mm_div_ps(xmm, _mm_broadcast_ss(&s));
         }
 
-        PLATFORM_INLINE float3 operator * (float s) const
+        ML_INLINE float3 operator * (float s) const
         {
             return _mm_mul_ps(xmm, _mm_broadcast_ss(&s));
         }
 
         // NOTE: misc
 
-        PLATFORM_INLINE bool IsZero() const
+        ML_INLINE bool IsZero() const
         {
             v4f r = v4f_equal(xmm, v4f_zero);
 
             return v4f_test3_all(r);
         }
 
-        static PLATFORM_INLINE float3 Zero()
+        static ML_INLINE float3 Zero()
         {
             return v4f_zero;
         }
 
         // NOTE: swizzle
 
-        PLATFORM_INLINE float3 xxx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, 0); }
-        PLATFORM_INLINE float3 xxy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, 0); }
-        PLATFORM_INLINE float3 xxz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, 0); }
-        PLATFORM_INLINE float3 xyx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, 0); }
-        PLATFORM_INLINE float3 xyy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, 0); }
-        PLATFORM_INLINE float3 xyz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, 0); }
-        PLATFORM_INLINE float3 xzx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, 0); }
-        PLATFORM_INLINE float3 xzy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, 0); }
-        PLATFORM_INLINE float3 xzz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, 0); }
-        PLATFORM_INLINE float3 yxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, 0); }
-        PLATFORM_INLINE float3 yxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, 0); }
-        PLATFORM_INLINE float3 yxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, 0); }
-        PLATFORM_INLINE float3 yyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, 0); }
-        PLATFORM_INLINE float3 yyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, 0); }
-        PLATFORM_INLINE float3 yyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, 0); }
-        PLATFORM_INLINE float3 yzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, 0); }
-        PLATFORM_INLINE float3 yzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, 0); }
-        PLATFORM_INLINE float3 yzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, 0); }
-        PLATFORM_INLINE float3 zxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, 0); }
-        PLATFORM_INLINE float3 zxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, 0); }
-        PLATFORM_INLINE float3 zxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, 0); }
-        PLATFORM_INLINE float3 zyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, 0); }
-        PLATFORM_INLINE float3 zyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, 0); }
-        PLATFORM_INLINE float3 zyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, 0); }
-        PLATFORM_INLINE float3 zzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, 0); }
-        PLATFORM_INLINE float3 zzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, 0); }
-        PLATFORM_INLINE float3 zzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, 0); }
+        ML_INLINE float3 xxx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, 0); }
+        ML_INLINE float3 xxy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, 0); }
+        ML_INLINE float3 xxz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, 0); }
+        ML_INLINE float3 xyx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, 0); }
+        ML_INLINE float3 xyy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, 0); }
+        ML_INLINE float3 xyz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, 0); }
+        ML_INLINE float3 xzx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, 0); }
+        ML_INLINE float3 xzy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, 0); }
+        ML_INLINE float3 xzz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, 0); }
+        ML_INLINE float3 yxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, 0); }
+        ML_INLINE float3 yxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, 0); }
+        ML_INLINE float3 yxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, 0); }
+        ML_INLINE float3 yyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, 0); }
+        ML_INLINE float3 yyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, 0); }
+        ML_INLINE float3 yyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, 0); }
+        ML_INLINE float3 yzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, 0); }
+        ML_INLINE float3 yzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, 0); }
+        ML_INLINE float3 yzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, 0); }
+        ML_INLINE float3 zxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, 0); }
+        ML_INLINE float3 zxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, 0); }
+        ML_INLINE float3 zxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, 0); }
+        ML_INLINE float3 zyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, 0); }
+        ML_INLINE float3 zyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, 0); }
+        ML_INLINE float3 zyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, 0); }
+        ML_INLINE float3 zzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, 0); }
+        ML_INLINE float3 zzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, 0); }
+        ML_INLINE float3 zzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, 0); }
 };
 
-PLATFORM_INLINE float Dot33(const float3& a, const float3& b)
+ML_INLINE float Dot33(const float3& a, const float3& b)
 {
     v4f r = v4f_dot33(a.xmm, b.xmm);
 
     return v4f_get_x(r);
 }
 
-PLATFORM_INLINE float LengthSquared(const float3& x)
+ML_INLINE float LengthSquared(const float3& x)
 {
     v4f r = v4f_dot33(x.xmm, x.xmm);
 
     return v4f_get_x(r);
 }
 
-PLATFORM_INLINE float Length(const float3& x)
+ML_INLINE float Length(const float3& x)
 {
     v4f r = v4f_length(x.xmm);
 
     return v4f_get_x(r);
 }
 
-PLATFORM_INLINE float3 Normalize(const float3& x)
+ML_INLINE float3 Normalize(const float3& x)
 {
     return v4f_normalize(x.xmm);
 }
 
-PLATFORM_INLINE float3 Cross(const float3& x, const float3& y)
+ML_INLINE float3 Cross(const float3& x, const float3& y)
 {
     return v4f_cross(x.xmm, y.xmm);
 }
 
-PLATFORM_INLINE float3 Rcp(const float3& x)
+ML_INLINE float3 Rcp(const float3& x)
 {
     return v4f_rcp( v4f_setw1(x.xmm) );
 }
 
-PLATFORM_INLINE float3 Ceil(const float3& x)
+ML_INLINE float3 Ceil(const float3& x)
 {
     return v4f_ceil(x.xmm);
 }
 
-PLATFORM_INLINE float3 Madd(const float3& a, const float3& b, const float3& c)
+ML_INLINE float3 Madd(const float3& a, const float3& b, const float3& c)
 {
     return v4f_madd(a.xmm, b.xmm, c.xmm);
 }
 
-PLATFORM_INLINE float3 GetPerpendicularVector(const float3& N)
+ML_INLINE float3 GetPerpendicularVector(const float3& N)
 {
     float3 T = float3(N.z, -N.x, N.y);
     T -= N * Dot33(T, N);
@@ -508,59 +508,59 @@ class float4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE float4() : xmm( v4f_zero )
+        ML_INLINE float4() : xmm( v4f_zero )
         {}
 
-        PLATFORM_INLINE float4(float a) : xmm( _mm_broadcast_ss(&a) )
+        ML_INLINE float4(float a) : xmm( _mm_broadcast_ss(&a) )
         {}
 
-        PLATFORM_INLINE float4(float a, float b, float c, float d) : xmm( v4f_set(a, b, c, d) )
+        ML_INLINE float4(float a, float b, float c, float d) : xmm( v4f_set(a, b, c, d) )
         {}
 
-        PLATFORM_INLINE float4(float a, float b, float c) : xmm( v4f_set(a, b, c, 1.0f) )
+        ML_INLINE float4(float a, float b, float c) : xmm( v4f_set(a, b, c, 1.0f) )
         {}
 
-        PLATFORM_INLINE float4(const float* v4) : xmm( _mm_loadu_ps(v4) )
+        ML_INLINE float4(const float* v4) : xmm( _mm_loadu_ps(v4) )
         {}
 
-        PLATFORM_INLINE float4(const float4& v) = default;
+        ML_INLINE float4(const float4& v) = default;
 
-        PLATFORM_INLINE float4(const float3& vec)
+        ML_INLINE float4(const float3& vec)
         {
             xmm = v4f_setw1(vec.xmm);
         }
 
-        PLATFORM_INLINE float4(const v4f& m) : xmm(m)
+        ML_INLINE float4(const v4f& m) : xmm(m)
         {
         }
 
         // NOTE: set
 
-        PLATFORM_INLINE void Set0001()
+        ML_INLINE void Set0001()
         {
             xmm = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void Set0()
+        ML_INLINE void Set0()
         {
             xmm = v4f_zero;
         }
 
-        PLATFORM_INLINE void operator = (const float4& vec)
+        ML_INLINE void operator = (const float4& vec)
         {
             xmm = vec.xmm;
         }
 
         // NOTE: compare
 
-        PLATFORM_INLINE bool operator == (const float4& v) const
+        ML_INLINE bool operator == (const float4& v) const
         {
             v4f r = v4f_equal(xmm, v.xmm);
 
             return v4f_test4_all(r);
         }
 
-        PLATFORM_INLINE bool operator != (const float4& v) const
+        ML_INLINE bool operator != (const float4& v) const
         {
             v4f r = v4f_notequal(xmm, v.xmm);
 
@@ -569,383 +569,383 @@ class float4
 
         // NOTE: arithmetic
 
-        PLATFORM_INLINE float4 operator - () const
+        ML_INLINE float4 operator - () const
         {
             return v4f_negate(xmm);
         }
 
-        PLATFORM_INLINE float4 operator + (const float4& v) const
+        ML_INLINE float4 operator + (const float4& v) const
         {
             return _mm_add_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE float4 operator - (const float4& v) const
+        ML_INLINE float4 operator - (const float4& v) const
         {
             return _mm_sub_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE float4 operator * (const float4& v) const
+        ML_INLINE float4 operator * (const float4& v) const
         {
             return _mm_mul_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE float4 operator / (const float4& v) const
+        ML_INLINE float4 operator / (const float4& v) const
         {
-            DEBUG_Assert( v4f_not0_all(v.xmm) );
+            ML_Assert( v4f_not0_all(v.xmm) );
 
             return _mm_div_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator += (const float4& v)
+        ML_INLINE void operator += (const float4& v)
         {
             xmm = _mm_add_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator -= (const float4& v)
+        ML_INLINE void operator -= (const float4& v)
         {
             xmm = _mm_sub_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator *= (const float4& v)
+        ML_INLINE void operator *= (const float4& v)
         {
             xmm = _mm_mul_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator /= (const float4& v)
+        ML_INLINE void operator /= (const float4& v)
         {
-            DEBUG_Assert( v4f_not0_all(v.xmm) );
+            ML_Assert( v4f_not0_all(v.xmm) );
 
             xmm = _mm_div_ps(xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void operator *= (float s)
+        ML_INLINE void operator *= (float s)
         {
             xmm = _mm_mul_ps(xmm, _mm_broadcast_ss(&s));
         }
 
-        PLATFORM_INLINE void operator /= (float s)
+        ML_INLINE void operator /= (float s)
         {
-            DEBUG_Assert( s != 0.0f );
+            ML_Assert( s != 0.0f );
 
             xmm = _mm_div_ps(xmm, _mm_broadcast_ss(&s));
         }
 
-        PLATFORM_INLINE float4 operator / (float s) const
+        ML_INLINE float4 operator / (float s) const
         {
-            DEBUG_Assert( s != 0.0f );
+            ML_Assert( s != 0.0f );
 
             return _mm_div_ps(xmm, _mm_broadcast_ss(&s));
         }
 
-        PLATFORM_INLINE float4 operator * (float s) const
+        ML_INLINE float4 operator * (float s) const
         {
             return _mm_mul_ps(xmm, _mm_broadcast_ss(&s));
         }
 
         // NOTE: misc
 
-        PLATFORM_INLINE const float3& To3d() const
+        ML_INLINE const float3& To3d() const
         {
             return (float3&)xmm;
         }
 
-        PLATFORM_INLINE bool IsZero() const
+        ML_INLINE bool IsZero() const
         {
             v4f r = v4f_equal(xmm, v4f_zero);
 
             return v4f_test4_all(r);
         }
 
-        static PLATFORM_INLINE float4 Zero()
+        static ML_INLINE float4 Zero()
         {
             return v4f_zero;
         }
 
         // NOTE: swizzle
 
-        PLATFORM_INLINE float4 xxxx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 xxxy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 xxxz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 xxxw() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 xxyx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 xxyy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 xxyz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 xxyw() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 xxzx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 xxzy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 xxzz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 xxzw() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 xxwx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 xxwy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 xxwz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 xxww() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 xyxx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 xyxy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 xyxz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 xyxw() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 xyyx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 xyyy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 xyyz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 xyyw() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 xyzx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 xyzy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 xyzz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 xyzw() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 xywx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 xywy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 xywz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 xyww() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 xzxx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 xzxy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 xzxz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 xzxw() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 xzyx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 xzyy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 xzyz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 xzyw() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 xzzx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 xzzy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 xzzz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 xzzw() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 xzwx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 xzwy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 xzwz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 xzww() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 xwxx() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 xwxy() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 xwxz() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 xwxw() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 xwyx() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 xwyy() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 xwyz() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 xwyw() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 xwzx() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 xwzy() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 xwzz() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 xwzw() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 xwwx() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 xwwy() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 xwwz() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 xwww() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 yxxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 yxxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 yxxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 yxxw() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 yxyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 yxyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 yxyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 yxyw() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 yxzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 yxzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 yxzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 yxzw() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 yxwx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 yxwy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 yxwz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 yxww() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 yyxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 yyxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 yyxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 yyxw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 yyyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 yyyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 yyyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 yyyw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 yyzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 yyzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 yyzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 yyzw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 yywx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 yywy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 yywz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 yyww() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 yzxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 yzxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 yzxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 yzxw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 yzyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 yzyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 yzyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 yzyw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 yzzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 yzzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 yzzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 yzzw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 yzwx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 yzwy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 yzwz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 yzww() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 ywxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 ywxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 ywxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 ywxw() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 ywyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 ywyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 ywyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 ywyw() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 ywzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 ywzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 ywzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 ywzw() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 ywwx() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 ywwy() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 ywwz() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 ywww() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 zxxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 zxxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 zxxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 zxxw() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 zxyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 zxyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 zxyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 zxyw() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 zxzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 zxzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 zxzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 zxzw() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 zxwx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 zxwy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 zxwz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 zxww() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 zyxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 zyxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 zyxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 zyxw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 zyyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 zyyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 zyyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 zyyw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 zyzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 zyzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 zyzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 zyzw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 zywx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 zywy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 zywz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 zyww() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 zzxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 zzxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 zzxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 zzxw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 zzyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 zzyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 zzyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 zzyw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 zzzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 zzzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 zzzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 zzzw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 zzwx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 zzwy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 zzwz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 zzww() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 zwxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 zwxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 zwxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 zwxw() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 zwyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 zwyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 zwyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 zwyw() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 zwzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 zwzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 zwzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 zwzw() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 zwwx() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 zwwy() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 zwwz() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 zwww() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 wxxx() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 wxxy() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 wxxz() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 wxxw() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 wxyx() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 wxyy() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 wxyz() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 wxyw() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 wxzx() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 wxzy() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 wxzz() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 wxzw() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 wxwx() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 wxwy() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 wxwz() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 wxww() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 wyxx() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 wyxy() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 wyxz() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 wyxw() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 wyyx() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 wyyy() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 wyyz() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 wyyw() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 wyzx() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 wyzy() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 wyzz() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 wyzw() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 wywx() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 wywy() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 wywz() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 wyww() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 wzxx() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 wzxy() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 wzxz() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 wzxw() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 wzyx() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 wzyy() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 wzyz() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 wzyw() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 wzzx() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 wzzy() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 wzzz() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 wzzw() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 wzwx() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 wzwy() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 wzwz() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 wzww() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_W, COORD_W); }
-        PLATFORM_INLINE float4 wwxx() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_X, COORD_X); }
-        PLATFORM_INLINE float4 wwxy() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_X, COORD_Y); }
-        PLATFORM_INLINE float4 wwxz() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_X, COORD_Z); }
-        PLATFORM_INLINE float4 wwxw() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_X, COORD_W); }
-        PLATFORM_INLINE float4 wwyx() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Y, COORD_X); }
-        PLATFORM_INLINE float4 wwyy() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Y, COORD_Y); }
-        PLATFORM_INLINE float4 wwyz() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Y, COORD_Z); }
-        PLATFORM_INLINE float4 wwyw() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Y, COORD_W); }
-        PLATFORM_INLINE float4 wwzx() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Z, COORD_X); }
-        PLATFORM_INLINE float4 wwzy() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Z, COORD_Y); }
-        PLATFORM_INLINE float4 wwzz() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Z, COORD_Z); }
-        PLATFORM_INLINE float4 wwzw() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Z, COORD_W); }
-        PLATFORM_INLINE float4 wwwx() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_W, COORD_X); }
-        PLATFORM_INLINE float4 wwwy() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_W, COORD_Y); }
-        PLATFORM_INLINE float4 wwwz() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_W, COORD_Z); }
-        PLATFORM_INLINE float4 wwww() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_W, COORD_W); }
+        ML_INLINE float4 xxxx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_X); }
+        ML_INLINE float4 xxxy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_Y); }
+        ML_INLINE float4 xxxz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_Z); }
+        ML_INLINE float4 xxxw() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_X, COORD_W); }
+        ML_INLINE float4 xxyx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, COORD_X); }
+        ML_INLINE float4 xxyy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, COORD_Y); }
+        ML_INLINE float4 xxyz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, COORD_Z); }
+        ML_INLINE float4 xxyw() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Y, COORD_W); }
+        ML_INLINE float4 xxzx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, COORD_X); }
+        ML_INLINE float4 xxzy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, COORD_Y); }
+        ML_INLINE float4 xxzz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, COORD_Z); }
+        ML_INLINE float4 xxzw() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_Z, COORD_W); }
+        ML_INLINE float4 xxwx() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_W, COORD_X); }
+        ML_INLINE float4 xxwy() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_W, COORD_Y); }
+        ML_INLINE float4 xxwz() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_W, COORD_Z); }
+        ML_INLINE float4 xxww() const { return v4f_swizzle(xmm, COORD_X, COORD_X, COORD_W, COORD_W); }
+        ML_INLINE float4 xyxx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, COORD_X); }
+        ML_INLINE float4 xyxy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, COORD_Y); }
+        ML_INLINE float4 xyxz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, COORD_Z); }
+        ML_INLINE float4 xyxw() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_X, COORD_W); }
+        ML_INLINE float4 xyyx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, COORD_X); }
+        ML_INLINE float4 xyyy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, COORD_Y); }
+        ML_INLINE float4 xyyz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, COORD_Z); }
+        ML_INLINE float4 xyyw() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Y, COORD_W); }
+        ML_INLINE float4 xyzx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, COORD_X); }
+        ML_INLINE float4 xyzy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, COORD_Y); }
+        ML_INLINE float4 xyzz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, COORD_Z); }
+        ML_INLINE float4 xyzw() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_Z, COORD_W); }
+        ML_INLINE float4 xywx() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_W, COORD_X); }
+        ML_INLINE float4 xywy() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_W, COORD_Y); }
+        ML_INLINE float4 xywz() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_W, COORD_Z); }
+        ML_INLINE float4 xyww() const { return v4f_swizzle(xmm, COORD_X, COORD_Y, COORD_W, COORD_W); }
+        ML_INLINE float4 xzxx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, COORD_X); }
+        ML_INLINE float4 xzxy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, COORD_Y); }
+        ML_INLINE float4 xzxz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, COORD_Z); }
+        ML_INLINE float4 xzxw() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_X, COORD_W); }
+        ML_INLINE float4 xzyx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, COORD_X); }
+        ML_INLINE float4 xzyy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, COORD_Y); }
+        ML_INLINE float4 xzyz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, COORD_Z); }
+        ML_INLINE float4 xzyw() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Y, COORD_W); }
+        ML_INLINE float4 xzzx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, COORD_X); }
+        ML_INLINE float4 xzzy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, COORD_Y); }
+        ML_INLINE float4 xzzz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, COORD_Z); }
+        ML_INLINE float4 xzzw() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_Z, COORD_W); }
+        ML_INLINE float4 xzwx() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_W, COORD_X); }
+        ML_INLINE float4 xzwy() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_W, COORD_Y); }
+        ML_INLINE float4 xzwz() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_W, COORD_Z); }
+        ML_INLINE float4 xzww() const { return v4f_swizzle(xmm, COORD_X, COORD_Z, COORD_W, COORD_W); }
+        ML_INLINE float4 xwxx() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_X, COORD_X); }
+        ML_INLINE float4 xwxy() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_X, COORD_Y); }
+        ML_INLINE float4 xwxz() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_X, COORD_Z); }
+        ML_INLINE float4 xwxw() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_X, COORD_W); }
+        ML_INLINE float4 xwyx() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Y, COORD_X); }
+        ML_INLINE float4 xwyy() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Y, COORD_Y); }
+        ML_INLINE float4 xwyz() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Y, COORD_Z); }
+        ML_INLINE float4 xwyw() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Y, COORD_W); }
+        ML_INLINE float4 xwzx() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Z, COORD_X); }
+        ML_INLINE float4 xwzy() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Z, COORD_Y); }
+        ML_INLINE float4 xwzz() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Z, COORD_Z); }
+        ML_INLINE float4 xwzw() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_Z, COORD_W); }
+        ML_INLINE float4 xwwx() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_W, COORD_X); }
+        ML_INLINE float4 xwwy() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_W, COORD_Y); }
+        ML_INLINE float4 xwwz() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_W, COORD_Z); }
+        ML_INLINE float4 xwww() const { return v4f_swizzle(xmm, COORD_X, COORD_W, COORD_W, COORD_W); }
+        ML_INLINE float4 yxxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, COORD_X); }
+        ML_INLINE float4 yxxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, COORD_Y); }
+        ML_INLINE float4 yxxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, COORD_Z); }
+        ML_INLINE float4 yxxw() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_X, COORD_W); }
+        ML_INLINE float4 yxyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, COORD_X); }
+        ML_INLINE float4 yxyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, COORD_Y); }
+        ML_INLINE float4 yxyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, COORD_Z); }
+        ML_INLINE float4 yxyw() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Y, COORD_W); }
+        ML_INLINE float4 yxzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, COORD_X); }
+        ML_INLINE float4 yxzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, COORD_Y); }
+        ML_INLINE float4 yxzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, COORD_Z); }
+        ML_INLINE float4 yxzw() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_Z, COORD_W); }
+        ML_INLINE float4 yxwx() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_W, COORD_X); }
+        ML_INLINE float4 yxwy() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_W, COORD_Y); }
+        ML_INLINE float4 yxwz() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_W, COORD_Z); }
+        ML_INLINE float4 yxww() const { return v4f_swizzle(xmm, COORD_Y, COORD_X, COORD_W, COORD_W); }
+        ML_INLINE float4 yyxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, COORD_X); }
+        ML_INLINE float4 yyxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, COORD_Y); }
+        ML_INLINE float4 yyxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, COORD_Z); }
+        ML_INLINE float4 yyxw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_X, COORD_W); }
+        ML_INLINE float4 yyyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, COORD_X); }
+        ML_INLINE float4 yyyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, COORD_Y); }
+        ML_INLINE float4 yyyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, COORD_Z); }
+        ML_INLINE float4 yyyw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Y, COORD_W); }
+        ML_INLINE float4 yyzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, COORD_X); }
+        ML_INLINE float4 yyzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, COORD_Y); }
+        ML_INLINE float4 yyzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, COORD_Z); }
+        ML_INLINE float4 yyzw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_Z, COORD_W); }
+        ML_INLINE float4 yywx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_W, COORD_X); }
+        ML_INLINE float4 yywy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_W, COORD_Y); }
+        ML_INLINE float4 yywz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_W, COORD_Z); }
+        ML_INLINE float4 yyww() const { return v4f_swizzle(xmm, COORD_Y, COORD_Y, COORD_W, COORD_W); }
+        ML_INLINE float4 yzxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, COORD_X); }
+        ML_INLINE float4 yzxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, COORD_Y); }
+        ML_INLINE float4 yzxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, COORD_Z); }
+        ML_INLINE float4 yzxw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_X, COORD_W); }
+        ML_INLINE float4 yzyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, COORD_X); }
+        ML_INLINE float4 yzyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, COORD_Y); }
+        ML_INLINE float4 yzyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, COORD_Z); }
+        ML_INLINE float4 yzyw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Y, COORD_W); }
+        ML_INLINE float4 yzzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, COORD_X); }
+        ML_INLINE float4 yzzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, COORD_Y); }
+        ML_INLINE float4 yzzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, COORD_Z); }
+        ML_INLINE float4 yzzw() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_Z, COORD_W); }
+        ML_INLINE float4 yzwx() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_W, COORD_X); }
+        ML_INLINE float4 yzwy() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_W, COORD_Y); }
+        ML_INLINE float4 yzwz() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_W, COORD_Z); }
+        ML_INLINE float4 yzww() const { return v4f_swizzle(xmm, COORD_Y, COORD_Z, COORD_W, COORD_W); }
+        ML_INLINE float4 ywxx() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_X, COORD_X); }
+        ML_INLINE float4 ywxy() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_X, COORD_Y); }
+        ML_INLINE float4 ywxz() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_X, COORD_Z); }
+        ML_INLINE float4 ywxw() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_X, COORD_W); }
+        ML_INLINE float4 ywyx() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Y, COORD_X); }
+        ML_INLINE float4 ywyy() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Y, COORD_Y); }
+        ML_INLINE float4 ywyz() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Y, COORD_Z); }
+        ML_INLINE float4 ywyw() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Y, COORD_W); }
+        ML_INLINE float4 ywzx() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Z, COORD_X); }
+        ML_INLINE float4 ywzy() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Z, COORD_Y); }
+        ML_INLINE float4 ywzz() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Z, COORD_Z); }
+        ML_INLINE float4 ywzw() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_Z, COORD_W); }
+        ML_INLINE float4 ywwx() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_W, COORD_X); }
+        ML_INLINE float4 ywwy() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_W, COORD_Y); }
+        ML_INLINE float4 ywwz() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_W, COORD_Z); }
+        ML_INLINE float4 ywww() const { return v4f_swizzle(xmm, COORD_Y, COORD_W, COORD_W, COORD_W); }
+        ML_INLINE float4 zxxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, COORD_X); }
+        ML_INLINE float4 zxxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, COORD_Y); }
+        ML_INLINE float4 zxxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, COORD_Z); }
+        ML_INLINE float4 zxxw() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_X, COORD_W); }
+        ML_INLINE float4 zxyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, COORD_X); }
+        ML_INLINE float4 zxyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, COORD_Y); }
+        ML_INLINE float4 zxyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, COORD_Z); }
+        ML_INLINE float4 zxyw() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Y, COORD_W); }
+        ML_INLINE float4 zxzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, COORD_X); }
+        ML_INLINE float4 zxzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, COORD_Y); }
+        ML_INLINE float4 zxzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, COORD_Z); }
+        ML_INLINE float4 zxzw() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_Z, COORD_W); }
+        ML_INLINE float4 zxwx() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_W, COORD_X); }
+        ML_INLINE float4 zxwy() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_W, COORD_Y); }
+        ML_INLINE float4 zxwz() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_W, COORD_Z); }
+        ML_INLINE float4 zxww() const { return v4f_swizzle(xmm, COORD_Z, COORD_X, COORD_W, COORD_W); }
+        ML_INLINE float4 zyxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, COORD_X); }
+        ML_INLINE float4 zyxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, COORD_Y); }
+        ML_INLINE float4 zyxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, COORD_Z); }
+        ML_INLINE float4 zyxw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_X, COORD_W); }
+        ML_INLINE float4 zyyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, COORD_X); }
+        ML_INLINE float4 zyyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, COORD_Y); }
+        ML_INLINE float4 zyyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, COORD_Z); }
+        ML_INLINE float4 zyyw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Y, COORD_W); }
+        ML_INLINE float4 zyzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, COORD_X); }
+        ML_INLINE float4 zyzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, COORD_Y); }
+        ML_INLINE float4 zyzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, COORD_Z); }
+        ML_INLINE float4 zyzw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_Z, COORD_W); }
+        ML_INLINE float4 zywx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_W, COORD_X); }
+        ML_INLINE float4 zywy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_W, COORD_Y); }
+        ML_INLINE float4 zywz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_W, COORD_Z); }
+        ML_INLINE float4 zyww() const { return v4f_swizzle(xmm, COORD_Z, COORD_Y, COORD_W, COORD_W); }
+        ML_INLINE float4 zzxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, COORD_X); }
+        ML_INLINE float4 zzxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, COORD_Y); }
+        ML_INLINE float4 zzxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, COORD_Z); }
+        ML_INLINE float4 zzxw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_X, COORD_W); }
+        ML_INLINE float4 zzyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, COORD_X); }
+        ML_INLINE float4 zzyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, COORD_Y); }
+        ML_INLINE float4 zzyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, COORD_Z); }
+        ML_INLINE float4 zzyw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Y, COORD_W); }
+        ML_INLINE float4 zzzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, COORD_X); }
+        ML_INLINE float4 zzzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, COORD_Y); }
+        ML_INLINE float4 zzzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, COORD_Z); }
+        ML_INLINE float4 zzzw() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_Z, COORD_W); }
+        ML_INLINE float4 zzwx() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_W, COORD_X); }
+        ML_INLINE float4 zzwy() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_W, COORD_Y); }
+        ML_INLINE float4 zzwz() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_W, COORD_Z); }
+        ML_INLINE float4 zzww() const { return v4f_swizzle(xmm, COORD_Z, COORD_Z, COORD_W, COORD_W); }
+        ML_INLINE float4 zwxx() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_X, COORD_X); }
+        ML_INLINE float4 zwxy() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_X, COORD_Y); }
+        ML_INLINE float4 zwxz() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_X, COORD_Z); }
+        ML_INLINE float4 zwxw() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_X, COORD_W); }
+        ML_INLINE float4 zwyx() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Y, COORD_X); }
+        ML_INLINE float4 zwyy() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Y, COORD_Y); }
+        ML_INLINE float4 zwyz() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Y, COORD_Z); }
+        ML_INLINE float4 zwyw() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Y, COORD_W); }
+        ML_INLINE float4 zwzx() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Z, COORD_X); }
+        ML_INLINE float4 zwzy() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Z, COORD_Y); }
+        ML_INLINE float4 zwzz() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Z, COORD_Z); }
+        ML_INLINE float4 zwzw() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_Z, COORD_W); }
+        ML_INLINE float4 zwwx() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_W, COORD_X); }
+        ML_INLINE float4 zwwy() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_W, COORD_Y); }
+        ML_INLINE float4 zwwz() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_W, COORD_Z); }
+        ML_INLINE float4 zwww() const { return v4f_swizzle(xmm, COORD_Z, COORD_W, COORD_W, COORD_W); }
+        ML_INLINE float4 wxxx() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_X, COORD_X); }
+        ML_INLINE float4 wxxy() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_X, COORD_Y); }
+        ML_INLINE float4 wxxz() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_X, COORD_Z); }
+        ML_INLINE float4 wxxw() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_X, COORD_W); }
+        ML_INLINE float4 wxyx() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Y, COORD_X); }
+        ML_INLINE float4 wxyy() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Y, COORD_Y); }
+        ML_INLINE float4 wxyz() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Y, COORD_Z); }
+        ML_INLINE float4 wxyw() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Y, COORD_W); }
+        ML_INLINE float4 wxzx() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Z, COORD_X); }
+        ML_INLINE float4 wxzy() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Z, COORD_Y); }
+        ML_INLINE float4 wxzz() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Z, COORD_Z); }
+        ML_INLINE float4 wxzw() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_Z, COORD_W); }
+        ML_INLINE float4 wxwx() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_W, COORD_X); }
+        ML_INLINE float4 wxwy() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_W, COORD_Y); }
+        ML_INLINE float4 wxwz() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_W, COORD_Z); }
+        ML_INLINE float4 wxww() const { return v4f_swizzle(xmm, COORD_W, COORD_X, COORD_W, COORD_W); }
+        ML_INLINE float4 wyxx() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_X, COORD_X); }
+        ML_INLINE float4 wyxy() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_X, COORD_Y); }
+        ML_INLINE float4 wyxz() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_X, COORD_Z); }
+        ML_INLINE float4 wyxw() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_X, COORD_W); }
+        ML_INLINE float4 wyyx() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Y, COORD_X); }
+        ML_INLINE float4 wyyy() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Y, COORD_Y); }
+        ML_INLINE float4 wyyz() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Y, COORD_Z); }
+        ML_INLINE float4 wyyw() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Y, COORD_W); }
+        ML_INLINE float4 wyzx() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Z, COORD_X); }
+        ML_INLINE float4 wyzy() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Z, COORD_Y); }
+        ML_INLINE float4 wyzz() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Z, COORD_Z); }
+        ML_INLINE float4 wyzw() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_Z, COORD_W); }
+        ML_INLINE float4 wywx() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_W, COORD_X); }
+        ML_INLINE float4 wywy() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_W, COORD_Y); }
+        ML_INLINE float4 wywz() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_W, COORD_Z); }
+        ML_INLINE float4 wyww() const { return v4f_swizzle(xmm, COORD_W, COORD_Y, COORD_W, COORD_W); }
+        ML_INLINE float4 wzxx() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_X, COORD_X); }
+        ML_INLINE float4 wzxy() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_X, COORD_Y); }
+        ML_INLINE float4 wzxz() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_X, COORD_Z); }
+        ML_INLINE float4 wzxw() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_X, COORD_W); }
+        ML_INLINE float4 wzyx() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Y, COORD_X); }
+        ML_INLINE float4 wzyy() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Y, COORD_Y); }
+        ML_INLINE float4 wzyz() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Y, COORD_Z); }
+        ML_INLINE float4 wzyw() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Y, COORD_W); }
+        ML_INLINE float4 wzzx() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Z, COORD_X); }
+        ML_INLINE float4 wzzy() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Z, COORD_Y); }
+        ML_INLINE float4 wzzz() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Z, COORD_Z); }
+        ML_INLINE float4 wzzw() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_Z, COORD_W); }
+        ML_INLINE float4 wzwx() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_W, COORD_X); }
+        ML_INLINE float4 wzwy() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_W, COORD_Y); }
+        ML_INLINE float4 wzwz() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_W, COORD_Z); }
+        ML_INLINE float4 wzww() const { return v4f_swizzle(xmm, COORD_W, COORD_Z, COORD_W, COORD_W); }
+        ML_INLINE float4 wwxx() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_X, COORD_X); }
+        ML_INLINE float4 wwxy() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_X, COORD_Y); }
+        ML_INLINE float4 wwxz() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_X, COORD_Z); }
+        ML_INLINE float4 wwxw() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_X, COORD_W); }
+        ML_INLINE float4 wwyx() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Y, COORD_X); }
+        ML_INLINE float4 wwyy() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Y, COORD_Y); }
+        ML_INLINE float4 wwyz() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Y, COORD_Z); }
+        ML_INLINE float4 wwyw() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Y, COORD_W); }
+        ML_INLINE float4 wwzx() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Z, COORD_X); }
+        ML_INLINE float4 wwzy() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Z, COORD_Y); }
+        ML_INLINE float4 wwzz() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Z, COORD_Z); }
+        ML_INLINE float4 wwzw() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_Z, COORD_W); }
+        ML_INLINE float4 wwwx() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_W, COORD_X); }
+        ML_INLINE float4 wwwy() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_W, COORD_Y); }
+        ML_INLINE float4 wwwz() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_W, COORD_Z); }
+        ML_INLINE float4 wwww() const { return v4f_swizzle(xmm, COORD_W, COORD_W, COORD_W, COORD_W); }
 };
 
-PLATFORM_INLINE float Dot44(const float4& a, const float4& b)
+ML_INLINE float Dot44(const float4& a, const float4& b)
 {
     v4f r = v4f_dot44(a.xmm, b.xmm);
 
     return v4f_get_x(r);
 }
 
-PLATFORM_INLINE float Dot43(const float4& a, const float3& b)
+ML_INLINE float Dot43(const float4& a, const float3& b)
 {
     v4f r = v4f_dot43(a.xmm, b.xmm);
 
     return v4f_get_x(r);
 }
 
-PLATFORM_INLINE float4 Rcp(const float4& x)
+ML_INLINE float4 Rcp(const float4& x)
 {
     return v4f_rcp(x.xmm);
 }
 
-PLATFORM_INLINE float4 Ceil(const float4& x)
+ML_INLINE float4 Ceil(const float4& x)
 {
     return v4f_ceil(x.xmm);
 }
 
-PLATFORM_INLINE float4 Madd(const float4& a, const float4& b, const float4& c)
+ML_INLINE float4 Madd(const float4& a, const float4& b, const float4& c)
 {
     return v4f_madd(a.xmm, b.xmm, c.xmm);
 }
@@ -1003,14 +1003,14 @@ class float4x4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE float4x4() :
+        ML_INLINE float4x4() :
             col0( v4f_zero )
             , col1( v4f_zero )
             , col2( v4f_zero )
             , col3( v4f_zero )
         {}
 
-        PLATFORM_INLINE float4x4
+        ML_INLINE float4x4
         (
             float m00, float m01, float m02, float m03,
             float m10, float m11, float m12, float m13,
@@ -1024,7 +1024,7 @@ class float4x4
         {
         }
 
-        PLATFORM_INLINE float4x4(const float4& c0, const float4& c1, const float4& c2, const float4& c3) :
+        ML_INLINE float4x4(const float4& c0, const float4& c1, const float4& c2, const float4& c3) :
             col0( c0.xmm )
             , col1( c1.xmm )
             , col2( c2.xmm )
@@ -1032,7 +1032,7 @@ class float4x4
         {
         }
 
-        PLATFORM_INLINE float4x4(const float4x4& m) :
+        ML_INLINE float4x4(const float4x4& m) :
             col0( m.col0 )
             , col1( m.col1 )
             , col2( m.col2 )
@@ -1042,7 +1042,7 @@ class float4x4
 
         // NOTE: set
 
-        static PLATFORM_INLINE float4x4 Identity()
+        static ML_INLINE float4x4 Identity()
         {
             return float4x4(
                 1.0f, 0.0f, 0.0f, 0.0f,
@@ -1052,67 +1052,67 @@ class float4x4
             );
         }
 
-        PLATFORM_INLINE void SetCol0(const float4& v)
+        ML_INLINE void SetCol0(const float4& v)
         {
             col0 = v.xmm;
         }
 
-        PLATFORM_INLINE void SetCol1(const float4& v)
+        ML_INLINE void SetCol1(const float4& v)
         {
             col1 = v.xmm;
         }
 
-        PLATFORM_INLINE void SetCol2(const float4& v)
+        ML_INLINE void SetCol2(const float4& v)
         {
             col2 = v.xmm;
         }
 
-        PLATFORM_INLINE void SetCol3(const float4& v)
+        ML_INLINE void SetCol3(const float4& v)
         {
             col3 = v.xmm;
         }
 
-        PLATFORM_INLINE void SetCol0_0(const float3& v)
+        ML_INLINE void SetCol0_0(const float3& v)
         {
             col0 = v4f_setw0(v.xmm);
         }
 
-        PLATFORM_INLINE void SetCol1_0(const float3& v)
+        ML_INLINE void SetCol1_0(const float3& v)
         {
             col1 = v4f_setw0(v.xmm);
         }
 
-        PLATFORM_INLINE void SetCol2_0(const float3& v)
+        ML_INLINE void SetCol2_0(const float3& v)
         {
             col2 = v4f_setw0(v.xmm);
         }
 
-        PLATFORM_INLINE void SetCol3_1(const float3& v)
+        ML_INLINE void SetCol3_1(const float3& v)
         {
             col3 = v4f_setw1(v.xmm);
         }
 
-        PLATFORM_INLINE void SetCol0(float x, float y, float z, float w)
+        ML_INLINE void SetCol0(float x, float y, float z, float w)
         {
             col0 = v4f_set(x, y, z, w);
         }
 
-        PLATFORM_INLINE void SetCol1(float x, float y, float z, float w)
+        ML_INLINE void SetCol1(float x, float y, float z, float w)
         {
             col1 = v4f_set(x, y, z, w);
         }
 
-        PLATFORM_INLINE void SetCol2(float x, float y, float z, float w)
+        ML_INLINE void SetCol2(float x, float y, float z, float w)
         {
             col2 = v4f_set(x, y, z, w);
         }
 
-        PLATFORM_INLINE void SetCol3(float x, float y, float z, float w)
+        ML_INLINE void SetCol3(float x, float y, float z, float w)
         {
             col3 = v4f_set(x, y, z, w);
         }
 
-        PLATFORM_INLINE void operator = (const float4x4& m)
+        ML_INLINE void operator = (const float4x4& m)
         {
             col0 = m.col0;
             col1 = m.col1;
@@ -1122,12 +1122,12 @@ class float4x4
 
         // NOTE: compare
 
-        PLATFORM_INLINE bool operator == (const float4x4& m) const
+        ML_INLINE bool operator == (const float4x4& m) const
         {
             return float4(col0) == m.col0 && float4(col1) == m.col1 && float4(col2) == m.col2 && float4(col3) == m.col3;
         }
 
-        PLATFORM_INLINE bool operator != (const float4x4& m) const
+        ML_INLINE bool operator != (const float4x4& m) const
         {
             return float4(col0) != m.col0 || float4(col1) != m.col1 || float4(col2) != m.col2 || float4(col3) != m.col3;
         }
@@ -1138,47 +1138,47 @@ class float4x4
         // only when translation = {0}, in other case w-component
         // must be zeroed!
 
-        PLATFORM_INLINE const float4& GetCol0() const
+        ML_INLINE const float4& GetCol0() const
         {
             return (float4&)col0;
         }
 
-        PLATFORM_INLINE const float4& GetCol1() const
+        ML_INLINE const float4& GetCol1() const
         {
             return (float4&)col1;
         }
 
-        PLATFORM_INLINE const float4& GetCol2() const
+        ML_INLINE const float4& GetCol2() const
         {
             return (float4&)col2;
         }
 
-        PLATFORM_INLINE const float4& GetCol3() const
+        ML_INLINE const float4& GetCol3() const
         {
             return (float4&)col3;
         }
 
-        PLATFORM_INLINE float4 GetRow0() const
+        ML_INLINE float4 GetRow0() const
         {
             return float4(a00, a01, a02, a03);
         }
 
-        PLATFORM_INLINE float4 GetRow1() const
+        ML_INLINE float4 GetRow1() const
         {
             return float4(a10, a11, a12, a13);
         }
 
-        PLATFORM_INLINE float4 GetRow2() const
+        ML_INLINE float4 GetRow2() const
         {
             return float4(a20, a21, a22, a23);
         }
 
-        PLATFORM_INLINE float4 GetRow3() const
+        ML_INLINE float4 GetRow3() const
         {
             return float4(a30, a31, a32, a33);
         }
 
-        PLATFORM_INLINE float GetNdcDepth(float z) const
+        ML_INLINE float GetNdcDepth(float z) const
         {
             float a = a22 * z + a23;
             float b = a32 * z + a33;
@@ -1186,7 +1186,7 @@ class float4x4
             return a / b;
         }
 
-        PLATFORM_INLINE float3 GetRotationYPR() const
+        ML_INLINE float3 GetRotationYPR() const
         {
             float3 r;
             r.x = Atan(-a01, a11);
@@ -1196,7 +1196,7 @@ class float4x4
             return r;
         }
 
-        PLATFORM_INLINE float4 GetQuaternion() const
+        ML_INLINE float4 GetQuaternion() const
         {
             float4 q;
             float t;
@@ -1233,7 +1233,7 @@ class float4x4
             return q;
         }
 
-        PLATFORM_INLINE float3 GetScale() const
+        ML_INLINE float3 GetScale() const
         {
             float3 scale = float3
             (
@@ -1245,26 +1245,26 @@ class float4x4
             return scale;
         }
 
-        PLATFORM_INLINE void SetTranslation(const float3& p)
+        ML_INLINE void SetTranslation(const float3& p)
         {
             col3 = v4f_setw1(p.xmm);
         }
 
-        PLATFORM_INLINE void AddTranslation(const float3& p)
+        ML_INLINE void AddTranslation(const float3& p)
         {
             col3 = _mm_add_ps(col3, v4f_setw0(p.xmm));
         }
 
-        PLATFORM_INLINE void PreTranslation(const float3& p);
+        ML_INLINE void PreTranslation(const float3& p);
 
-        PLATFORM_INLINE void AddScale(const float3& scale)
+        ML_INLINE void AddScale(const float3& scale)
         {
             col0 = _mm_mul_ps(col0, scale.xmm);
             col1 = _mm_mul_ps(col1, scale.xmm);
             col2 = _mm_mul_ps(col2, scale.xmm);
         }
 
-        PLATFORM_INLINE void WorldToView(uint32_t uiProjFlags = 0)
+        ML_INLINE void WorldToView(uint32_t uiProjFlags = 0)
         {
             /*
             float4x4 rot;
@@ -1281,7 +1281,7 @@ class float4x4
             Transpose3x4();
         }
 
-        PLATFORM_INLINE void ViewToWorld(uint32_t uiProjFlags = 0)
+        ML_INLINE void ViewToWorld(uint32_t uiProjFlags = 0)
         {
             Transpose3x4();
 
@@ -1291,7 +1291,7 @@ class float4x4
             Swap(col1, col2);
         }
 
-        PLATFORM_INLINE bool IsLeftHanded() const
+        ML_INLINE bool IsLeftHanded() const
         {
             float3 v1 = Cross(col0, col1);
 
@@ -1300,7 +1300,7 @@ class float4x4
 
         // NOTE: arithmetic
 
-        PLATFORM_INLINE float4x4 operator * (const float4x4& m) const
+        ML_INLINE float4x4 operator * (const float4x4& m) const
         {
             float4x4 r;
 
@@ -1333,7 +1333,7 @@ class float4x4
             return r;
         }
 
-        PLATFORM_INLINE float4 operator * (const float4& v) const
+        ML_INLINE float4 operator * (const float4& v) const
         {
             v4f r = _mm_mul_ps(v4f_swizzle(v.xmm, 0, 0, 0, 0), col0);
             r = v4f_madd(v4f_swizzle(v.xmm, 1, 1, 1, 1), col1, r);
@@ -1343,7 +1343,7 @@ class float4x4
             return r;
         }
 
-        PLATFORM_INLINE float3 operator * (const float3& v) const
+        ML_INLINE float3 operator * (const float3& v) const
         {
             v4f r = v4f_madd(v4f_swizzle(v.xmm, 0, 0, 0, 0), col0, col3);
             r = v4f_madd(v4f_swizzle(v.xmm, 1, 1, 1, 1), col1, r);
@@ -1352,7 +1352,7 @@ class float4x4
             return r;
         }
 
-        PLATFORM_INLINE void TransposeTo(float4x4& m) const
+        ML_INLINE void TransposeTo(float4x4& m) const
         {
             v4f xmm0 = v4f_Ax_Bx_Ay_By(col0, col1);
             v4f xmm1 = v4f_Ax_Bx_Ay_By(col2, col3);
@@ -1365,7 +1365,7 @@ class float4x4
             m.col3 = v4f_Azw_Bzw(xmm3, xmm2);
         }
 
-        PLATFORM_INLINE void Transpose()
+        ML_INLINE void Transpose()
         {
             v4f xmm0 = v4f_Ax_Bx_Ay_By(col0, col1);
             v4f xmm1 = v4f_Ax_Bx_Ay_By(col2, col3);
@@ -1378,7 +1378,7 @@ class float4x4
             col3 = v4f_Azw_Bzw(xmm3, xmm2);
         }
 
-        PLATFORM_INLINE void Transpose3x4()
+        ML_INLINE void Transpose3x4()
         {
             v4f xmm0 = v4f_Ax_Bx_Ay_By(col0, col1);
             v4f xmm1 = v4f_Ax_Bx_Ay_By(col2, col3);
@@ -1390,7 +1390,7 @@ class float4x4
             col2 = v4f_Axy_Bxy(xmm2, xmm3);
         }
 
-        PLATFORM_INLINE void Invert()
+        ML_INLINE void Invert()
         {
             // NOTE: http://forum.devmaster.net/t/sse-mat4-inverse/16799
 
@@ -1533,11 +1533,11 @@ class float4x4
             col3 = _mm_mul_ps(Inv3, Rcp0);
         }
 
-        PLATFORM_INLINE void InvertOrtho();
+        ML_INLINE void InvertOrtho();
 
         // NOTE: special sets
 
-        PLATFORM_INLINE void SetupByQuaternion(const float4& q)
+        ML_INLINE void SetupByQuaternion(const float4& q)
         {
             // NOTE: assuming the quaternion is normalized
             float x2  = q.x + q.x;
@@ -1559,7 +1559,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByRotationX(float angleX)
+        ML_INLINE void SetupByRotationX(float angleX)
         {
             float ct = Cos(angleX);
             float st = Sin(angleX);
@@ -1571,7 +1571,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByRotationY(float angleY)
+        ML_INLINE void SetupByRotationY(float angleY)
         {
             float ct = Cos(angleY);
             float st = Sin(angleY);
@@ -1583,7 +1583,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByRotationZ(float angleZ)
+        ML_INLINE void SetupByRotationZ(float angleZ)
         {
             float ct = Cos(angleZ);
             float st = Sin(angleZ);
@@ -1595,7 +1595,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByRotationYPR(float fYaw, float fPitch, float fRoll)
+        ML_INLINE void SetupByRotationYPR(float fYaw, float fPitch, float fRoll)
         {
             // NOTE: "yaw-pitch-roll" rotation
             //       yaw - around Z (object "down-up" axis)
@@ -1635,7 +1635,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByRotation(float theta, const float3& v)
+        ML_INLINE void SetupByRotation(float theta, const float3& v)
         {
             float ct = Cos(theta);
             float st = Sin(theta);
@@ -1643,7 +1643,7 @@ class float4x4
             SetupByRotation(st, ct, v);
         }
 
-        PLATFORM_INLINE void SetupByRotation(float st, float ct, const float3& v)
+        ML_INLINE void SetupByRotation(float st, float ct, const float3& v)
         {
             float xx = v.x * v.x;
             float yy = v.y * v.y;
@@ -1677,7 +1677,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByRotation(const float3& z, const float3& d)
+        ML_INLINE void SetupByRotation(const float3& z, const float3& d)
         {
             /*
             // NOTE: same as
@@ -1715,7 +1715,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByTranslation(const float3& p)
+        ML_INLINE void SetupByTranslation(const float3& p)
         {
             SetCol0(1.0f, 0.0f, 0.0f, 0.0f);
             SetCol1(0.0f, 1.0f, 0.0f, 0.0f);
@@ -1723,7 +1723,7 @@ class float4x4
             SetCol3_1(p);
         }
 
-        PLATFORM_INLINE void SetupByScale(const float3& scale)
+        ML_INLINE void SetupByScale(const float3& scale)
         {
             SetCol0(scale.x, 0.0f, 0.0f, 0.0f);
             SetCol1(0.0f, scale.y, 0.0f, 0.0f);
@@ -1732,7 +1732,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByLookAt(const float3& vForward)
+        ML_INLINE void SetupByLookAt(const float3& vForward)
         {
             float3 y = Normalize(vForward);
             float3 z = GetPerpendicularVector(y);
@@ -1745,7 +1745,7 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByLookAt(const float3& vForward, const float3& vRight)
+        ML_INLINE void SetupByLookAt(const float3& vForward, const float3& vRight)
         {
             float3 y = Normalize(vForward);
             float3 z = Normalize( Cross(vRight, y) );
@@ -1758,10 +1758,10 @@ class float4x4
             col3 = c_v4f_0001;
         }
 
-        PLATFORM_INLINE void SetupByOrthoProjection(float left, float right, float bottom, float top, float zNear, float zFar, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByOrthoProjection(float left, float right, float bottom, float top, float zNear, float zFar, uint32_t uiProjFlags = 0)
         {
-            DEBUG_Assert( left < right );
-            DEBUG_Assert( bottom < top );
+            ML_Assert( left < right );
+            ML_Assert( bottom < top );
 
             float rWidth = 1.0f / (right - left);
             float rHeight = 1.0f / (top - bottom);
@@ -1796,10 +1796,10 @@ class float4x4
                 col2 = v4f_negate(col2);
         }
 
-        PLATFORM_INLINE void SetupByFrustum(float left, float right, float bottom, float top, float zNear, float zFar, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByFrustum(float left, float right, float bottom, float top, float zNear, float zFar, uint32_t uiProjFlags = 0)
         {
-            DEBUG_Assert( left < right );
-            DEBUG_Assert( bottom < top );
+            ML_Assert( left < right );
+            ML_Assert( bottom < top );
 
             float rWidth = 1.0f / (right - left);
             float rHeight = 1.0f / (top - bottom);
@@ -1834,10 +1834,10 @@ class float4x4
                 col2 = v4f_negate(col2);
         }
 
-        PLATFORM_INLINE void SetupByFrustumInf(float left, float right, float bottom, float top, float zNear, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByFrustumInf(float left, float right, float bottom, float top, float zNear, uint32_t uiProjFlags = 0)
         {
-            DEBUG_Assert( left < right );
-            DEBUG_Assert( bottom < top );
+            ML_Assert( left < right );
+            ML_Assert( bottom < top );
 
             float rWidth = 1.0f / (right - left);
             float rHeight = 1.0f / (top - bottom);
@@ -1871,7 +1871,7 @@ class float4x4
                 col2 = v4f_negate(col2);
         }
 
-        PLATFORM_INLINE void SetupByHalfFovy(float halfFovy, float aspect, float zNear, float zFar, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByHalfFovy(float halfFovy, float aspect, float zNear, float zFar, uint32_t uiProjFlags = 0)
         {
             float ymax = zNear * Tan(halfFovy);
             float xmax = ymax * aspect;
@@ -1879,7 +1879,7 @@ class float4x4
             SetupByFrustum(-xmax, xmax, -ymax, ymax, zNear, zFar, uiProjFlags);
         }
 
-        PLATFORM_INLINE void SetupByHalfFovyInf(float halfFovy, float aspect, float zNear, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByHalfFovyInf(float halfFovy, float aspect, float zNear, uint32_t uiProjFlags = 0)
         {
             float ymax = zNear * Tan(halfFovy);
             float xmax = ymax * aspect;
@@ -1887,7 +1887,7 @@ class float4x4
             SetupByFrustumInf(-xmax, xmax, -ymax, ymax, zNear, uiProjFlags);
         }
 
-        PLATFORM_INLINE void SetupByHalfFovx(float halfFovx, float aspect, float zNear, float zFar, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByHalfFovx(float halfFovx, float aspect, float zNear, float zFar, uint32_t uiProjFlags = 0)
         {
             float xmax = zNear * Tan(halfFovx);
             float ymax = xmax / aspect;
@@ -1895,7 +1895,7 @@ class float4x4
             SetupByFrustum(-xmax, xmax, -ymax, ymax, zNear, zFar, uiProjFlags);
         }
 
-        PLATFORM_INLINE void SetupByHalfFovxInf(float halfFovx, float aspect, float zNear, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByHalfFovxInf(float halfFovx, float aspect, float zNear, uint32_t uiProjFlags = 0)
         {
             float xmax = zNear * Tan(halfFovx);
             float ymax = xmax / aspect;
@@ -1903,7 +1903,7 @@ class float4x4
             SetupByFrustumInf(-xmax, xmax, -ymax, ymax, zNear, uiProjFlags);
         }
 
-        PLATFORM_INLINE void SetupByAngles(float angleMinx, float angleMaxx, float angleMiny, float angleMaxy, float zNear, float zFar, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByAngles(float angleMinx, float angleMaxx, float angleMiny, float angleMaxy, float zNear, float zFar, uint32_t uiProjFlags = 0)
         {
             float xmin = Tan(angleMinx) * zNear;
             float xmax = Tan(angleMaxx) * zNear;
@@ -1913,7 +1913,7 @@ class float4x4
             SetupByFrustum(xmin, xmax, ymin, ymax, zNear, zFar, uiProjFlags);
         }
 
-        PLATFORM_INLINE void SetupByAnglesInf(float angleMinx, float angleMaxx, float angleMiny, float angleMaxy, float zNear, uint32_t uiProjFlags = 0)
+        ML_INLINE void SetupByAnglesInf(float angleMinx, float angleMaxx, float angleMiny, float angleMaxy, float zNear, uint32_t uiProjFlags = 0)
         {
             float xmin = Tan(angleMinx) * zNear;
             float xmax = Tan(angleMaxx) * zNear;
@@ -1923,7 +1923,7 @@ class float4x4
             SetupByFrustumInf(xmin, xmax, ymin, ymax, zNear, uiProjFlags);
         }
 
-        PLATFORM_INLINE void SubsampleProjection(float dx, float dy, uint32_t viewportWidth, uint32_t viewportHeight)
+        ML_INLINE void SubsampleProjection(float dx, float dy, uint32_t viewportWidth, uint32_t viewportHeight)
         {
             // NOTE: dx/dy in range [-1; 1]
 
@@ -1931,7 +1931,7 @@ class float4x4
             a12 += dy / float(viewportHeight);
         }
 
-        PLATFORM_INLINE bool IsProjectionValid() const
+        ML_INLINE bool IsProjectionValid() const
         {
             // Do not check a20 and a21 to allow off-centered projections
             // Do not check a22 to allow reverse infinite projections
@@ -1959,47 +1959,47 @@ class cBoxf
 
     public:
 
-        PLATFORM_INLINE cBoxf()
+        ML_INLINE cBoxf()
         {
             Clear();
         }
 
-        PLATFORM_INLINE cBoxf(const float3& v)
+        ML_INLINE cBoxf(const float3& v)
         {
             vMin = v;
             vMax = v;
         }
 
-        PLATFORM_INLINE cBoxf(const float3& minv, const float3& maxv)
+        ML_INLINE cBoxf(const float3& minv, const float3& maxv)
         {
             vMin = minv;
             vMax = maxv;
         }
 
-        PLATFORM_INLINE void Clear()
+        ML_INLINE void Clear()
         {
             vMin = float3(c_v4f_Inf);
             vMax = float3(c_v4f_InfMinus);
         }
 
-        PLATFORM_INLINE bool IsValid() const
+        ML_INLINE bool IsValid() const
         {
             v4f r = v4f_less(vMin.xmm, vMax.xmm);
 
             return v4f_test3_all(r);
         }
 
-        PLATFORM_INLINE float3 GetCenter() const
+        ML_INLINE float3 GetCenter() const
         {
             return (vMin + vMax) * 0.5f;
         }
 
-        PLATFORM_INLINE float GetRadius() const
+        ML_INLINE float GetRadius() const
         {
             return Length(vMax - vMin) * 0.5f;
         }
 
-        PLATFORM_INLINE void Scale(float fScale)
+        ML_INLINE void Scale(float fScale)
         {
             fScale *= 0.5f;
 
@@ -2013,25 +2013,25 @@ class cBoxf
             vMax = b;
         }
 
-        PLATFORM_INLINE void Enlarge(const float3& vBorder)
+        ML_INLINE void Enlarge(const float3& vBorder)
         {
             vMin -= vBorder;
             vMax += vBorder;
         }
 
-        PLATFORM_INLINE void Add(const float3& v)
+        ML_INLINE void Add(const float3& v)
         {
             vMin = _mm_min_ps(vMin.xmm, v.xmm);
             vMax = _mm_max_ps(vMax.xmm, v.xmm);
         }
 
-        PLATFORM_INLINE void Add(const cBoxf& b)
+        ML_INLINE void Add(const cBoxf& b)
         {
             vMin = _mm_min_ps(vMin.xmm, b.vMin.xmm);
             vMax = _mm_max_ps(vMax.xmm, b.vMax.xmm);
         }
 
-        PLATFORM_INLINE float DistanceSquared(const float3& from) const
+        ML_INLINE float DistanceSquared(const float3& from) const
         {
             v4f p = v4f_clamp(from.xmm, vMin.xmm, vMax.xmm);
             p = _mm_sub_ps(p, from.xmm);
@@ -2040,7 +2040,7 @@ class cBoxf
             return v4f_get_x(p);
         }
 
-        PLATFORM_INLINE float Distance(const float3& from) const
+        ML_INLINE float Distance(const float3& from) const
         {
             v4f p = v4f_clamp(from.xmm, vMin.xmm, vMax.xmm);
             p = _mm_sub_ps(p, from.xmm);
@@ -2049,7 +2049,7 @@ class cBoxf
             return v4f_get_x(p);
         }
 
-        PLATFORM_INLINE bool IsIntersectWith(const cBoxf& b) const
+        ML_INLINE bool IsIntersectWith(const cBoxf& b) const
         {
             v4f r = v4f_less(vMax.xmm, b.vMin.xmm);
             r = _mm_or_ps(r, v4f_greater(vMin.xmm, b.vMax.xmm));
@@ -2059,7 +2059,7 @@ class cBoxf
 
         // NOTE: intersection state 'b' vs 'this'
 
-        PLATFORM_INLINE eClip GetIntersectionState(const cBoxf& b) const
+        ML_INLINE eClip GetIntersectionState(const cBoxf& b) const
         {
             if( !IsIntersectWith(b) )
                 return CLIP_OUT;
@@ -2070,7 +2070,7 @@ class cBoxf
             return v4f_test3_all(r) ? CLIP_IN : CLIP_PARTIAL;
         }
 
-        PLATFORM_INLINE bool IsContain(const float3& p) const
+        ML_INLINE bool IsContain(const float3& p) const
         {
             v4f r = v4f_less(p.xmm, vMin.xmm);
             r = _mm_or_ps(r, v4f_greater(p.xmm, vMax.xmm));
@@ -2078,7 +2078,7 @@ class cBoxf
             return v4f_test3_none(r);
         }
 
-        PLATFORM_INLINE bool IsContainSphere(const float3& center, float radius) const
+        ML_INLINE bool IsContainSphere(const float3& center, float radius) const
         {
             v4f r = _mm_broadcast_ss(&radius);
             v4f t = _mm_sub_ps(vMin.xmm, r);
@@ -2096,7 +2096,7 @@ class cBoxf
             return true;
         }
 
-        PLATFORM_INLINE uint32_t GetIntersectionBits(const cBoxf& b) const
+        ML_INLINE uint32_t GetIntersectionBits(const cBoxf& b) const
         {
             v4f r = v4f_gequal(b.vMin.xmm, vMin.xmm);
             uint32_t bits = v4f_bits3(r);
@@ -2107,7 +2107,7 @@ class cBoxf
             return bits;
         }
 
-        PLATFORM_INLINE uint32_t IsContain(const float3& p, uint32_t bits) const
+        ML_INLINE uint32_t IsContain(const float3& p, uint32_t bits) const
         {
             v4f r = v4f_gequal(p.xmm, vMin.xmm);
             bits |= v4f_bits3(r);
@@ -2118,7 +2118,7 @@ class cBoxf
             return bits;
         }
 
-        PLATFORM_INLINE bool IsIntersectWith(const float3& vRayPos, const float3& vRayDir, float* out_fTmin, float* out_fTmax) const
+        ML_INLINE bool IsIntersectWith(const float3& vRayPos, const float3& vRayDir, float* out_fTmin, float* out_fTmax) const
         {
             // NOTE: http://tavianator.com/2011/05/fast-branchless-raybounding-box-intersections/
 
@@ -2151,7 +2151,7 @@ class cBoxf
 //                                                      Misc
 //======================================================================================================================
 
-PLATFORM_INLINE float3 Reflect(const float3& v, const float3& n)
+ML_INLINE float3 Reflect(const float3& v, const float3& n)
 {
     // NOTE: slow
     // return v - n * Dot33(n, v) * 2;
@@ -2162,7 +2162,7 @@ PLATFORM_INLINE float3 Reflect(const float3& v, const float3& n)
     return v4f_nmadd(n.xmm, dot0, v.xmm);
 }
 
-PLATFORM_INLINE float3 Refract(const float3& v, const float3& n, float eta)
+ML_INLINE float3 Refract(const float3& v, const float3& n, float eta)
 {
     // NOTE: slow
     /*
@@ -2192,7 +2192,7 @@ PLATFORM_INLINE float3 Refract(const float3& v, const float3& n, float eta)
     return v4f_nmadd(add0, n.xmm, mul5);
 }
 
-PLATFORM_INLINE bool IsPointsNear(const float3& p1, const float3& p2, float eps = c_fEps)
+ML_INLINE bool IsPointsNear(const float3& p1, const float3& p2, float eps = c_fEps)
 {
     v4f r = _mm_sub_ps(p1.xmm, p2.xmm);
     r = v4f_abs(r);
@@ -2201,7 +2201,7 @@ PLATFORM_INLINE bool IsPointsNear(const float3& p1, const float3& p2, float eps 
     return v4f_test3_all(r);
 }
 
-PLATFORM_INLINE float3 Rotate(const float4x4& m, const float3& v)
+ML_INLINE float3 Rotate(const float4x4& m, const float3& v)
 {
     v4f r = _mm_mul_ps(v4f_swizzle(v.xmm, 0, 0, 0, 0), m.col0);
     r = v4f_madd(v4f_swizzle(v.xmm, 1, 1, 1, 1), m.col1, r);
@@ -2211,13 +2211,13 @@ PLATFORM_INLINE float3 Rotate(const float4x4& m, const float3& v)
     return r;
 }
 
-PLATFORM_INLINE void float4x4::PreTranslation(const float3& p)
+ML_INLINE void float4x4::PreTranslation(const float3& p)
 {
     v4f r = Rotate(*this, p.xmm).xmm;
     col3 = _mm_add_ps(col3, r);
 }
 
-PLATFORM_INLINE void float4x4::InvertOrtho()
+ML_INLINE void float4x4::InvertOrtho()
 {
     Transpose3x4();
 
@@ -2230,7 +2230,7 @@ PLATFORM_INLINE void float4x4::InvertOrtho()
     col3 = v4f_setw1(col3);
 }
 
-PLATFORM_INLINE float3 RotateAbs(const float4x4& m, const float3& v)
+ML_INLINE float3 RotateAbs(const float4x4& m, const float3& v)
 {
     v4f col0_abs = v4f_abs(m.col0);
     v4f col1_abs = v4f_abs(m.col1);
@@ -2243,7 +2243,7 @@ PLATFORM_INLINE float3 RotateAbs(const float4x4& m, const float3& v)
     return r;
 }
 
-PLATFORM_INLINE void TransformAabb(const float4x4& mTransform, const cBoxf& src, cBoxf& dst)
+ML_INLINE void TransformAabb(const float4x4& mTransform, const cBoxf& src, cBoxf& dst)
 {
     float3 center = (src.vMin + src.vMax) * 0.5f;
     float3 extends = src.vMax - center;
@@ -2255,7 +2255,7 @@ PLATFORM_INLINE void TransformAabb(const float4x4& mTransform, const cBoxf& src,
     dst.vMax = center + extends;
 }
 
-PLATFORM_INLINE float3 Project(const float3& v, const float4x4& m)
+ML_INLINE float3 Project(const float3& v, const float4x4& m)
 {
     float4 clip = (m * v).xmm;
     clip /= clip.w;

@@ -1,8 +1,8 @@
 #pragma once
 
-#define MATHLIB_VERSION_MAJOR 1
-#define MATHLIB_VERSION_MINOR 17
-#define MATHLIB_VERSION_DATE "10 November 2023"
+#define ML_VERSION_MAJOR 1
+#define ML_VERSION_MINOR 18
+#define ML_VERSION_DATE "23 November 2023"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
@@ -10,56 +10,84 @@
 // NOTE: C standard rand() (15 bit, floating point with fixed step 1 / 0x7FFF)
 // perf: 1x
 // thread: safe
-#define PLATFORM_RND_CRT 0
+#define ML_RND_CRT 0
 
 // NOTE: extreme fast PRNG (32 bit)
 // perf: 15x
 // thread: NOT SAFE (but you can create your own instances of sFastRand in another threads)
-#define PLATFORM_RND_FAST 1
+#define ML_RND_FAST 1
 
 // NOTE: slower, hardware implemented CSPRNG (cryptographically secure), "rdrand" instruction support is required
 // https://software.intel.com/sites/default/files/managed/4d/91/DRNG_Software_Implementation_Guide_2.0.pdf
 // perf: 0.4x
 // thread: safe
-#define PLATFORM_RND_HW 2
+#define ML_RND_HW 2
 
 //======================================================================================================================
 //                                                  Settings
 //======================================================================================================================
 
 // NOTE: more precision (a little bit slower)
-
-#ifndef MATH_NEWTONRAPHSON_APROXIMATION
-    #define MATH_NEWTONRAPHSON_APROXIMATION
+#ifndef ML_NEWTONRAPHSON_APROXIMATION
+    #define ML_NEWTONRAPHSON_APROXIMATION
 #endif
 
 // NOTE: only for debug (not need if you are accurate in horizontal operations)
-
-#ifndef MATH_CHECK_W_IS_ZERO
-    //#define MATH_CHECK_W_IS_ZERO
+#ifndef ML_CHECK_W_IS_ZERO
+    //#define ML_CHECK_W_IS_ZERO
 #endif
 
 // NOTE: only for debug (generate exeptions in rounding operations, only for SSE4)
-
-#ifndef MATH_EXEPTIONS
-    //#define MATH_EXEPTIONS
+#ifndef ML_EXEPTIONS
+    //#define ML_EXEPTIONS
 #endif
 
 // NOTE: can be set in the project settings to wrap the library into namespace "ml"
-
-#ifndef MATH_NAMESPACE
-    //#define MATH_NAMESPACE
+#ifndef ML_NAMESPACE
+    //#define ML_NAMESPACE
 #endif
 
 // NOTE: see RND modes above
+#ifndef ML_RND_MODE
+    #define ML_RND_MODE ML_RND_FAST
+#endif
 
-#ifndef PLATFORM_RND_MODE
-    #define PLATFORM_RND_MODE PLATFORM_RND_FAST
+// NOTE: can be handy for classic OpenGL
+#ifndef ML_OGL
+    //#define ML_OGL
+#endif
+
+// NOTE: reverse depth
+#ifndef ML_DEPTH_REVERSED
+    #define ML_DEPTH_REVERSED
+#endif
+
+// NOTE: depth range
+#ifndef ML_DEPTH_RANGE_NEAR
+    #define ML_DEPTH_RANGE_NEAR 0.0f
+#endif
+
+#ifndef ML_ML_DEPTH_RANGE_FAR
+    #define ML_DEPTH_RANGE_FAR 1.0f
 #endif
 
 //======================================================================================================================
-//                                                    Start
+//                                                 Macro stuff
 //======================================================================================================================
+
+#include <stdint.h>
+#include <math.h>
+#include <stdlib.h> // rand
+#include <memory.h> // memset
+#include <float.h> // FLT_MIN
+
+#if( defined(__i386__) || defined(__x86_64__) || defined(__SCE__) )
+    #include <x86intrin.h>
+#elif( defined(__arm__) || defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM) )
+    #include "External/sse2neon/sse2neon.h"
+#else
+    #include <intrin.h>
+#endif
 
 #if defined(__GNUC__)
     #pragma GCC diagnostic push
@@ -72,37 +100,107 @@
     #pragma warning(disable:4201) // nonstandard extension used: nameless struct/union
 #endif
 
-#include <math.h>
-#include <float.h>
-
-#if defined(__i386__) || defined(__x86_64__) || defined(__SCE__)
-    #include <x86intrin.h>
-#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM)
-    #include "External/sse2neon/sse2neon.h"
+#ifdef _WIN32
+    #define ML_INLINE                             __forceinline
+    #define ML_ALIGN(alignment, x)                __declspec(align(alignment)) x
 #else
-    #include <intrin.h>
+    #include <unistd.h>
+
+    #define ML_INLINE                             __attribute__((always_inline)) inline
+    #define ML_ALIGN(alignment, x)                x __attribute__((aligned(alignment)))
 #endif
 
-#ifdef MATH_EXEPTIONS
-    #define ROUNDING_EXEPTIONS_MASK     _MM_FROUND_RAISE_EXC
+// NOTE: misc
+
+#define ML_UNUSED(x)                              (void)x
+
+#ifdef ML_EXEPTIONS
+    #define ML_ROUNDING_EXEPTIONS_MASK            _MM_FROUND_RAISE_EXC
 #else
-    #define ROUNDING_EXEPTIONS_MASK     _MM_FROUND_NO_EXC
+    #define ML_ROUNDING_EXEPTIONS_MASK            _MM_FROUND_NO_EXC
 #endif
 
-#include "Platform.h"
+// NOTE: intrinsic level
 
-#ifdef MATH_NAMESPACE
+#define ML_INTRINSIC_SSE3                         0 // NOTE: +SSSE3
+#define ML_INTRINSIC_SSE4                         1
+#define ML_INTRINSIC_AVX1                         2 // NOTE: +FP16C
+#define ML_INTRINSIC_AVX2                         3 // NOTE: +FMA3
+
+#if defined ( __AVX2__ )
+    #define ML_INTRINSIC_LEVEL                    ML_INTRINSIC_AVX2
+#elif defined ( __AVX__ )
+    #define ML_INTRINSIC_LEVEL                    ML_INTRINSIC_AVX1
+#elif defined ( __SSE4_2__ ) || defined ( __SSE4_1__ )
+    #define ML_INTRINSIC_LEVEL                    ML_INTRINSIC_SSE4
+#else
+    #define ML_INTRINSIC_LEVEL                    ML_INTRINSIC_SSE3
+#endif
+
+#define ML_HAS_TRANSCENDENTAL_INTRINSICS          (_MSC_VER >= 1920 && __clang__ == 0)
+
+// NOTE: debugging
+
+#define ML_StaticAssertMsg(x, msg)                static_assert(x, msg)
+#define ML_StaticAssert(x)                        static_assert(x, #x)
+
+#ifdef _DEBUG
+    #include <assert.h> // assert
+
+    #define ML_Assert(x)                          assert(x)
+    #define ML_AssertMsg(x, msg)                  assert(msg && x)
+#else
+    #define ML_Assert(x)                          ((void)0)
+    #define ML_AssertMsg(x, msg)                  ((void)0)
+#endif
+
+// Normalized device coordinates
+
+#ifdef ML_OGL
+    // depth range [-1; 1], origin "lower left"
+    #define ML_NDC_NEAR_NO_REVERSE                -1.0f
+    #define ML_DEPTH_C0                           (0.5f * (ML_DEPTH_RANGE_FAR - ML_DEPTH_RANGE_NEAR))
+    #define ML_DEPTH_C1                           (0.5f * (ML_DEPTH_RANGE_FAR + ML_DEPTH_RANGE_NEAR))
+    #define ML_ModifyProjZ(c2, c3)                (c2)
+#else
+    // depth range [0; 1], origin "upper left"        
+    #define ML_NDC_NEAR_NO_REVERSE                0.0f
+    #define ML_DEPTH_C0                           (ML_DEPTH_RANGE_FAR - ML_DEPTH_RANGE_NEAR)
+    #define ML_DEPTH_C1                           ML_DEPTH_RANGE_NEAR
+    #define ML_ModifyProjZ(c2, c3)                (T(0.5) * (c2 + c3))
+#endif
+
+#define ML_NDC_FAR_NO_REVERSE                     1.0f
+
+#ifdef ML_DEPTH_REVERSED
+    #define ML_NDC_NEAR                           ML_NDC_FAR_NO_REVERSE
+    #define ML_NDC_FAR                            ML_NDC_NEAR_NO_REVERSE
+    #define ML_DEPTH_EPS                          -1e-7f
+#else
+    #define ML_NDC_NEAR                           ML_NDC_NEAR_NO_REVERSE
+    #define ML_NDC_FAR                            ML_NDC_FAR_NO_REVERSE
+    #define ML_DEPTH_EPS                          1e-7f
+#endif
+
+//======================================================================================================================
+//                                                   MathLib
+//======================================================================================================================
+
+#ifdef ML_NAMESPACE
 namespace ml {
 #endif
 
-#include "NdcConfig.h"
-
-// also it defines vXY types
 #include "IntrinEmu.h"
 
 //======================================================================================================================
 //                                                  Enums
 //======================================================================================================================
+
+enum eStyle : uint8_t
+{
+    STYLE_D3D,
+    STYLE_OGL,
+};
 
 enum eClip : uint8_t
 {
@@ -123,17 +221,17 @@ enum eCmp : uint8_t
 
 enum eCoordinate : uint32_t
 {
-    COORD_X             = 0,
+    COORD_X = 0,
     COORD_Y,
     COORD_Z,
     COORD_W,
 
-    COORD_S             = 0,
+    COORD_S = 0,
     COORD_T,
     COORD_R,
     COORD_Q,
 
-    COORD_2D            = 2,
+    COORD_2D = 2,
     COORD_3D,
     COORD_4D,
 };
@@ -196,56 +294,83 @@ enum eProjectionFlag
 //                                                      Misc
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Sign(const T& x);
-template<class T> PLATFORM_INLINE T Abs(const T& x);
-template<class T> PLATFORM_INLINE T Floor(const T& x);
-template<class T> PLATFORM_INLINE T Round(const T& x);
-template<class T> PLATFORM_INLINE T Frac(const T& x);
-template<class T> PLATFORM_INLINE T Mod(const T& x, const T& y);
-template<class T> PLATFORM_INLINE T Snap(const T& x, const T& step);
-template<class T> PLATFORM_INLINE T Min(const T& x, const T& y);
-template<class T> PLATFORM_INLINE T Max(const T& x, const T& y);
-template<class T> PLATFORM_INLINE T Clamp(const T& x, const T& a, const T& b);
-template<class T> PLATFORM_INLINE T Saturate(const T& x);
-template<class T> PLATFORM_INLINE T Lerp(const T& a, const T& b, const T& x);
-template<class T> PLATFORM_INLINE T Smoothstep(const T& a, const T& b, const T& x);
-template<class T> PLATFORM_INLINE T Linearstep(const T& a, const T& b, const T& x);
-template<class T> PLATFORM_INLINE T Step(const T& edge, const T& x);
+template<class T> ML_INLINE T Sign(const T& x);
+template<class T> ML_INLINE T Abs(const T& x);
+template<class T> ML_INLINE T Floor(const T& x);
+template<class T> ML_INLINE T Round(const T& x);
+template<class T> ML_INLINE T Frac(const T& x);
+template<class T> ML_INLINE T Mod(const T& x, const T& y);
+template<class T> ML_INLINE T Snap(const T& x, const T& step);
+template<class T> ML_INLINE T Min(const T& x, const T& y);
+template<class T> ML_INLINE T Max(const T& x, const T& y);
+template<class T> ML_INLINE T Clamp(const T& x, const T& a, const T& b);
+template<class T> ML_INLINE T Saturate(const T& x);
+template<class T> ML_INLINE T Lerp(const T& a, const T& b, const T& x);
+template<class T> ML_INLINE T Smoothstep(const T& a, const T& b, const T& x);
+template<class T> ML_INLINE T Linearstep(const T& a, const T& b, const T& x);
+template<class T> ML_INLINE T Step(const T& edge, const T& x);
 
-template<class T> PLATFORM_INLINE T Sin(const T& x);
-template<class T> PLATFORM_INLINE T Cos(const T& x);
-template<class T> PLATFORM_INLINE T SinCos(const T& x, T* pCos);
-template<class T> PLATFORM_INLINE T Tan(const T& x);
-template<class T> PLATFORM_INLINE T Asin(const T& x);
-template<class T> PLATFORM_INLINE T Acos(const T& x);
-template<class T> PLATFORM_INLINE T Atan(const T& x);
-template<class T> PLATFORM_INLINE T Atan(const T& y, const T& x);
-template<class T> PLATFORM_INLINE T Sqrt(const T& x);
-template<class T> PLATFORM_INLINE T Rsqrt(const T& x);
-template<class T> PLATFORM_INLINE T Pow(const T& x, const T& y);
-template<class T> PLATFORM_INLINE T Log(const T& x);
-template<class T> PLATFORM_INLINE T Exp(const T& x);
+template<class T> ML_INLINE T Sin(const T& x);
+template<class T> ML_INLINE T Cos(const T& x);
+template<class T> ML_INLINE T SinCos(const T& x, T* pCos);
+template<class T> ML_INLINE T Tan(const T& x);
+template<class T> ML_INLINE T Asin(const T& x);
+template<class T> ML_INLINE T Acos(const T& x);
+template<class T> ML_INLINE T Atan(const T& x);
+template<class T> ML_INLINE T Atan(const T& y, const T& x);
+template<class T> ML_INLINE T Sqrt(const T& x);
+template<class T> ML_INLINE T Rsqrt(const T& x);
+template<class T> ML_INLINE T Pow(const T& x, const T& y);
+template<class T> ML_INLINE T Log(const T& x);
+template<class T> ML_INLINE T Exp(const T& x);
 
-template<class T> PLATFORM_INLINE T Pi(const T& mul = T(1));
-template<class T> PLATFORM_INLINE T RadToDeg(const T& a);
-template<class T> PLATFORM_INLINE T DegToRad(const T& a);
+template<class T> ML_INLINE T Pi(const T& mul = T(1));
+template<class T> ML_INLINE T RadToDeg(const T& a);
+template<class T> ML_INLINE T DegToRad(const T& a);
 
-template<class T> PLATFORM_INLINE T Slerp(const T& a, const T& b, float x);
+template<class T> ML_INLINE T Slerp(const T& a, const T& b, float x);
 
-template<class T> PLATFORM_INLINE T CurveSmooth(const T& x);
-template<class T> PLATFORM_INLINE T CurveSin(const T& x);
-template<class T> PLATFORM_INLINE T WaveTriangle(const T& x);
-template<class T> PLATFORM_INLINE T WaveTriangleSmooth(const T& x);
+template<class T> ML_INLINE T CurveSmooth(const T& x);
+template<class T> ML_INLINE T CurveSin(const T& x);
+template<class T> ML_INLINE T WaveTriangle(const T& x);
+template<class T> ML_INLINE T WaveTriangleSmooth(const T& x);
 
-template<eCmp cmp, class T> PLATFORM_INLINE bool All(const T& x, const T& y);
-template<eCmp cmp, class T> PLATFORM_INLINE bool Any(const T& x, const T& y);
+template<eCmp cmp, class T> ML_INLINE bool All(const T& x, const T& y);
+template<eCmp cmp, class T> ML_INLINE bool Any(const T& x, const T& y);
 
-template<class T> PLATFORM_INLINE void Swap(T& x, T& y)
+template<class T> ML_INLINE void Swap(T& x, T& y)
 {
     T t = x;
     x = y;
     y = t;
 }
+
+namespace Zbuffer
+{
+    template<class T> inline T ModifyProjZ(bool bReverse, T c2, T c3)
+    {
+        ML_UNUSED(bReverse);
+        ML_UNUSED(c3);
+
+        if( bReverse )
+            c2 = -c2;
+
+        return ML_ModifyProjZ(c2, c3);
+    }
+
+    inline void UnprojectZ(float* pfUnprojectZ2, float a22, float a23, float a32)
+    {
+        // z = u0 / (depth + u1)
+
+        pfUnprojectZ2[0] = ML_DEPTH_C0 * a23 / a32;
+        pfUnprojectZ2[1] = -(ML_DEPTH_C0 * a22 / a32 + ML_DEPTH_C1);
+
+        // z = 1 / (depth * u0 + u1);
+
+        //pfUnprojectZ2[0] = a32 / (ML_DEPTH_C0 * a23);
+        //pfUnprojectZ2[1] = -(a22 / a23 + ML_DEPTH_C1 / pfUnprojectZ2[0]);
+    }
+};
 
 #include "MathLib_f.h"
 #include "MathLib_d.h"
@@ -254,21 +379,21 @@ template<class T> PLATFORM_INLINE void Swap(T& x, T& y)
 //                                                      Conversions
 //======================================================================================================================
 
-PLATFORM_INLINE float3 ToFloat(const double3& x)
+ML_INLINE float3 ToFloat(const double3& x)
 {
     v4f r = v4d_to_v4f(x.ymm);
 
     return r;
 }
 
-PLATFORM_INLINE float4 ToFloat(const double4& x)
+ML_INLINE float4 ToFloat(const double4& x)
 {
     v4f r = v4d_to_v4f(x.ymm);
 
     return r;
 }
 
-PLATFORM_INLINE float4x4 ToFloat(const double4x4& m)
+ML_INLINE float4x4 ToFloat(const double4x4& m)
 {
     float4x4 r;
     r.col0 = v4d_to_v4f(m.col0);
@@ -279,17 +404,17 @@ PLATFORM_INLINE float4x4 ToFloat(const double4x4& m)
     return r;
 }
 
-PLATFORM_INLINE double3 ToDouble(const float3& x)
+ML_INLINE double3 ToDouble(const float3& x)
 {
     return v4f_to_v4d(x.xmm);
 }
 
-PLATFORM_INLINE double4 ToDouble(const float4& x)
+ML_INLINE double4 ToDouble(const float4& x)
 {
     return v4f_to_v4d(x.xmm);
 }
 
-PLATFORM_INLINE double4x4 ToDouble(const float4x4& m)
+ML_INLINE double4x4 ToDouble(const float4x4& m)
 {
     double4x4 r;
     r.col0 = v4f_to_v4d(m.col0);
@@ -323,10 +448,10 @@ class int2
 
     public:
 
-        PLATFORM_INLINE int2() : x(0), y(0)
+        ML_INLINE int2() : x(0), y(0)
         {}
 
-        PLATFORM_INLINE int2(int32_t a, int32_t b) : x(a), y(b)
+        ML_INLINE int2(int32_t a, int32_t b) : x(a), y(b)
         {}
 };
 
@@ -349,13 +474,13 @@ class uint2
 
     public:
 
-        PLATFORM_INLINE uint2() : x(0), y(0)
+        ML_INLINE uint2() : x(0), y(0)
         {}
 
-        PLATFORM_INLINE uint2(uint32_t a, uint32_t b) : x(a), y(b)
+        ML_INLINE uint2(uint32_t a, uint32_t b) : x(a), y(b)
         {}
 
-        PLATFORM_INLINE uint2(const float2& v) : x( uint32_t(v.x) ), y( uint32_t(v.y) )
+        ML_INLINE uint2(const float2& v) : x( uint32_t(v.x) ), y( uint32_t(v.y) )
         {}
 };
 
@@ -385,43 +510,43 @@ class int4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE int4() : xmm( _mm_setzero_si128() )
+        ML_INLINE int4() : xmm( _mm_setzero_si128() )
         {}
 
-        PLATFORM_INLINE int4(int32_t a) : xmm( _mm_set1_epi32(a) )
+        ML_INLINE int4(int32_t a) : xmm( _mm_set1_epi32(a) )
         {}
 
-        PLATFORM_INLINE int4(int32_t a, int32_t b, int32_t c, int32_t d) : xmm( _mm_setr_epi32(a, b, c, d) )
+        ML_INLINE int4(int32_t a, int32_t b, int32_t c, int32_t d) : xmm( _mm_setr_epi32(a, b, c, d) )
         {}
 
-        PLATFORM_INLINE int4(const int32_t* v4) : xmm( _mm_loadu_si128((v4i*)v4) )
+        ML_INLINE int4(const int32_t* v4) : xmm( _mm_loadu_si128((v4i*)v4) )
         {}
 
-        PLATFORM_INLINE int4(const v4i& vec) : xmm(vec)
+        ML_INLINE int4(const v4i& vec) : xmm(vec)
         {}
 
         // NOTE: set
 
-        PLATFORM_INLINE void Set0()
+        ML_INLINE void Set0()
         {
             xmm = _mm_setzero_si128();
         }
 
-        PLATFORM_INLINE void operator = (const int4& vec)
+        ML_INLINE void operator = (const int4& vec)
         {
             xmm = vec.xmm;
         }
 
         // NOTE: compare
 
-        PLATFORM_INLINE bool operator == (const int4& v) const
+        ML_INLINE bool operator == (const int4& v) const
         {
             v4f r = _mm_castsi128_ps( _mm_cmpeq_epi32(xmm, v.xmm) );
 
             return v4f_test4_all(r);
         }
 
-        PLATFORM_INLINE bool operator != (const int4& v) const
+        ML_INLINE bool operator != (const int4& v) const
         {
             v4f r = _mm_castsi128_ps( _mm_cmpeq_epi32(xmm, v.xmm) );
 
@@ -455,43 +580,43 @@ class uint4
 
         // NOTE: constructors
 
-        PLATFORM_INLINE uint4() : xmm( _mm_setzero_si128() )
+        ML_INLINE uint4() : xmm( _mm_setzero_si128() )
         {}
 
-        PLATFORM_INLINE uint4(int32_t a) : xmm( _mm_set1_epi32(a) )
+        ML_INLINE uint4(int32_t a) : xmm( _mm_set1_epi32(a) )
         {}
 
-        PLATFORM_INLINE uint4(int32_t a, int32_t b, int32_t c, int32_t d) : xmm( _mm_setr_epi32(a, b, c, d) )
+        ML_INLINE uint4(int32_t a, int32_t b, int32_t c, int32_t d) : xmm( _mm_setr_epi32(a, b, c, d) )
         {}
 
-        PLATFORM_INLINE uint4(const int32_t* v4) : xmm( _mm_loadu_si128((v4i*)v4) )
+        ML_INLINE uint4(const int32_t* v4) : xmm( _mm_loadu_si128((v4i*)v4) )
         {}
 
-        PLATFORM_INLINE uint4(const v4i& vec) : xmm(vec)
+        ML_INLINE uint4(const v4i& vec) : xmm(vec)
         {}
 
         // NOTE: set
 
-        PLATFORM_INLINE void Set0()
+        ML_INLINE void Set0()
         {
             xmm = _mm_setzero_si128();
         }
 
-        PLATFORM_INLINE void operator = (const uint4& vec)
+        ML_INLINE void operator = (const uint4& vec)
         {
             xmm = vec.xmm;
         }
 
         // NOTE: compare
 
-        PLATFORM_INLINE bool operator == (const uint4& v) const
+        ML_INLINE bool operator == (const uint4& v) const
         {
             v4f r = _mm_castsi128_ps( _mm_cmpeq_epi32(xmm, v.xmm) );
 
             return v4f_test4_all(r);
         }
 
-        PLATFORM_INLINE bool operator != (const uint4& v) const
+        ML_INLINE bool operator != (const uint4& v) const
         {
             v4f r = _mm_castsi128_ps( _mm_cmpeq_epi32(xmm, v.xmm) );
 
@@ -508,46 +633,46 @@ union uFloat
     float f;
     uint32_t i;
 
-    PLATFORM_INLINE uFloat() : i(0)
+    ML_INLINE uFloat() : i(0)
     {}
 
-    PLATFORM_INLINE uFloat(float x) : f(x)
+    ML_INLINE uFloat(float x) : f(x)
     {}
 
-    PLATFORM_INLINE uFloat(uint32_t x) : i(x)
+    ML_INLINE uFloat(uint32_t x) : i(x)
     {}
 
-    PLATFORM_INLINE void Abs()
+    ML_INLINE void Abs()
     {
         i &= ~(1 << 31);
     }
 
-    PLATFORM_INLINE bool IsNegative() const
+    ML_INLINE bool IsNegative() const
     {
         return (i >> 31) != 0;
     }
 
-    PLATFORM_INLINE uint32_t Mantissa() const
+    ML_INLINE uint32_t Mantissa() const
     {
         return i & ((1 << 23) - 1);
     }
 
-    PLATFORM_INLINE uint32_t Exponent() const
+    ML_INLINE uint32_t Exponent() const
     {
         return (i >> 23) & 255;
     }
 
-    PLATFORM_INLINE bool IsInf() const
+    ML_INLINE bool IsInf() const
     {
         return Exponent() == 255 && Mantissa() == 0;
     }
 
-    PLATFORM_INLINE bool IsNan() const
+    ML_INLINE bool IsNan() const
     {
         return Exponent() == 255 && Mantissa() != 0;
     }
 
-    static PLATFORM_INLINE float PrecisionGreater(float x)
+    static ML_INLINE float PrecisionGreater(float x)
     {
         uFloat y(x);
         y.i++;
@@ -555,7 +680,7 @@ union uFloat
         return y.f - x;
     }
 
-    static PLATFORM_INLINE float PrecisionLess(float x)
+    static ML_INLINE float PrecisionLess(float x)
     {
         uFloat y(x);
         y.i--;
@@ -569,46 +694,46 @@ union uDouble
     double f;
     uint64_t i;
 
-    PLATFORM_INLINE uDouble() : i(0)
+    ML_INLINE uDouble() : i(0)
     {}
 
-    PLATFORM_INLINE uDouble(double x) : f(x)
+    ML_INLINE uDouble(double x) : f(x)
     {}
 
-    PLATFORM_INLINE uDouble(uint64_t x) : i(x)
+    ML_INLINE uDouble(uint64_t x) : i(x)
     {}
 
-    PLATFORM_INLINE bool IsNegative() const
+    ML_INLINE bool IsNegative() const
     {
         return (i >> 63) != 0;
     }
 
-    PLATFORM_INLINE void Abs()
+    ML_INLINE void Abs()
     {
         i &= ~(1ULL << 63);
     }
 
-    PLATFORM_INLINE uint64_t Mantissa() const
+    ML_INLINE uint64_t Mantissa() const
     {
         return i & ((1ULL << 52) - 1);
     }
 
-    PLATFORM_INLINE uint64_t Exponent() const
+    ML_INLINE uint64_t Exponent() const
     {
         return (i >> 52) & 2047;
     }
 
-    PLATFORM_INLINE bool IsInf() const
+    ML_INLINE bool IsInf() const
     {
         return Exponent() == 2047 && Mantissa() == 0;
     }
 
-    PLATFORM_INLINE bool IsNan() const
+    ML_INLINE bool IsNan() const
     {
         return Exponent() == 2047 && Mantissa() != 0;
     }
 
-    static PLATFORM_INLINE double PrecisionGreater(double x)
+    static ML_INLINE double PrecisionGreater(double x)
     {
         uDouble y(x);
         y.i++;
@@ -616,7 +741,7 @@ union uDouble
         return y.f - x;
     }
 
-    static PLATFORM_INLINE double PrecisionLess(double x)
+    static ML_INLINE double PrecisionLess(double x)
     {
         uDouble y(x);
         y.i--;
@@ -625,7 +750,7 @@ union uDouble
     }
 };
 
-PLATFORM_INLINE float DoubleToGequal(double dValue)
+ML_INLINE float DoubleToGequal(double dValue)
 {
     float fValue = (float)dValue;
     float fError = (float)(dValue - fValue);
@@ -652,7 +777,7 @@ PLATFORM_INLINE float DoubleToGequal(double dValue)
     return fValue;
 }
 
-PLATFORM_INLINE float DoubleToLequal(double dValue)
+ML_INLINE float DoubleToLequal(double dValue)
 {
     float fValue = (float)dValue;
     float fError = (float)(dValue - fValue);
@@ -697,17 +822,17 @@ class cError
 
     public:
 
-        PLATFORM_INLINE cError()
+        ML_INLINE cError()
         {
             Zero();
         }
 
-        PLATFORM_INLINE void Zero()
+        ML_INLINE void Zero()
         {
             memset(this, 0, sizeof(*this));
         }
 
-        PLATFORM_INLINE void AddSample(double dSample)
+        ML_INLINE void AddSample(double dSample)
         {
             double v = fabs(dSample);
 
@@ -718,7 +843,7 @@ class cError
             uiSamples++;
         }
 
-        PLATFORM_INLINE void Done(double dScale)
+        ML_INLINE void Done(double dScale)
         {
             if( uiSamples )
             {
@@ -745,17 +870,17 @@ class cNormalError
 
     public:
 
-        PLATFORM_INLINE cNormalError()
+        ML_INLINE cNormalError()
         {
             Zero();
         }
 
-        PLATFORM_INLINE void Zero()
+        ML_INLINE void Zero()
         {
             memset(this, 0, sizeof(*this));
         }
 
-        PLATFORM_INLINE void AddSample(const float3& n1, const float3& n2, float scale)
+        ML_INLINE void AddSample(const float3& n1, const float3& n2, float scale)
         {
             float dot = Dot33(n1, n2);
 
@@ -767,7 +892,7 @@ class cNormalError
             uiSamples++;
         }
 
-        PLATFORM_INLINE void Done(double dScale)
+        ML_INLINE void Done(double dScale)
         {
             if( uiSamples )
             {
@@ -800,12 +925,12 @@ struct sFastRand
 
     uint32_t m_uiSeed = 0;
 
-    PLATFORM_INLINE sFastRand()
+    ML_INLINE sFastRand()
     {
         Seed( rand() );
     }
 
-    PLATFORM_INLINE void Seed(uint32_t uiSeed)
+    ML_INLINE void Seed(uint32_t uiSeed)
     {
         m_uiSeed = uiSeed;
 
@@ -822,14 +947,14 @@ struct sFastRand
         m_b = _mm_set_epi32(b4, b3, b2, b1);
     }
 
-    PLATFORM_INLINE uint32_t ui1()
+    ML_INLINE uint32_t ui1()
     {
         m_uiSeed = 214013 * m_uiSeed + 2531011;
 
         return m_uiSeed;
     }
 
-    PLATFORM_INLINE v4i ui4()
+    ML_INLINE v4i ui4()
     {
         const v4i mask = _mm_set1_epi32(0xFFFF);
         const v4i m1 = _mm_set1_epi32(0x4650);
@@ -838,7 +963,7 @@ struct sFastRand
         v4i a = m_a;
         v4i b = m_b;
 
-        #if( PLATFORM_INTRINSIC < PLATFORM_INTRINSIC_SSE4 )
+        #if( ML_INTRINSIC_LEVEL < ML_INTRINSIC_SSE4 )
 
             v4i ashift = _mm_srli_epi32(a, 0x10);
             v4i amask = _mm_and_si128(a, mask);
@@ -887,27 +1012,27 @@ namespace Rand
     const float m2 = 1.0f / 16384.0f;
     const float a2 = 0.5f / 16384.0f - 1.0f;
 
-    PLATFORM_INLINE void Seed(uint32_t seed, sFastRand* state = PLATFORM_NULL)
+    ML_INLINE void Seed(uint32_t seed, sFastRand* state = nullptr)
     {
-        #if( PLATFORM_RND_MODE == PLATFORM_RND_CRT )
+        #if( ML_RND_MODE == ML_RND_CRT )
 
             srand(seed);
 
-        #elif( PLATFORM_RND_MODE == PLATFORM_RND_FAST )
+        #elif( ML_RND_MODE == ML_RND_FAST )
 
             state->Seed(seed);
 
         #else
 
-            DEBUG_AssertMsg(false, "HW RND cannot be seeded!");
-            PLATFORM_UNUSED(seed);
+            ML_AssertMsg(false, "HW RND cannot be seeded!");
+            ML_UNUSED(seed);
 
         #endif
     }
 
     // NOTE: special
 
-    PLATFORM_INLINE float uf1_from_rawbits(uint32_t rawbits)
+    ML_INLINE float uf1_from_rawbits(uint32_t rawbits)
     {
         uFloat rnd(rawbits);
         rnd.i >>= 9;
@@ -917,7 +1042,7 @@ namespace Rand
         return rnd.f;
     }
 
-    PLATFORM_INLINE float sf1_from_rawbits(uint32_t rawbits)
+    ML_INLINE float sf1_from_rawbits(uint32_t rawbits)
     {
         uFloat rnd(rawbits);
         uint32_t sign = rnd.i & 0x80000000;
@@ -931,38 +1056,38 @@ namespace Rand
 
     // NOTE: scalar
 
-    PLATFORM_INLINE uint32_t ui1(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE uint32_t ui1(sFastRand* state = nullptr)
     {
         uint32_t rnd;
 
-        #if( PLATFORM_RND_MODE == PLATFORM_RND_CRT )
+        #if( ML_RND_MODE == ML_RND_CRT )
 
             rnd = rand();
 
-        #elif( PLATFORM_RND_MODE == PLATFORM_RND_FAST )
+        #elif( ML_RND_MODE == ML_RND_FAST )
 
             rnd = state->ui1();
 
         #else
 
             int32_t res = _rdrand32_step(&rnd);
-            DEBUG_Assert( res == 1 );
-            PLATFORM_UNUSED(res);
+            ML_Assert( res == 1 );
+            ML_UNUSED(res);
 
         #endif
 
         return rnd;
     }
 
-    PLATFORM_INLINE uint16_t us1(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE uint16_t us1(sFastRand* state = nullptr)
     {
         uint16_t rnd;
 
-        #if( PLATFORM_RND_MODE == PLATFORM_RND_CRT )
+        #if( ML_RND_MODE == ML_RND_CRT )
 
             rnd = (uint16_t)rand();
 
-        #elif( PLATFORM_RND_MODE == PLATFORM_RND_FAST )
+        #elif( ML_RND_MODE == ML_RND_FAST )
 
             uint32_t t = ui1(state);
             rnd = uint16_t(t >> 16);
@@ -970,17 +1095,17 @@ namespace Rand
         #else
 
             int32_t res = _rdrand16_step(&rnd);
-            DEBUG_Assert( res == 1 );
-            PLATFORM_UNUSED(res);
+            ML_Assert( res == 1 );
+            ML_UNUSED(res);
 
         #endif
 
         return rnd;
     }
 
-    PLATFORM_INLINE float uf1(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE float uf1(sFastRand* state = nullptr)
     {
-        #if( PLATFORM_RND_MODE == PLATFORM_RND_CRT )
+        #if( ML_RND_MODE == ML_RND_CRT )
 
             return float(rand() + 1) * m1;
 
@@ -991,9 +1116,9 @@ namespace Rand
         #endif
     }
 
-    PLATFORM_INLINE float sf1(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE float sf1(sFastRand* state = nullptr)
     {
-        #if( PLATFORM_RND_MODE == PLATFORM_RND_CRT )
+        #if( ML_RND_MODE == ML_RND_CRT )
 
             return rand() * m2 + a2;
 
@@ -1006,11 +1131,11 @@ namespace Rand
 
     // NOTE: vector4
 
-    PLATFORM_INLINE v4i ui4(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE v4i ui4(sFastRand* state = nullptr)
     {
         v4i r;
 
-        #if( PLATFORM_RND_MODE == PLATFORM_RND_CRT || PLATFORM_RND_MODE == PLATFORM_RND_HW )
+        #if( ML_RND_MODE == ML_RND_CRT || ML_RND_MODE == ML_RND_HW )
 
             int32_t a = ui1();
             int32_t b = ui1();
@@ -1028,12 +1153,12 @@ namespace Rand
         return r;
     }
 
-    PLATFORM_INLINE float4 uf4(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE float4 uf4(sFastRand* state = nullptr)
     {
         v4i rnd = ui4(state);
         v4f r;
 
-        #if( PLATFORM_RND_MODE == PLATFORM_RND_CRT )
+        #if( ML_RND_MODE == ML_RND_CRT )
 
             rnd = _mm_add_epi32(rnd, _mm_set1_epi32(1));
             r = _mm_cvtepi32_ps(rnd);
@@ -1050,12 +1175,12 @@ namespace Rand
         return r;
     }
 
-    PLATFORM_INLINE float4 sf4(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE float4 sf4(sFastRand* state = nullptr)
     {
         v4i rnd = ui4(state);
         v4f r;
 
-        #if( PLATFORM_RND_MODE == PLATFORM_RND_CRT )
+        #if( ML_RND_MODE == ML_RND_CRT )
 
             r = _mm_cvtepi32_ps(rnd);
             r = v4f_madd(r, _mm_broadcast_ss(&m2), _mm_broadcast_ss(&a2));
@@ -1073,12 +1198,12 @@ namespace Rand
         return r;
     }
 
-    PLATFORM_INLINE float3 uf3(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE float3 uf3(sFastRand* state = nullptr)
     {
         return uf4(state).xmm;
     }
 
-    PLATFORM_INLINE float3 sf3(sFastRand* state = PLATFORM_NULL)
+    ML_INLINE float3 sf3(sFastRand* state = nullptr)
     {
         return sf4(state).xmm;
     }
@@ -1088,39 +1213,39 @@ namespace Rand
 //                                                      Misc
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Sign(const T& x)
+template<class T> ML_INLINE T Sign(const T& x)
 {
     return x < T(0) ? T(-1) : T(1);
 }
 
-template<> PLATFORM_INLINE float3 Sign(const float3& x)
+template<> ML_INLINE float3 Sign(const float3& x)
 {
     return v4f_sign(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Sign(const float4& x)
+template<> ML_INLINE float4 Sign(const float4& x)
 {
     return v4f_sign(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Sign(const double3& x)
+template<> ML_INLINE double3 Sign(const double3& x)
 {
     return v4d_sign(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Sign(const double4& x)
+template<> ML_INLINE double4 Sign(const double4& x)
 {
     return v4d_sign(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Abs(const T& x)
+template<class T> ML_INLINE T Abs(const T& x)
 {
     return (T)abs(x);
 }
 
-template<> PLATFORM_INLINE float Abs(const float& x)
+template<> ML_INLINE float Abs(const float& x)
 {
     uFloat f(x);
     f.Abs();
@@ -1128,214 +1253,214 @@ template<> PLATFORM_INLINE float Abs(const float& x)
     return f.f;
 }
 
-template<> PLATFORM_INLINE float3 Abs(const float3& x)
+template<> ML_INLINE float3 Abs(const float3& x)
 {
     return v4f_abs(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Abs(const float4& x)
+template<> ML_INLINE float4 Abs(const float4& x)
 {
     return v4f_abs(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Abs(const double3& x)
+template<> ML_INLINE double3 Abs(const double3& x)
 {
     return v4d_abs(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Abs(const double4& x)
+template<> ML_INLINE double4 Abs(const double4& x)
 {
     return v4d_abs(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Floor(const T& x)
+template<class T> ML_INLINE T Floor(const T& x)
 {
     return (T)floor(x);
 }
 
-template<> PLATFORM_INLINE float3 Floor(const float3& x)
+template<> ML_INLINE float3 Floor(const float3& x)
 {
     return v4f_floor(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Floor(const float4& x)
+template<> ML_INLINE float4 Floor(const float4& x)
 {
     return v4f_floor(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Floor(const double3& x)
+template<> ML_INLINE double3 Floor(const double3& x)
 {
     return v4d_floor(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Floor(const double4& x)
+template<> ML_INLINE double4 Floor(const double4& x)
 {
     return v4d_floor(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Round(const T& x)
+template<class T> ML_INLINE T Round(const T& x)
 {
     return (T)::round(x);
 }
 
-template<> PLATFORM_INLINE float3 Round(const float3& x)
+template<> ML_INLINE float3 Round(const float3& x)
 {
     return v4f_round(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Round(const float4& x)
+template<> ML_INLINE float4 Round(const float4& x)
 {
     return v4f_round(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Round(const double3& x)
+template<> ML_INLINE double3 Round(const double3& x)
 {
     return v4d_round(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Round(const double4& x)
+template<> ML_INLINE double4 Round(const double4& x)
 {
     return v4d_round(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Frac(const T& x)
+template<class T> ML_INLINE T Frac(const T& x)
 {
     return x - Floor(x);
 }
 
-template<> PLATFORM_INLINE float3 Frac(const float3& x)
+template<> ML_INLINE float3 Frac(const float3& x)
 {
     return v4f_frac(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Frac(const float4& x)
+template<> ML_INLINE float4 Frac(const float4& x)
 {
     return v4f_frac(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Frac(const double3& x)
+template<> ML_INLINE double3 Frac(const double3& x)
 {
     return v4d_frac(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Frac(const double4& x)
+template<> ML_INLINE double4 Frac(const double4& x)
 {
     return v4d_frac(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Mod(const T& x, const T& y)
+template<class T> ML_INLINE T Mod(const T& x, const T& y)
 {
-    DEBUG_Assert( y != T(0) );
+    ML_Assert( y != T(0) );
 
     return (T)fmod(x, y);
 }
 
-template<> PLATFORM_INLINE uint32_t Mod(const uint32_t& x, const uint32_t& y)
+template<> ML_INLINE uint32_t Mod(const uint32_t& x, const uint32_t& y)
 {
-    DEBUG_Assert( y != 0 );
+    ML_Assert( y != 0 );
 
     return x % y;
 }
 
-template<> PLATFORM_INLINE int32_t Mod(const int32_t& x, const int32_t& y)
+template<> ML_INLINE int32_t Mod(const int32_t& x, const int32_t& y)
 {
-    DEBUG_Assert( y != 0 );
+    ML_Assert( y != 0 );
 
     return x % y;
 }
 
-template<> PLATFORM_INLINE float3 Mod(const float3& x, const float3& y)
+template<> ML_INLINE float3 Mod(const float3& x, const float3& y)
 {
     return v4f_mod(x.xmm, y.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Mod(const float4& x, const float4& y)
+template<> ML_INLINE float4 Mod(const float4& x, const float4& y)
 {
     return v4f_mod(x.xmm, y.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Mod(const double3& x, const double3& y)
+template<> ML_INLINE double3 Mod(const double3& x, const double3& y)
 {
     return v4d_mod(x.ymm, y.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Mod(const double4& x, const double4& y)
+template<> ML_INLINE double4 Mod(const double4& x, const double4& y)
 {
     return v4d_mod(x.ymm, y.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Snap(const T& x, const T& step)
+template<class T> ML_INLINE T Snap(const T& x, const T& step)
 {
-    DEBUG_Assert( step > T(0) );
+    ML_Assert( step > T(0) );
 
     return Round(x / step) * step;
 }
 
-template<> PLATFORM_INLINE int32_t Snap(const int32_t& x, const int32_t& step)
+template<> ML_INLINE int32_t Snap(const int32_t& x, const int32_t& step)
 {
-    DEBUG_Assert( step > 0 );
+    ML_Assert( step > 0 );
 
     return step * ((x + step - 1) / step);
 }
 
-template<> PLATFORM_INLINE uint32_t Snap(const uint32_t& x, const uint32_t& step)
+template<> ML_INLINE uint32_t Snap(const uint32_t& x, const uint32_t& step)
 {
-    DEBUG_Assert( step > 0 );
+    ML_Assert( step > 0 );
 
     return step * ((x + step - 1) / step);
 }
 
-template<> PLATFORM_INLINE float3 Snap(const float3& x, const float3& step)
+template<> ML_INLINE float3 Snap(const float3& x, const float3& step)
 {
     return Round(x / step) * step;
 }
 
-template<> PLATFORM_INLINE double3 Snap(const double3& x, const double3& step)
+template<> ML_INLINE double3 Snap(const double3& x, const double3& step)
 {
     return Round(x / step) * step;
 }
 
 //======================================================================================================================
 
-template<eCmp cmp, class T> PLATFORM_INLINE bool All(const T&, const T&)
+template<eCmp cmp, class T> ML_INLINE bool All(const T&, const T&)
 {
-    DEBUG_StaticAssertMsg(sizeof(T) == 0, "All::only vector types supported");
+    ML_StaticAssertMsg(sizeof(T) == 0, "All::only vector types supported");
 
     return false;
 }
 
-template<eCmp cmp> PLATFORM_INLINE bool All(const float3& x, const float3& y)
+template<eCmp cmp> ML_INLINE bool All(const float3& x, const float3& y)
 {
     v4f t = _mm_cmp_ps(x.xmm, y.xmm, cmp);
 
     return v4f_test3_all(t);
 }
 
-template<eCmp cmp> PLATFORM_INLINE bool All(const float4& x, const float4& y)
+template<eCmp cmp> ML_INLINE bool All(const float4& x, const float4& y)
 {
     v4f t = _mm_cmp_ps(x.xmm, y.xmm, cmp);
 
     return v4f_test4_all(t);
 }
 
-template<eCmp cmp> PLATFORM_INLINE bool All(const double3& x, const double3& y)
+template<eCmp cmp> ML_INLINE bool All(const double3& x, const double3& y)
 {
     v4d t = _mm256_cmp_pd(x.ymm, y.ymm, cmp);
 
     return v4d_test3_all(t);
 }
 
-template<eCmp cmp> PLATFORM_INLINE bool All(const double4& x, const double4& y)
+template<eCmp cmp> ML_INLINE bool All(const double4& x, const double4& y)
 {
     v4d t = _mm256_cmp_pd(x.ymm, y.ymm, cmp);
 
@@ -1344,35 +1469,35 @@ template<eCmp cmp> PLATFORM_INLINE bool All(const double4& x, const double4& y)
 
 //======================================================================================================================
 
-template<eCmp cmp, class T> PLATFORM_INLINE bool Any(const T&, const T&)
+template<eCmp cmp, class T> ML_INLINE bool Any(const T&, const T&)
 {
-    DEBUG_StaticAssertMsg(sizeof(T) == 0, "Any::only vector types supported");
+    ML_StaticAssertMsg(sizeof(T) == 0, "Any::only vector types supported");
 
     return false;
 }
 
-template<eCmp cmp> PLATFORM_INLINE bool Any(const float3& x, const float3& y)
+template<eCmp cmp> ML_INLINE bool Any(const float3& x, const float3& y)
 {
     v4f t = _mm_cmp_ps(x.xmm, y.xmm, cmp);
 
     return v4f_test3_any(t);
 }
 
-template<eCmp cmp> PLATFORM_INLINE bool Any(const float4& x, const float4& y)
+template<eCmp cmp> ML_INLINE bool Any(const float4& x, const float4& y)
 {
     v4f t = _mm_cmp_ps(x.xmm, y.xmm, cmp);
 
     return v4f_test4_any(t);
 }
 
-template<eCmp cmp> PLATFORM_INLINE bool Any(const double3& x, const double3& y)
+template<eCmp cmp> ML_INLINE bool Any(const double3& x, const double3& y)
 {
     v4d t = _mm256_cmp_pd(x.ymm, y.ymm, cmp);
 
     return v4d_test3_any(t);
 }
 
-template<eCmp cmp> PLATFORM_INLINE bool Any(const double4& x, const double4& y)
+template<eCmp cmp> ML_INLINE bool Any(const double4& x, const double4& y)
 {
     v4d t = _mm256_cmp_pd(x.ymm, y.ymm, cmp);
 
@@ -1381,652 +1506,652 @@ template<eCmp cmp> PLATFORM_INLINE bool Any(const double4& x, const double4& y)
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Min(const T& x, const T& y)
+template<class T> ML_INLINE T Min(const T& x, const T& y)
 {
     return x < y ? x : y;
 }
 
-template<> PLATFORM_INLINE float3 Min(const float3& x, const float3& y)
+template<> ML_INLINE float3 Min(const float3& x, const float3& y)
 {
     return _mm_min_ps(x.xmm, y.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Min(const float4& x, const float4& y)
+template<> ML_INLINE float4 Min(const float4& x, const float4& y)
 {
     return _mm_min_ps(x.xmm, y.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Min(const double3& x, const double3& y)
+template<> ML_INLINE double3 Min(const double3& x, const double3& y)
 {
     return _mm256_min_pd(x.ymm, y.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Min(const double4& x, const double4& y)
+template<> ML_INLINE double4 Min(const double4& x, const double4& y)
 {
     return _mm256_min_pd(x.ymm, y.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Max(const T& x, const T& y)
+template<class T> ML_INLINE T Max(const T& x, const T& y)
 {
     return x > y ? x : y;
 }
 
-template<> PLATFORM_INLINE float3 Max(const float3& x, const float3& y)
+template<> ML_INLINE float3 Max(const float3& x, const float3& y)
 {
     return _mm_max_ps(x.xmm, y.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Max(const float4& x, const float4& y)
+template<> ML_INLINE float4 Max(const float4& x, const float4& y)
 {
     return _mm_max_ps(x.xmm, y.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Max(const double3& x, const double3& y)
+template<> ML_INLINE double3 Max(const double3& x, const double3& y)
 {
     return _mm256_max_pd(x.ymm, y.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Max(const double4& x, const double4& y)
+template<> ML_INLINE double4 Max(const double4& x, const double4& y)
 {
     return _mm256_max_pd(x.ymm, y.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Clamp(const T& x, const T& a, const T& b)
+template<class T> ML_INLINE T Clamp(const T& x, const T& a, const T& b)
 {
     return x < a ? a : (x > b ? b : x);
 }
 
-template<> PLATFORM_INLINE float3 Clamp(const float3& x, const float3& vMin, const float3& vMax)
+template<> ML_INLINE float3 Clamp(const float3& x, const float3& vMin, const float3& vMax)
 {
     return v4f_clamp(x.xmm, vMin.xmm, vMax.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Clamp(const float4& x, const float4& vMin, const float4& vMax)
+template<> ML_INLINE float4 Clamp(const float4& x, const float4& vMin, const float4& vMax)
 {
     return v4f_clamp(x.xmm, vMin.xmm, vMax.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Clamp(const double3& x, const double3& vMin, const double3& vMax)
+template<> ML_INLINE double3 Clamp(const double3& x, const double3& vMin, const double3& vMax)
 {
     return v4d_clamp(x.ymm, vMin.ymm, vMax.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Clamp(const double4& x, const double4& vMin, const double4& vMax)
+template<> ML_INLINE double4 Clamp(const double4& x, const double4& vMin, const double4& vMax)
 {
     return v4d_clamp(x.ymm, vMin.ymm, vMax.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Saturate(const T& x)
+template<class T> ML_INLINE T Saturate(const T& x)
 {
     return Clamp(x, T(0), T(1));
 }
 
-template<> PLATFORM_INLINE float3 Saturate(const float3& x)
+template<> ML_INLINE float3 Saturate(const float3& x)
 {
     return v4f_saturate(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Saturate(const float4& x)
+template<> ML_INLINE float4 Saturate(const float4& x)
 {
     return v4f_saturate(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Saturate(const double3& x)
+template<> ML_INLINE double3 Saturate(const double3& x)
 {
     return v4d_saturate(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Saturate(const double4& x)
+template<> ML_INLINE double4 Saturate(const double4& x)
 {
     return v4d_saturate(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Lerp(const T& a, const T& b, const T& x)
+template<class T> ML_INLINE T Lerp(const T& a, const T& b, const T& x)
 {
     return a + (b - a) * x;
 }
 
-template<> PLATFORM_INLINE float3 Lerp(const float3& a, const float3& b, const float3& x)
+template<> ML_INLINE float3 Lerp(const float3& a, const float3& b, const float3& x)
 {
     return v4f_mix(a.xmm, b.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Lerp(const float4& a, const float4& b, const float4& x)
+template<> ML_INLINE float4 Lerp(const float4& a, const float4& b, const float4& x)
 {
     return v4f_mix(a.xmm, b.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Lerp(const double3& a, const double3& b, const double3& x)
+template<> ML_INLINE double3 Lerp(const double3& a, const double3& b, const double3& x)
 {
     return v4d_mix(a.ymm, b.ymm, x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Lerp(const double4& a, const double4& b, const double4& x)
+template<> ML_INLINE double4 Lerp(const double4& a, const double4& b, const double4& x)
 {
     return v4d_mix(a.ymm, b.ymm, x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Smoothstep(const T& a, const T& b, const T& x)
+template<class T> ML_INLINE T Smoothstep(const T& a, const T& b, const T& x)
 {
     T t = Saturate((x - a) / (b - a));
 
     return t * t * (T(3) - T(2) * t);
 }
 
-template<> PLATFORM_INLINE float3 Smoothstep(const float3& a, const float3& b, const float3& x)
+template<> ML_INLINE float3 Smoothstep(const float3& a, const float3& b, const float3& x)
 {
     return v4f_smoothstep(a.xmm, b.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Smoothstep(const float4& a, const float4& b, const float4& x)
+template<> ML_INLINE float4 Smoothstep(const float4& a, const float4& b, const float4& x)
 {
     return v4f_smoothstep(a.xmm, b.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Smoothstep(const double3& a, const double3& b, const double3& x)
+template<> ML_INLINE double3 Smoothstep(const double3& a, const double3& b, const double3& x)
 {
     return v4d_smoothstep(a.ymm, b.ymm, x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Smoothstep(const double4& a, const double4& b, const double4& x)
+template<> ML_INLINE double4 Smoothstep(const double4& a, const double4& b, const double4& x)
 {
     return v4d_smoothstep(a.ymm, b.ymm, x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Linearstep(const T& a, const T& b, const T& x)
+template<class T> ML_INLINE T Linearstep(const T& a, const T& b, const T& x)
 {
     return Saturate((x - a) / (b - a));
 }
 
-template<> PLATFORM_INLINE float3 Linearstep(const float3& a, const float3& b, const float3& x)
+template<> ML_INLINE float3 Linearstep(const float3& a, const float3& b, const float3& x)
 {
     return v4f_linearstep(a.xmm, b.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Linearstep(const float4& a, const float4& b, const float4& x)
+template<> ML_INLINE float4 Linearstep(const float4& a, const float4& b, const float4& x)
 {
     return v4f_linearstep(a.xmm, b.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Linearstep(const double3& a, const double3& b, const double3& x)
+template<> ML_INLINE double3 Linearstep(const double3& a, const double3& b, const double3& x)
 {
     return v4d_linearstep(a.ymm, b.ymm, x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Linearstep(const double4& a, const double4& b, const double4& x)
+template<> ML_INLINE double4 Linearstep(const double4& a, const double4& b, const double4& x)
 {
     return v4d_linearstep(a.ymm, b.ymm, x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Step(const T& edge, const T& x)
+template<class T> ML_INLINE T Step(const T& edge, const T& x)
 {
     return x < edge ? T(0) : T(1);
 }
 
-template<> PLATFORM_INLINE float3 Step(const float3& edge, const float3& x)
+template<> ML_INLINE float3 Step(const float3& edge, const float3& x)
 {
     return v4f_step(edge.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Step(const float4& edge, const float4& x)
+template<> ML_INLINE float4 Step(const float4& edge, const float4& x)
 {
     return v4f_step(edge.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Step(const double3& edge, const double3& x)
+template<> ML_INLINE double3 Step(const double3& edge, const double3& x)
 {
     return v4d_step(edge.ymm, x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Step(const double4& edge, const double4& x)
+template<> ML_INLINE double4 Step(const double4& edge, const double4& x)
 {
     return v4d_step(edge.ymm, x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Sin(const T& x)
+template<class T> ML_INLINE T Sin(const T& x)
 {
     return (T)sin(x);
 }
 
-template<> PLATFORM_INLINE float3 Sin(const float3& x)
+template<> ML_INLINE float3 Sin(const float3& x)
 {
     return _mm_sin_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Sin(const float4& x)
+template<> ML_INLINE float4 Sin(const float4& x)
 {
     return _mm_sin_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Sin(const double3& x)
+template<> ML_INLINE double3 Sin(const double3& x)
 {
     return _mm256_sin_pd(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Sin(const double4& x)
+template<> ML_INLINE double4 Sin(const double4& x)
 {
     return _mm256_sin_pd(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Cos(const T& x)
+template<class T> ML_INLINE T Cos(const T& x)
 {
     return (T)cos(x);
 }
 
-template<> PLATFORM_INLINE float3 Cos(const float3& x)
+template<> ML_INLINE float3 Cos(const float3& x)
 {
     return _mm_cos_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Cos(const float4& x)
+template<> ML_INLINE float4 Cos(const float4& x)
 {
     return _mm_cos_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Cos(const double3& x)
+template<> ML_INLINE double3 Cos(const double3& x)
 {
     return _mm256_cos_pd(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Cos(const double4& x)
+template<> ML_INLINE double4 Cos(const double4& x)
 {
     return _mm256_cos_pd(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T SinCos(const T& x, T* pCos)
+template<class T> ML_INLINE T SinCos(const T& x, T* pCos)
 {
     *pCos = (T)cos(x);
 
     return (T)sin(x);
 }
 
-template<> PLATFORM_INLINE float3 SinCos(const float3& x, float3* pCos)
+template<> ML_INLINE float3 SinCos(const float3& x, float3* pCos)
 {
     return _mm_sincos_ps(&pCos->xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 SinCos(const float4& x, float4* pCos)
+template<> ML_INLINE float4 SinCos(const float4& x, float4* pCos)
 {
     return _mm_sincos_ps(&pCos->xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 SinCos(const double3& x, double3* pCos)
+template<> ML_INLINE double3 SinCos(const double3& x, double3* pCos)
 {
     return _mm256_sincos_pd(&pCos->ymm, x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 SinCos(const double4& x, double4* pCos)
+template<> ML_INLINE double4 SinCos(const double4& x, double4* pCos)
 {
     return _mm256_sincos_pd(&pCos->ymm, x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Tan(const T& x)
+template<class T> ML_INLINE T Tan(const T& x)
 {
     return (T)tan(x);
 }
 
-template<> PLATFORM_INLINE float3 Tan(const float3& x)
+template<> ML_INLINE float3 Tan(const float3& x)
 {
     return _mm_tan_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Tan(const float4& x)
+template<> ML_INLINE float4 Tan(const float4& x)
 {
     return _mm_tan_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Tan(const double3& x)
+template<> ML_INLINE double3 Tan(const double3& x)
 {
     return _mm256_tan_pd(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Tan(const double4& x)
+template<> ML_INLINE double4 Tan(const double4& x)
 {
     return _mm256_tan_pd(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Asin(const T& x)
+template<class T> ML_INLINE T Asin(const T& x)
 {
-    DEBUG_Assert( x >= T(-1) && x <= T(1) );
+    ML_Assert( x >= T(-1) && x <= T(1) );
 
     return (T)asin(x);
 }
 
-template<> PLATFORM_INLINE float3 Asin(const float3& x)
+template<> ML_INLINE float3 Asin(const float3& x)
 {
-    DEBUG_Assert( All<CmpGequal>(x, float3(-1.0f)) && All<CmpLequal>(x, float3(1.0f)) );
+    ML_Assert( All<CmpGequal>(x, float3(-1.0f)) && All<CmpLequal>(x, float3(1.0f)) );
 
     return _mm_asin_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Asin(const float4& x)
+template<> ML_INLINE float4 Asin(const float4& x)
 {
-    DEBUG_Assert( All<CmpGequal>(x, float4(-1.0f)) && All<CmpLequal>(x, float4(1.0f)) );
+    ML_Assert( All<CmpGequal>(x, float4(-1.0f)) && All<CmpLequal>(x, float4(1.0f)) );
 
     return _mm_asin_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Asin(const double3& x)
+template<> ML_INLINE double3 Asin(const double3& x)
 {
-    DEBUG_Assert( All<CmpGequal>(x, double3(-1.0)) && All<CmpLequal>(x, double3(1.0)) );
+    ML_Assert( All<CmpGequal>(x, double3(-1.0)) && All<CmpLequal>(x, double3(1.0)) );
 
     return _mm256_asin_pd(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Asin(const double4& x)
+template<> ML_INLINE double4 Asin(const double4& x)
 {
-    DEBUG_Assert( All<CmpGequal>(x, double4(-1.0)) && All<CmpLequal>(x, double4(1.0)) );
+    ML_Assert( All<CmpGequal>(x, double4(-1.0)) && All<CmpLequal>(x, double4(1.0)) );
 
     return _mm256_asin_pd(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Acos(const T& x)
+template<class T> ML_INLINE T Acos(const T& x)
 {
-    DEBUG_Assert( x >= T(-1) && x <= T(1) );
+    ML_Assert( x >= T(-1) && x <= T(1) );
 
     return (T)acos(x);
 }
 
-template<> PLATFORM_INLINE float3 Acos(const float3& x)
+template<> ML_INLINE float3 Acos(const float3& x)
 {
-    DEBUG_Assert( All<CmpGequal>(x, float3(-1.0f)) && All<CmpLequal>(x, float3(1.0f)) );
+    ML_Assert( All<CmpGequal>(x, float3(-1.0f)) && All<CmpLequal>(x, float3(1.0f)) );
 
     return _mm_acos_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Acos(const float4& x)
+template<> ML_INLINE float4 Acos(const float4& x)
 {
-    DEBUG_Assert( All<CmpGequal>(x, float4(-1.0f)) && All<CmpLequal>(x, float4(1.0f)) );
+    ML_Assert( All<CmpGequal>(x, float4(-1.0f)) && All<CmpLequal>(x, float4(1.0f)) );
 
     return _mm_acos_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Acos(const double3& x)
+template<> ML_INLINE double3 Acos(const double3& x)
 {
-    DEBUG_Assert( All<CmpGequal>(x, double3(-1.0)) && All<CmpLequal>(x, double3(1.0)) );
+    ML_Assert( All<CmpGequal>(x, double3(-1.0)) && All<CmpLequal>(x, double3(1.0)) );
 
     return _mm256_acos_pd(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Acos(const double4& x)
+template<> ML_INLINE double4 Acos(const double4& x)
 {
-    DEBUG_Assert( All<CmpGequal>(x, double4(-1.0)) && All<CmpLequal>(x, double4(1.0)) );
+    ML_Assert( All<CmpGequal>(x, double4(-1.0)) && All<CmpLequal>(x, double4(1.0)) );
 
     return _mm256_acos_pd(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Atan(const T& x)
+template<class T> ML_INLINE T Atan(const T& x)
 {
     return (T)atan(x);
 }
 
-template<> PLATFORM_INLINE float3 Atan(const float3& x)
+template<> ML_INLINE float3 Atan(const float3& x)
 {
     return _mm_atan_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Atan(const float4& x)
+template<> ML_INLINE float4 Atan(const float4& x)
 {
     return _mm_atan_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Atan(const double3& x)
+template<> ML_INLINE double3 Atan(const double3& x)
 {
     return _mm256_atan_pd(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Atan(const double4& x)
+template<> ML_INLINE double4 Atan(const double4& x)
 {
     return _mm256_atan_pd(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Atan(const T& y, const T& x)
+template<class T> ML_INLINE T Atan(const T& y, const T& x)
 {
     return (T)atan2(y, x);
 }
 
-template<> PLATFORM_INLINE float3 Atan(const float3& y, const float3& x)
+template<> ML_INLINE float3 Atan(const float3& y, const float3& x)
 {
     return _mm_atan2_ps(y.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Atan(const float4& y, const float4& x)
+template<> ML_INLINE float4 Atan(const float4& y, const float4& x)
 {
     return _mm_atan2_ps(y.xmm, x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Atan(const double3& y, const double3& x)
+template<> ML_INLINE double3 Atan(const double3& y, const double3& x)
 {
     return _mm256_atan2_pd(y.ymm, x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Atan(const double4& y, const double4& x)
+template<> ML_INLINE double4 Atan(const double4& y, const double4& x)
 {
     return _mm256_atan2_pd(y.ymm, x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Sqrt(const T& x)
+template<class T> ML_INLINE T Sqrt(const T& x)
 {
-    DEBUG_Assert( x >= T(0) );
+    ML_Assert( x >= T(0) );
 
     return (T)sqrt(x);
 }
 
-template<> PLATFORM_INLINE float3 Sqrt(const float3& x)
+template<> ML_INLINE float3 Sqrt(const float3& x)
 {
     return v4f_sqrt(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Sqrt(const float4& x)
+template<> ML_INLINE float4 Sqrt(const float4& x)
 {
     return v4f_sqrt(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Sqrt(const double3& x)
+template<> ML_INLINE double3 Sqrt(const double3& x)
 {
     return v4d_sqrt(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Sqrt(const double4& x)
+template<> ML_INLINE double4 Sqrt(const double4& x)
 {
     return v4d_sqrt(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Rsqrt(const T& x)
+template<class T> ML_INLINE T Rsqrt(const T& x)
 {
-    DEBUG_Assert( x >= T(0) );
+    ML_Assert( x >= T(0) );
 
     return T(1) / T(sqrt(x));
 }
 
-template<> PLATFORM_INLINE float3 Rsqrt(const float3& x)
+template<> ML_INLINE float3 Rsqrt(const float3& x)
 {
     return v4f_rsqrt(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Rsqrt(const float4& x)
+template<> ML_INLINE float4 Rsqrt(const float4& x)
 {
     return v4f_rsqrt(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Rsqrt(const double3& x)
+template<> ML_INLINE double3 Rsqrt(const double3& x)
 {
     return v4d_rsqrt(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Rsqrt(const double4& x)
+template<> ML_INLINE double4 Rsqrt(const double4& x)
 {
     return v4d_rsqrt(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Pow(const T& x, const T& y)
+template<class T> ML_INLINE T Pow(const T& x, const T& y)
 {
-    DEBUG_Assert( x >= T(0) );
+    ML_Assert( x >= T(0) );
 
     return (T)pow(x, y);
 }
 
-template<> PLATFORM_INLINE float3 Pow(const float3& x, const float3& y)
+template<> ML_INLINE float3 Pow(const float3& x, const float3& y)
 {
     return _mm_pow_ps(x.xmm, y.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Pow(const float4& x, const float4& y)
+template<> ML_INLINE float4 Pow(const float4& x, const float4& y)
 {
     return _mm_pow_ps(x.xmm, y.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Pow(const double3& x, const double3& y)
+template<> ML_INLINE double3 Pow(const double3& x, const double3& y)
 {
     return _mm256_pow_pd(x.ymm, y.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Pow(const double4& x, const double4& y)
+template<> ML_INLINE double4 Pow(const double4& x, const double4& y)
 {
     return _mm256_pow_pd(x.ymm, y.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Log(const T& x)
+template<class T> ML_INLINE T Log(const T& x)
 {
-    DEBUG_Assert( x >= T(0) );
+    ML_Assert( x >= T(0) );
 
     return (T)log(x);
 }
 
-template<> PLATFORM_INLINE float3 Log(const float3& x)
+template<> ML_INLINE float3 Log(const float3& x)
 {
     return _mm_log_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Log(const float4& x)
+template<> ML_INLINE float4 Log(const float4& x)
 {
     return _mm_log_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Log(const double3& x)
+template<> ML_INLINE double3 Log(const double3& x)
 {
     return _mm256_log_pd(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Log(const double4& x)
+template<> ML_INLINE double4 Log(const double4& x)
 {
     return _mm256_log_pd(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Exp(const T& x)
+template<class T> ML_INLINE T Exp(const T& x)
 {
     return (T)exp(x);
 }
 
-template<> PLATFORM_INLINE float3 Exp(const float3& x)
+template<> ML_INLINE float3 Exp(const float3& x)
 {
     return _mm_exp_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Exp(const float4& x)
+template<> ML_INLINE float4 Exp(const float4& x)
 {
     return _mm_exp_ps(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Exp(const double3& x)
+template<> ML_INLINE double3 Exp(const double3& x)
 {
     return _mm256_exp_pd(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Exp(const double4& x)
+template<> ML_INLINE double4 Exp(const double4& x)
 {
     return _mm256_exp_pd(x.ymm);
 }
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Pi(const T& mul)
+template<class T> ML_INLINE T Pi(const T& mul)
 {
-    DEBUG_StaticAssertMsg(sizeof(T) == 0, "Pi::only floating point types are supported!");
+    ML_StaticAssertMsg(sizeof(T) == 0, "Pi::only floating point types are supported!");
     return mul;
 }
 
-template<class T> PLATFORM_INLINE T RadToDeg(const T& a)
+template<class T> ML_INLINE T RadToDeg(const T& a)
 {
-    DEBUG_StaticAssertMsg(sizeof(T) == 0, "RadToDeg::only floating point types are supported!");
+    ML_StaticAssertMsg(sizeof(T) == 0, "RadToDeg::only floating point types are supported!");
     return a;
 }
 
-template<class T> PLATFORM_INLINE T DegToRad(const T& a)
+template<class T> ML_INLINE T DegToRad(const T& a)
 {
-    DEBUG_StaticAssertMsg(sizeof(T) == 0, "DegToRad::only floating point types are supported!");
+    ML_StaticAssertMsg(sizeof(T) == 0, "DegToRad::only floating point types are supported!");
     return a;
 }
 
-template<> PLATFORM_INLINE float Pi(const float& mul)               { return mul * acosf(-1.0f); }
-template<> PLATFORM_INLINE float3 Pi(const float3& mul)             { return mul * acosf(-1.0f); }
-template<> PLATFORM_INLINE float4 Pi(const float4& mul)             { return mul * acosf(-1.0f); }
-template<> PLATFORM_INLINE double Pi(const double& mul)             { return mul * acos(-1.0); }
-template<> PLATFORM_INLINE double3 Pi(const double3& mul)           { return mul * acos(-1.0); }
-template<> PLATFORM_INLINE double4 Pi(const double4& mul)           { return mul * acos(-1.0); }
+template<> ML_INLINE float Pi(const float& mul)               { return mul * acosf(-1.0f); }
+template<> ML_INLINE float3 Pi(const float3& mul)             { return mul * acosf(-1.0f); }
+template<> ML_INLINE float4 Pi(const float4& mul)             { return mul * acosf(-1.0f); }
+template<> ML_INLINE double Pi(const double& mul)             { return mul * acos(-1.0); }
+template<> ML_INLINE double3 Pi(const double3& mul)           { return mul * acos(-1.0); }
+template<> ML_INLINE double4 Pi(const double4& mul)           { return mul * acos(-1.0); }
 
-template<> PLATFORM_INLINE float RadToDeg(const float& x)           { return x * (180.0f / Pi(1.0f)); }
-template<> PLATFORM_INLINE float3 RadToDeg(const float3& x)         { return x * (180.0f / Pi(1.0f)); }
-template<> PLATFORM_INLINE float4 RadToDeg(const float4& x)         { return x * (180.0f / Pi(1.0f)); }
-template<> PLATFORM_INLINE double RadToDeg(const double& x)         { return x * (180.0 / Pi(1.0)); }
-template<> PLATFORM_INLINE double3 RadToDeg(const double3& x)       { return x * (180.0 / Pi(1.0)); }
-template<> PLATFORM_INLINE double4 RadToDeg(const double4& x)       { return x * (180.0 / Pi(1.0)); }
+template<> ML_INLINE float RadToDeg(const float& x)           { return x * (180.0f / Pi(1.0f)); }
+template<> ML_INLINE float3 RadToDeg(const float3& x)         { return x * (180.0f / Pi(1.0f)); }
+template<> ML_INLINE float4 RadToDeg(const float4& x)         { return x * (180.0f / Pi(1.0f)); }
+template<> ML_INLINE double RadToDeg(const double& x)         { return x * (180.0 / Pi(1.0)); }
+template<> ML_INLINE double3 RadToDeg(const double3& x)       { return x * (180.0 / Pi(1.0)); }
+template<> ML_INLINE double4 RadToDeg(const double4& x)       { return x * (180.0 / Pi(1.0)); }
 
-template<> PLATFORM_INLINE float DegToRad(const float& x)           { return x * (Pi(1.0f) / 180.0f); }
-template<> PLATFORM_INLINE float3 DegToRad(const float3& x)         { return x * (Pi(1.0f) / 180.0f); }
-template<> PLATFORM_INLINE float4 DegToRad(const float4& x)         { return x * (Pi(1.0f) / 180.0f); }
-template<> PLATFORM_INLINE double DegToRad(const double& x)         { return x * (Pi(1.0) / 180.0); }
-template<> PLATFORM_INLINE double3 DegToRad(const double3& x)       { return x * (Pi(1.0) / 180.0); }
-template<> PLATFORM_INLINE double4 DegToRad(const double4& x)       { return x * (Pi(1.0) / 180.0); }
+template<> ML_INLINE float DegToRad(const float& x)           { return x * (Pi(1.0f) / 180.0f); }
+template<> ML_INLINE float3 DegToRad(const float3& x)         { return x * (Pi(1.0f) / 180.0f); }
+template<> ML_INLINE float4 DegToRad(const float4& x)         { return x * (Pi(1.0f) / 180.0f); }
+template<> ML_INLINE double DegToRad(const double& x)         { return x * (Pi(1.0) / 180.0); }
+template<> ML_INLINE double3 DegToRad(const double3& x)       { return x * (Pi(1.0) / 180.0); }
+template<> ML_INLINE double4 DegToRad(const double4& x)       { return x * (Pi(1.0) / 180.0); }
 
 //======================================================================================================================
 
 // TODO: add "class Quaternion : public float4", add "double" version...
-template<> PLATFORM_INLINE float4 Slerp(const float4& a, const float4& b, float x)
+template<> ML_INLINE float4 Slerp(const float4& a, const float4& b, float x)
 {
-    DEBUG_Assert( x >= 0.0f && x <= 1.0f );
-    DEBUG_Assert( Abs( Dot44(a, a) - 1.0f ) < 1e-6f );
-    DEBUG_Assert( Abs( Dot44(b, b) - 1.0f ) < 1e-6f );
+    ML_Assert( x >= 0.0f && x <= 1.0f );
+    ML_Assert( Abs( Dot44(a, a) - 1.0f ) < 1e-6f );
+    ML_Assert( Abs( Dot44(b, b) - 1.0f ) < 1e-6f );
 
     float4 r;
 
@@ -2052,44 +2177,44 @@ template<> PLATFORM_INLINE float4 Slerp(const float4& a, const float4& b, float 
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T CurveSmooth(const T& x)
+template<class T> ML_INLINE T CurveSmooth(const T& x)
 {
     return x * x * (3.0 - 2.0 * x);
 }
 
-template<class T> PLATFORM_INLINE T CurveSin(const T& x)
+template<class T> ML_INLINE T CurveSin(const T& x)
 {
     return x * (1.0 - x * x / 3.0);
 }
 
-template<class T> PLATFORM_INLINE T WaveTriangle(const T& x)
+template<class T> ML_INLINE T WaveTriangle(const T& x)
 {
     return Abs( Frac( x + T(0.5) ) * T(2.0) - T(1.0) );
 }
 
-template<class T> PLATFORM_INLINE T WaveTriangleSmooth(const T& x)
+template<class T> ML_INLINE T WaveTriangleSmooth(const T& x)
 {
     return CurveSmooth( WaveTriangle(x) );
 }
 
 //======================================================================================================================
 
-PLATFORM_INLINE float4 AsFloat(const uint4& x)
+ML_INLINE float4 AsFloat(const uint4& x)
 {
     return _mm_castsi128_ps(x.xmm);
 }
 
-PLATFORM_INLINE float AsFloat(uint32_t x)
+ML_INLINE float AsFloat(uint32_t x)
 {
     return *(float*)&x;
 }
 
-PLATFORM_INLINE uint4 AsUint(const float4& x)
+ML_INLINE uint4 AsUint(const float4& x)
 {
     return _mm_castps_si128(x.xmm);
 }
 
-PLATFORM_INLINE uint32_t AsUint(float x)
+ML_INLINE uint32_t AsUint(float x)
 {
     return *(uint32_t*)&x;
 }
@@ -2132,23 +2257,23 @@ template<class T> class ctRect
 
     public:
 
-        PLATFORM_INLINE ctRect()
+        ML_INLINE ctRect()
         {
             Clear();
         }
 
-        PLATFORM_INLINE void Clear()
+        ML_INLINE void Clear()
         {
             minx = miny = T(1 << 30);
             maxx = maxy = T(-(1 << 30));
         }
 
-        PLATFORM_INLINE bool IsValid() const
+        ML_INLINE bool IsValid() const
         {
             return maxx > minx && maxy > miny;
         }
 
-        PLATFORM_INLINE void Add(T px, T py)
+        ML_INLINE void Add(T px, T py)
         {
             minx = Min(minx, px);
             maxx = Max(maxx, px);
@@ -2156,14 +2281,14 @@ template<class T> class ctRect
             maxy = Max(maxy, py);
         }
 
-        PLATFORM_INLINE void Add(const T* pPoint2)
+        ML_INLINE void Add(const T* pPoint2)
         {
             Add(pPoint2[0], pPoint2[1]);
         }
 
-        PLATFORM_INLINE bool IsIntersectWith(const T* pMin, const T* pMax) const
+        ML_INLINE bool IsIntersectWith(const T* pMin, const T* pMax) const
         {
-            DEBUG_Assert( IsValid() );
+            ML_Assert( IsValid() );
 
             if( maxx < pMin[0] || maxy < pMin[1] || minx > pMax[0] || miny > pMax[1] )
                 return false;
@@ -2171,14 +2296,14 @@ template<class T> class ctRect
             return true;
         }
 
-        PLATFORM_INLINE bool IsIntersectWith(const ctRect<T>& rRect) const
+        ML_INLINE bool IsIntersectWith(const ctRect<T>& rRect) const
         {
             return IsIntersectWith(rRect.vMin, rRect.vMax);
         }
 
-        PLATFORM_INLINE eClip GetIntersectionStateWith(const T* pMin, const T* pMax) const
+        ML_INLINE eClip GetIntersectionStateWith(const T* pMin, const T* pMax) const
         {
-            DEBUG_Assert( IsValid() );
+            ML_Assert( IsValid() );
 
             if( !IsIntersectWith(pMin, pMax) )
                 return CLIP_OUT;
@@ -2189,7 +2314,7 @@ template<class T> class ctRect
             return CLIP_PARTIAL;
         }
 
-        PLATFORM_INLINE eClip GetIntersectionStateWith(const ctRect<T>& rRect) const
+        ML_INLINE eClip GetIntersectionStateWith(const ctRect<T>& rRect) const
         {
             return GetIntersectionStateWith(rRect.vMin, rRect.vMax);
         }
@@ -2199,7 +2324,7 @@ template<class T> class ctRect
 //                                                      Frustum
 //======================================================================================================================
 
-PLATFORM_INLINE bool MvpToPlanes(uint8_t ucNdcDepth, const float4x4& m, float4* pvPlane6)
+ML_INLINE bool MvpToPlanes(eStyle depthStyle, const float4x4& m, float4* pvPlane6)
 {
     float4x4 mt;
     m.TransposeTo(mt);
@@ -2211,7 +2336,7 @@ PLATFORM_INLINE bool MvpToPlanes(uint8_t ucNdcDepth, const float4x4& m, float4* 
     float4 f = mt.GetCol3() - mt.GetCol2();
     float4 n = mt.GetCol2();
 
-    if( ucNdcDepth == NDC_OGL )
+    if( depthStyle == STYLE_OGL )
         n += mt.GetCol3();
 
     // NOTE: side planes
@@ -2258,9 +2383,9 @@ class cFrustum
 
     public:
 
-        PLATFORM_INLINE void Setup(uint8_t ucNdcDepthRange, const float4x4& mMvp)
+        ML_INLINE void Setup(eStyle depthStyle, const float4x4& mMvp)
         {
-            MvpToPlanes(ucNdcDepthRange, mMvp, m_vPlane);
+            MvpToPlanes(depthStyle, mMvp, m_vPlane);
 
             m_mPlanesT.SetCol0(m_vPlane[PLANE_LEFT]);
             m_mPlanesT.SetCol1(m_vPlane[PLANE_RIGHT]);
@@ -2272,7 +2397,7 @@ class cFrustum
                 m_vMask[i] = _mm_cmpgt_ps(m_vPlane[i].xmm, v4f_zero);
         }
 
-        PLATFORM_INLINE void Translate(const float3& vPos)
+        ML_INLINE void Translate(const float3& vPos)
         {
             // NOTE: update of m_vMask is not required, because only m_vMask.w can be changed, but this component doesn't affect results
 
@@ -2281,7 +2406,7 @@ class cFrustum
         }
 
 
-        PLATFORM_INLINE bool CheckSphere(const float3& center, float fRadius, uint32_t planes = PLANES_NUM) const
+        ML_INLINE bool CheckSphere(const float3& center, float fRadius, uint32_t planes = PLANES_NUM) const
         {
             v4f p1 = v4f_setw1(center.xmm);
 
@@ -2296,7 +2421,7 @@ class cFrustum
             return true;
         }
 
-        PLATFORM_INLINE bool CheckAabb(const float3& minv, const float3& maxv, uint32_t planes) const
+        ML_INLINE bool CheckAabb(const float3& minv, const float3& maxv, uint32_t planes) const
         {
             v4f min1 = v4f_setw1(minv.xmm);
             v4f max1 = v4f_setw1(maxv.xmm);
@@ -2313,7 +2438,7 @@ class cFrustum
             return true;
         }
 
-        PLATFORM_INLINE bool CheckCapsule(const float3& capsule_start, const float3& capsule_axis, float capsule_radius, uint32_t planes) const
+        ML_INLINE bool CheckCapsule(const float3& capsule_start, const float3& capsule_axis, float capsule_radius, uint32_t planes) const
         {
             // NOTE: https://github.com/toxygen/STA/blob/master/celestia-src/celmath/frustum.cpp
 
@@ -2343,7 +2468,7 @@ class cFrustum
             return true;
         }
 
-        PLATFORM_INLINE bool CheckSphere_mask(const float3& center, float fRadius, uint32_t mask, uint32_t planes) const
+        ML_INLINE bool CheckSphere_mask(const float3& center, float fRadius, uint32_t mask, uint32_t planes) const
         {
             v4f p1 = v4f_setw1(center.xmm);
 
@@ -2361,7 +2486,7 @@ class cFrustum
             return true;
         }
 
-        PLATFORM_INLINE bool CheckAabb_mask(const float3& minv, const float3& maxv, uint32_t mask, uint32_t planes) const
+        ML_INLINE bool CheckAabb_mask(const float3& minv, const float3& maxv, uint32_t mask, uint32_t planes) const
         {
             v4f min1 = v4f_setw1(minv.xmm);
             v4f max1 = v4f_setw1(maxv.xmm);
@@ -2381,7 +2506,7 @@ class cFrustum
             return true;
         }
 
-        PLATFORM_INLINE eClip CheckSphere_state(const float3& center, float fRadius, uint32_t planes) const
+        ML_INLINE eClip CheckSphere_state(const float3& center, float fRadius, uint32_t planes) const
         {
             v4f p1 = v4f_setw1(center.xmm);
 
@@ -2401,7 +2526,7 @@ class cFrustum
             return clip;
         }
 
-        PLATFORM_INLINE eClip CheckAabb_state(const float3& minv, const float3& maxv, uint32_t planes) const
+        ML_INLINE eClip CheckAabb_state(const float3& minv, const float3& maxv, uint32_t planes) const
         {
             v4f min1 = v4f_setw1(minv.xmm);
             v4f max1 = v4f_setw1(maxv.xmm);
@@ -2426,7 +2551,7 @@ class cFrustum
             return clip;
         }
 
-        PLATFORM_INLINE eClip CheckCapsule_state(const float3& capsule_start, const float3& capsule_axis, float capsule_radius, uint32_t planes) const
+        ML_INLINE eClip CheckCapsule_state(const float3& capsule_start, const float3& capsule_axis, float capsule_radius, uint32_t planes) const
         {
             float r2 = capsule_radius * capsule_radius;
             float3 capsule_end = capsule_start + capsule_axis;
@@ -2468,7 +2593,7 @@ class cFrustum
             return !intersections ? CLIP_IN : CLIP_PARTIAL;
         }
 
-        PLATFORM_INLINE eClip CheckSphere_mask_state(const float3& center, float fRadius, uint32_t& mask, uint32_t planes) const
+        ML_INLINE eClip CheckSphere_mask_state(const float3& center, float fRadius, uint32_t& mask, uint32_t planes) const
         {
             v4f p1 = v4f_setw1(center.xmm);
 
@@ -2493,7 +2618,7 @@ class cFrustum
             return clip;
         }
 
-        PLATFORM_INLINE eClip CheckAabb_mask_state(const float3& minv, const float3& maxv, uint32_t& mask, uint32_t planes) const
+        ML_INLINE eClip CheckAabb_mask_state(const float3& minv, const float3& maxv, uint32_t& mask, uint32_t planes) const
         {
             v4f min1 = v4f_setw1(minv.xmm);
             v4f max1 = v4f_setw1(maxv.xmm);
@@ -2523,20 +2648,20 @@ class cFrustum
             return result;
         }
 
-        PLATFORM_INLINE void SetNearFar(float zNearNeg, float zFarNeg)
+        ML_INLINE void SetNearFar(float zNearNeg, float zFarNeg)
         {
             m_vPlane[PLANE_NEAR].w = zNearNeg;
             m_vPlane[PLANE_FAR].w = -zFarNeg;
         }
 
-        PLATFORM_INLINE void SetFar(float zFarNeg)
+        ML_INLINE void SetFar(float zFarNeg)
         {
             m_vPlane[PLANE_FAR].w = -zFarNeg;
         }
 
-        PLATFORM_INLINE const float4& GetPlane(uint32_t plane)
+        ML_INLINE const float4& GetPlane(uint32_t plane)
         {
-            DEBUG_Assert( plane < PLANES_NUM );
+            ML_Assert( plane < PLANES_NUM );
 
             return m_vPlane[plane];
         }
@@ -2546,7 +2671,7 @@ class cFrustum
 //                                                      NUMERICAL
 //======================================================================================================================
 
-PLATFORM_INLINE float SplitZ_Logarithmic(uint32_t i, uint32_t splits, float fZnear, float fZfar)
+ML_INLINE float SplitZ_Logarithmic(uint32_t i, uint32_t splits, float fZnear, float fZfar)
 {
     float ratio = fZfar / fZnear;
     float k = float(i) / float(splits);
@@ -2555,7 +2680,7 @@ PLATFORM_INLINE float SplitZ_Logarithmic(uint32_t i, uint32_t splits, float fZne
     return z;
 }
 
-PLATFORM_INLINE float SplitZ_Uniform(uint32_t i, uint32_t splits, float fZnear, float fZfar)
+ML_INLINE float SplitZ_Uniform(uint32_t i, uint32_t splits, float fZnear, float fZfar)
 {
     float delta = fZfar - fZnear;
     float k = float(i) / float(splits);
@@ -2564,7 +2689,7 @@ PLATFORM_INLINE float SplitZ_Uniform(uint32_t i, uint32_t splits, float fZnear, 
     return z;
 }
 
-PLATFORM_INLINE float SplitZ_Mixed(uint32_t i, uint32_t splits, float fZnear, float fZfar, float lambda)
+ML_INLINE float SplitZ_Mixed(uint32_t i, uint32_t splits, float fZnear, float fZfar, float lambda)
 {
     float z_log = SplitZ_Logarithmic(i, splits, fZnear, fZfar);
     float z_uni = SplitZ_Uniform(i, splits, fZnear, fZfar);
@@ -2573,7 +2698,7 @@ PLATFORM_INLINE float SplitZ_Mixed(uint32_t i, uint32_t splits, float fZnear, fl
     return z;
 }
 
-PLATFORM_INLINE uint32_t GreatestCommonDivisor(uint32_t a, uint32_t b)
+ML_INLINE uint32_t GreatestCommonDivisor(uint32_t a, uint32_t b)
 {
     while( a && b )
     {
@@ -2586,13 +2711,13 @@ PLATFORM_INLINE uint32_t GreatestCommonDivisor(uint32_t a, uint32_t b)
     return a + b;
 }
 
-PLATFORM_INLINE uint32_t LeastCommonMultiple(uint32_t a, uint32_t b)
+ML_INLINE uint32_t LeastCommonMultiple(uint32_t a, uint32_t b)
 {
     return (a * b) / GreatestCommonDivisor(a, b);
 }
 
 // Bit operations
-PLATFORM_INLINE uint32_t ReverseBits4(uint32_t x)
+ML_INLINE uint32_t ReverseBits4(uint32_t x)
 {
     x = (( x & 0x5 ) << 1) | (( x & 0xA ) >> 1);
     x = (( x & 0x3 ) << 2) | (( x & 0xC ) >> 2);
@@ -2600,7 +2725,7 @@ PLATFORM_INLINE uint32_t ReverseBits4(uint32_t x)
     return x;
 }
 
-PLATFORM_INLINE uint32_t ReverseBits8(uint32_t x)
+ML_INLINE uint32_t ReverseBits8(uint32_t x)
 {
     x = (( x & 0x55 ) << 1) | (( x & 0xAA ) >> 1);
     x = (( x & 0x33 ) << 2) | (( x & 0xCC ) >> 2);
@@ -2609,7 +2734,7 @@ PLATFORM_INLINE uint32_t ReverseBits8(uint32_t x)
     return x;
 }
 
-PLATFORM_INLINE uint32_t ReverseBits16(uint32_t x)
+ML_INLINE uint32_t ReverseBits16(uint32_t x)
 {
     x = (( x & 0x5555 ) << 1) | (( x & 0xAAAA ) >> 1);
     x = (( x & 0x3333 ) << 2) | (( x & 0xCCCC ) >> 2);
@@ -2619,7 +2744,7 @@ PLATFORM_INLINE uint32_t ReverseBits16(uint32_t x)
     return x;
 }
 
-PLATFORM_INLINE uint32_t ReverseBits32(uint32_t x)
+ML_INLINE uint32_t ReverseBits32(uint32_t x)
 {
     x = (x << 16) | (x >> 16);
     x = (( x & 0x55555555 ) << 1) | (( x & 0xAAAAAAAA ) >> 1);
@@ -2630,7 +2755,7 @@ PLATFORM_INLINE uint32_t ReverseBits32(uint32_t x)
     return x;
 }
 
-PLATFORM_INLINE uint32_t CompactBits(uint32_t x)
+ML_INLINE uint32_t CompactBits(uint32_t x)
 {
     x &= 0x55555555;
     x = (x ^ ( x >> 1 )) & 0x33333333;
@@ -2641,7 +2766,7 @@ PLATFORM_INLINE uint32_t CompactBits(uint32_t x)
     return x;
 }
 
-PLATFORM_INLINE uint32_t Bayer4x4(uint2 samplePos, uint32_t tickIndex)
+ML_INLINE uint32_t Bayer4x4(uint2 samplePos, uint32_t tickIndex)
 {
     uint32_t x = samplePos.x & 3;
     uint32_t y = samplePos.y & 3;
@@ -2654,7 +2779,7 @@ PLATFORM_INLINE uint32_t Bayer4x4(uint2 samplePos, uint32_t tickIndex)
     return ( (a >> b) + sampleOffset ) & 0xF;
 }
 
-PLATFORM_INLINE float RadicalInverse( uint32_t idx, uint32_t base )
+ML_INLINE float RadicalInverse( uint32_t idx, uint32_t base )
 {
     float val = 0.0f;
     float rcpBase = 1.0f / ( float ) base;
@@ -2668,7 +2793,7 @@ PLATFORM_INLINE float RadicalInverse( uint32_t idx, uint32_t base )
     return val;
 }
 
-PLATFORM_INLINE float2 Halton2D( uint32_t idx )
+ML_INLINE float2 Halton2D( uint32_t idx )
 {
     return float2( RadicalInverse( idx + 1, 3 ), ReverseBits32( idx + 1 ) * 2.3283064365386963e-10f );
 }
@@ -2677,10 +2802,10 @@ PLATFORM_INLINE float2 Halton2D( uint32_t idx )
 //                                                      Misc
 //======================================================================================================================
 
-PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth, const float4x4& proj, uint32_t* puiFlags, float* pfSettings15, float* pfUnproject2, float* pfFrustum4, float* pfProject3, float* pfSafeNearZ)
+ML_INLINE void DecomposeProjection(eStyle originStyle, eStyle depthStyle, const float4x4& proj, uint32_t* puiFlags, float* pfSettings15, float* pfUnproject2, float* pfFrustum4, float* pfProject3, float* pfSafeNearZ)
 {
     float4 vPlane[PLANES_NUM];
-    bool bReversedZ = MvpToPlanes(ucNdcDepth, proj, vPlane);
+    bool bReversedZ = MvpToPlanes(depthStyle, proj, vPlane);
 
     bool bIsOrtho = proj.a33 == 1.0f ? true : false;
 
@@ -2724,7 +2849,7 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
 
     if( pfSafeNearZ )
     {
-        *pfSafeNearZ = fNearZ - _DEPTH_EPS;
+        *pfSafeNearZ = fNearZ - ML_DEPTH_EPS;
 
         if( !bIsOrtho )
         {
@@ -2778,7 +2903,7 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
         pfFrustum4[0] = -x0;
         pfFrustum4[2] = x0 - x1;
 
-        if( ucNdcOrigin == NDC_D3D )
+        if( originStyle == STYLE_D3D )
         {
             pfFrustum4[1] = -y1;
             pfFrustum4[3] = y1 - y0;
@@ -2824,7 +2949,7 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
     }
 }
 
-PLATFORM_INLINE float2 Hammersley(uint32_t i, uint32_t uiSamples, uint32_t rnd0 = 0, uint32_t rnd1 = 0)
+ML_INLINE float2 Hammersley(uint32_t i, uint32_t uiSamples, uint32_t rnd0 = 0, uint32_t rnd1 = 0)
 {
     float E1 = Frac( float(i) / float(uiSamples) + float(rnd0 & 0xffff) / float(1 << 16) );
     float E2 = float( ReverseBits32(i) ^ rnd1 ) * 2.3283064365386963e-10f;
@@ -2837,7 +2962,7 @@ PLATFORM_INLINE float2 Hammersley(uint32_t i, uint32_t uiSamples, uint32_t rnd0 
 //       http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/
 //       SSE code from http://www.codercorner.com/blog/?p=1118
 
-PLATFORM_INLINE uint32_t TestClassIII(const v4f& e0V, const v4f& v0V, const v4f& v1V, const v4f& v2V, const v4f& extents)
+ML_INLINE uint32_t TestClassIII(const v4f& e0V, const v4f& v0V, const v4f& v1V, const v4f& v2V, const v4f& extents)
 {
     v4f fe0ZYX_V = v4f_abs(e0V);
 
@@ -2863,7 +2988,7 @@ PLATFORM_INLINE uint32_t TestClassIII(const v4f& e0V, const v4f& v0V, const v4f&
     return test & 7;
 }
 
-PLATFORM_INLINE bool IsOverlapBoxTriangle(const float3& boxcenter, const float3& extents, const float3& p0, const float3& p1, const float3& p2)
+ML_INLINE bool IsOverlapBoxTriangle(const float3& boxcenter, const float3& extents, const float3& p0, const float3& p1, const float3& p2)
 {
     v4f v0V = _mm_sub_ps(p0.xmm, boxcenter.xmm);
     v4f cV = v4f_abs(v0V);
@@ -2927,7 +3052,7 @@ PLATFORM_INLINE bool IsOverlapBoxTriangle(const float3& boxcenter, const float3&
 }
 
 // NOTE: barycentric ray-triangle test by Tomas Akenine-Moller
-PLATFORM_INLINE bool IsIntersectRayTriangle(const float3& origin, const float3& dir, const float3& v1, const float3& v2, const float3& v3, float3& out_tuv)
+ML_INLINE bool IsIntersectRayTriangle(const float3& origin, const float3& dir, const float3& v1, const float3& v2, const float3& v3, float3& out_tuv)
 {
     // find vectors for two edges sharing vert0
 
@@ -2979,7 +3104,7 @@ PLATFORM_INLINE bool IsIntersectRayTriangle(const float3& origin, const float3& 
     return true;
 }
 
-PLATFORM_INLINE bool IsIntersectRayTriangle(const float3& from, const float3& to, const float3& v1, const float3& v2, const float3& v3, float3& out_intersection, float3& out_normal)
+ML_INLINE bool IsIntersectRayTriangle(const float3& from, const float3& to, const float3& v1, const float3& v2, const float3& v3, float3& out_intersection, float3& out_normal)
 {
     // find vectors for two edges sharing vert0
 
@@ -3037,7 +3162,7 @@ PLATFORM_INLINE bool IsIntersectRayTriangle(const float3& from, const float3& to
 
 #include "Packed.h"
 
-#ifdef MATH_NAMESPACE
+#ifdef ML_NAMESPACE
 }
 #endif
 

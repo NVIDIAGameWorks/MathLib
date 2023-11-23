@@ -27,7 +27,7 @@ namespace Packed
 
 // NOTE: pack / unpack float to f16, f11, f10
 
-template<uint32_t M_BITS, uint32_t E_BITS, uint32_t S_MASK> PLATFORM_INLINE uint32_t ToPacked(float val)
+template<uint32_t M_BITS, uint32_t E_BITS, uint32_t S_MASK> ML_INLINE uint32_t ToPacked(float val)
 {
     const int32_t E_MASK = (1 << E_BITS) - 1;
     const uint32_t INF = uint32_t(E_MASK) << uint32_t(M_BITS);
@@ -90,7 +90,7 @@ template<uint32_t M_BITS, uint32_t E_BITS, uint32_t S_MASK> PLATFORM_INLINE uint
     return packed;
 }
 
-template<int32_t M_BITS, int32_t E_BITS, int32_t S_MASK> PLATFORM_INLINE float FromPacked(uint32_t x)
+template<int32_t M_BITS, int32_t E_BITS, int32_t S_MASK> ML_INLINE float FromPacked(uint32_t x)
 {
     uFloat f;
 
@@ -125,9 +125,9 @@ template<int32_t M_BITS, int32_t E_BITS, int32_t S_MASK> PLATFORM_INLINE float F
 
 // NOTE: pack / unpack [0; 1] to uint32_t with required bits
 
-template<uint32_t BITS> PLATFORM_INLINE uint32_t ToUint(float x)
+template<uint32_t BITS> ML_INLINE uint32_t ToUint(float x)
 {
-    DEBUG_Assert( x >= 0.0f && x <= 1.0f );
+    ML_Assert( x >= 0.0f && x <= 1.0f );
 
     const float scale = float((1ull << BITS) - 1ull);
 
@@ -136,22 +136,22 @@ template<uint32_t BITS> PLATFORM_INLINE uint32_t ToUint(float x)
     return y;
 }
 
-template<uint32_t BITS> PLATFORM_INLINE float FromUint(uint32_t x)
+template<uint32_t BITS> ML_INLINE float FromUint(uint32_t x)
 {
     const float scale = 1.0f / float((1ull << BITS) - 1ull);
 
     float y = float(x) * scale;
 
-    DEBUG_Assert( y >= 0.0f && y <= 1.0f );
+    ML_Assert( y >= 0.0f && y <= 1.0f );
 
     return y;
 }
 
 // NOTE: pack / unpack [-1; 1] to uint32_t with required bits
 
-template<uint32_t BITS> PLATFORM_INLINE uint32_t ToInt(float x)
+template<uint32_t BITS> ML_INLINE uint32_t ToInt(float x)
 {
-    DEBUG_Assert( x >= -1.0f && x <= 1.0f );
+    ML_Assert( x >= -1.0f && x <= 1.0f );
 
     const float scale = float((1ull << (BITS - 1ull)) - 1ull);
     const uint32_t mask = uint32_t((1ull << BITS) - 1ull);
@@ -162,7 +162,7 @@ template<uint32_t BITS> PLATFORM_INLINE uint32_t ToInt(float x)
     return y;
 }
 
-template<uint32_t BITS> PLATFORM_INLINE float FromInt(uint32_t x)
+template<uint32_t BITS> ML_INLINE float FromInt(uint32_t x)
 {
     const uint32_t sign = uint32_t(1ull << (BITS - 1ull));
     const uint32_t range = sign - 1u;
@@ -174,16 +174,16 @@ template<uint32_t BITS> PLATFORM_INLINE float FromInt(uint32_t x)
     int32_t i = x;
     float y = Max(float(i) * scale, -1.0f);
 
-    DEBUG_Assert( y >= -1.0f && y <= 1.0f );
+    ML_Assert( y >= -1.0f && y <= 1.0f );
 
     return y;
 }
 
 // NOTE: complex packing (unsigned)
 
-template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFORM_INLINE uint32_t uf4_to_uint(const float4& v)
+template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> ML_INLINE uint32_t uf4_to_uint(const float4& v)
 {
-    DEBUG_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
+    ML_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
 
     const uint32_t Rmask = (1 << Rbits) - 1;
     const uint32_t Gmask = (1 << Gbits) - 1;
@@ -207,7 +207,7 @@ template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFOR
     return p;
 }
 
-template<> PLATFORM_INLINE uint32_t uf4_to_uint<8, 8, 8, 8>(const float4& v)
+template<> ML_INLINE uint32_t uf4_to_uint<8, 8, 8, 8>(const float4& v)
 {
     v4f t = _mm_mul_ps(v.xmm, _mm_set1_ps(255.0f));
     v4i i = _mm_cvtps_epi32(t);
@@ -216,7 +216,7 @@ template<> PLATFORM_INLINE uint32_t uf4_to_uint<8, 8, 8, 8>(const float4& v)
     return _mm_cvtsi128_si32(i);
 }
 
-PLATFORM_INLINE uint32_t uf2_to_uint1616(float x, float y)
+ML_INLINE uint32_t uf2_to_uint1616(float x, float y)
 {
     v4f t = v4f_set(x, y, 0.0f, 0.0f);
     t = _mm_mul_ps(t, _mm_set1_ps(65535.0f));
@@ -228,9 +228,9 @@ PLATFORM_INLINE uint32_t uf2_to_uint1616(float x, float y)
     return p;
 }
 
-PLATFORM_INLINE uint32_t uf3_to_packed111110(const float3& v)
+ML_INLINE uint32_t uf3_to_packed111110(const float3& v)
 {
-    DEBUG_Assert( v.x >= 0.0f && v.y >= 0.0f && v.z >= 0.0f );
+    ML_Assert( v.x >= 0.0f && v.y >= 0.0f && v.z >= 0.0f );
 
     uint32_t r = ToPacked<UF11_M_BITS, UF11_E_BITS, UF11_S_MASK>(v.x);
     r |= ToPacked<UF11_M_BITS, UF11_E_BITS, UF11_S_MASK>(v.y) << 11;
@@ -241,9 +241,9 @@ PLATFORM_INLINE uint32_t uf3_to_packed111110(const float3& v)
 
 // NOTE: complex packing (signed)
 
-template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFORM_INLINE uint32_t sf4_to_int(const float4& v)
+template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> ML_INLINE uint32_t sf4_to_int(const float4& v)
 {
-    DEBUG_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
+    ML_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
 
     const uint32_t Rmask = (1 << Rbits) - 1;
     const uint32_t Gmask = (1 << Gbits) - 1;
@@ -274,7 +274,7 @@ template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFOR
     return p;
 }
 
-template<> PLATFORM_INLINE uint32_t sf4_to_int<8, 8, 8, 8>(const float4& v)
+template<> ML_INLINE uint32_t sf4_to_int<8, 8, 8, 8>(const float4& v)
 {
     v4f t = _mm_mul_ps(v.xmm, _mm_set1_ps(127.0f));
     v4i i = _mm_cvtps_epi32(t);
@@ -283,7 +283,7 @@ template<> PLATFORM_INLINE uint32_t sf4_to_int<8, 8, 8, 8>(const float4& v)
     return _mm_cvtsi128_si32(i);
 }
 
-PLATFORM_INLINE uint32_t sf2_to_int1616(float x, float y)
+ML_INLINE uint32_t sf2_to_int1616(float x, float y)
 {
     v4f t = v4f_set(x, y, 0.0f, 0.0f);
     t = _mm_mul_ps(t, _mm_set1_ps(32767.0f));
@@ -296,9 +296,9 @@ PLATFORM_INLINE uint32_t sf2_to_int1616(float x, float y)
     return p;
 }
 
-PLATFORM_INLINE uint16_t sf_to_h(float x)
+ML_INLINE uint16_t sf_to_h(float x)
 {
-    #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_AVX1 )
+    #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1 )
 
         v4f v = v4f_set(x, 0.0f, 0.0f, 0.0f);
         v4i p = v4f_to_h4(v);
@@ -314,9 +314,9 @@ PLATFORM_INLINE uint16_t sf_to_h(float x)
     return uint16_t(r);
 }
 
-PLATFORM_INLINE uint32_t sf2_to_h2(float x, float y)
+ML_INLINE uint32_t sf2_to_h2(float x, float y)
 {
-    #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_AVX1 )
+    #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1 )
 
         v4f v = v4f_set(x, y, 0.0f, 0.0f);
         v4i p = v4f_to_h4(v);
@@ -333,9 +333,9 @@ PLATFORM_INLINE uint32_t sf2_to_h2(float x, float y)
     return r;
 }
 
-PLATFORM_INLINE void sf4_to_h4(const float4& v, uint32_t* pu2)
+ML_INLINE void sf4_to_h4(const float4& v, uint32_t* pu2)
 {
-    #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_AVX1 )
+    #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1 )
 
         v4i p = v4f_to_h4(v.xmm);
 
@@ -352,9 +352,9 @@ PLATFORM_INLINE void sf4_to_h4(const float4& v, uint32_t* pu2)
 
 // NOTE: complex unpacking (unsigned)
 
-template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFORM_INLINE float4 uint_to_uf4(uint32_t p)
+template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> ML_INLINE float4 uint_to_uf4(uint32_t p)
 {
-    DEBUG_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
+    ML_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
 
     const uint32_t Rmask = (1 << Rbits) - 1;
     const uint32_t Gmask = (1 << Gbits) - 1;
@@ -374,9 +374,9 @@ template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFOR
     return t;
 }
 
-template<> PLATFORM_INLINE float4 uint_to_uf4<8, 8, 8, 8>(uint32_t p)
+template<> ML_INLINE float4 uint_to_uf4<8, 8, 8, 8>(uint32_t p)
 {
-    #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_SSE4 )
+    #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_SSE4 )
         v4i i = _mm_cvtepu8_epi32(_mm_cvtsi32_si128(p));
     #else
         v4i i = _mm_set_epi32(p >> 24, (p >> 16) & 0xFF, (p >> 8) & 0xFF, p & 0xFF);
@@ -388,7 +388,7 @@ template<> PLATFORM_INLINE float4 uint_to_uf4<8, 8, 8, 8>(uint32_t p)
     return t;
 }
 
-PLATFORM_INLINE float3 packed111110_to_uf3(uint32_t p)
+ML_INLINE float3 packed111110_to_uf3(uint32_t p)
 {
     float3 v;
     v.x = FromPacked<UF11_M_BITS, UF11_E_BITS, UF11_S_MASK>( p & ((1 << 11) - 1) );
@@ -398,9 +398,9 @@ PLATFORM_INLINE float3 packed111110_to_uf3(uint32_t p)
     return v;
 }
 
-template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFORM_INLINE void uint_to_4ui(uint32_t p, int32_t* v)
+template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> ML_INLINE void uint_to_4ui(uint32_t p, int32_t* v)
 {
-    DEBUG_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
+    ML_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
 
     const uint32_t Rmask = (1 << Rbits) - 1;
     const uint32_t Gmask = (1 << Gbits) - 1;
@@ -419,9 +419,9 @@ template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFOR
 
 // NOTE: complex unpacking (signed)
 
-template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFORM_INLINE float4 int_to_sf4(uint32_t p)
+template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> ML_INLINE float4 int_to_sf4(uint32_t p)
 {
-    DEBUG_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
+    ML_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
 
     const uint32_t Rmask = (1 << Rbits) - 1;
     const uint32_t Gmask = (1 << Gbits) - 1;
@@ -454,9 +454,9 @@ template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFOR
     return t;
 }
 
-template<> PLATFORM_INLINE float4 int_to_sf4<8, 8, 8, 8>(uint32_t p)
+template<> ML_INLINE float4 int_to_sf4<8, 8, 8, 8>(uint32_t p)
 {
-    #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_SSE4 )
+    #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_SSE4 )
         v4i i = _mm_cvtepi8_epi32(_mm_cvtsi32_si128(p));
     #else
         v4i i = _mm_set_epi32(int8_t(p >> 24), int8_t((p >> 16) & 0xFF), int8_t((p >> 8) & 0xFF), int8_t(p & 0xFF));
@@ -469,11 +469,11 @@ template<> PLATFORM_INLINE float4 int_to_sf4<8, 8, 8, 8>(uint32_t p)
     return t;
 }
 
-PLATFORM_INLINE float2 h2_to_sf2(uint32_t ui)
+ML_INLINE float2 h2_to_sf2(uint32_t ui)
 {
     float2 r;
 
-    #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_AVX1 )
+    #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1 )
 
         v4i p = _mm_cvtsi32_si128(ui);
         v4f f = _mm_cvtph_ps(p);
@@ -490,11 +490,11 @@ PLATFORM_INLINE float2 h2_to_sf2(uint32_t ui)
     return r;
 }
 
-PLATFORM_INLINE float4 h4_to_sf4(const uint32_t* pu2)
+ML_INLINE float4 h4_to_sf4(const uint32_t* pu2)
 {
     float4 f;
 
-    #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_AVX1 )
+    #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1 )
 
         v4i p = _mm_loadl_epi64((const v4i*)pu2);
         f.xmm = _mm_cvtph_ps(p);
@@ -511,9 +511,9 @@ PLATFORM_INLINE float4 h4_to_sf4(const uint32_t* pu2)
     return f;
 }
 
-template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFORM_INLINE void int_to_4i(uint32_t p, int32_t* v)
+template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> ML_INLINE void int_to_4i(uint32_t p, int32_t* v)
 {
-    DEBUG_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
+    ML_StaticAssert( Rbits + Gbits + Bbits + Abits <= 32 );
 
     const uint32_t Rmask = (1 << Rbits) - 1;
     const uint32_t Gmask = (1 << Gbits) - 1;
@@ -550,7 +550,7 @@ template<uint32_t Rbits, uint32_t Gbits, uint32_t Bbits, uint32_t Abits> PLATFOR
 // oct     10:10      0.08380   0.23467
 // snorm   10:10:10   0.04228   0.09598
 // oct     12:12      0.02091   0.05874
-PLATFORM_INLINE float2 EncodeUnitVector(const float3& v, bool bSigned = false)
+ML_INLINE float2 EncodeUnitVector(const float3& v, bool bSigned = false)
 {
     float3 t = v / (Abs(v.x) + Abs(v.y) + Abs(v.z));
     float3 a = t.z >= 0.0f ? t : (float3(1.0f) - Abs(t.yxz())) * Sign(t);
@@ -561,7 +561,7 @@ PLATFORM_INLINE float2 EncodeUnitVector(const float3& v, bool bSigned = false)
     return float2(a.x, a.y);
 }
 
-PLATFORM_INLINE float3 DecodeUnitVector(const float2& p, bool bSigned = false)
+ML_INLINE float3 DecodeUnitVector(const float2& p, bool bSigned = false)
 {
     float2 t = bSigned ? p : (p * 2.0f - 1.0f);
 
@@ -580,15 +580,15 @@ struct half_float
 {
     uint16_t us;
 
-    PLATFORM_INLINE half_float() : us(0)
+    ML_INLINE half_float() : us(0)
     {}
 
-    PLATFORM_INLINE half_float(uint16_t x) : us(x)
+    ML_INLINE half_float(uint16_t x) : us(x)
     {}
 
-    PLATFORM_INLINE half_float(float x)
+    ML_INLINE half_float(float x)
     {
-        #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_AVX1 )
+        #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1 )
 
             v4f v = _mm_set_ss(x);
             v4i p = v4f_to_h4(v);
@@ -602,9 +602,9 @@ struct half_float
         #endif
     }
 
-    PLATFORM_INLINE operator float() const
+    ML_INLINE operator float() const
     {
-        #if( PLATFORM_INTRINSIC >= PLATFORM_INTRINSIC_AVX1 )
+        #if( ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1 )
 
             v4i p = _mm_cvtsi32_si128(us);
             v4f f = _mm_cvtph_ps(p);
