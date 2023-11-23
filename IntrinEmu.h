@@ -1470,7 +1470,7 @@ PLATFORM_INLINE v4f v4f_sign(const v4f& x)
     return _mm_or_ps(v, c_v4f_1111);
 }
 
-PLATFORM_INLINE v4f v4f_fract(const v4f& x)
+PLATFORM_INLINE v4f v4f_frac(const v4f& x)
 {
     v4f flr0 = v4f_floor(x);
     v4f sub0 = _mm_sub_ps(x, flr0);
@@ -1788,7 +1788,7 @@ PLATFORM_INLINE v4d v4d_sign(const v4d& x)
     return _mm256_or_pd(v, c_v4d_1111);
 }
 
-PLATFORM_INLINE v4d v4d_fract(const v4d& x)
+PLATFORM_INLINE v4d v4d_frac(const v4d& x)
 {
     v4d flr0 = v4d_floor(x);
     v4d sub0 = _mm256_sub_pd(x, flr0);

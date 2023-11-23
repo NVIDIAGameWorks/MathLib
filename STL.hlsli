@@ -30,6 +30,7 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_SPECULAR_DOMINANT_DIRECTION_DEFAULT     STL_SPECULAR_DOMINANT_DIRECTION_APPROX
 #define STL_RF0_DIELECTRICS                         0.04
 #define STL_GTR_GAMMA                               1.5
+#define STL_VNDF_VERSION                            3
 
 // Text
 #define STL_TEXT_DIGIT_FORMAT                       10000
@@ -1744,7 +1745,7 @@ namespace STL
         // [Burley 2012, "Physically-Based Shading at Disney"]
         float DiffuseTerm_Burley( float linearRoughness, float NoL, float NoV, float VoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float f = 2.0 * VoH * VoH * m - 0.5;
             float FdV = f * Pow5( NoV ) + 1.0;
             float FdL = f * Pow5( NoL ) + 1.0;
@@ -1756,7 +1757,7 @@ namespace STL
         // [Gotanda 2012, "Beyond a Simple Physically Based Blinn-Phong Model in Real-Time"]
         float DiffuseTerm_OrenNayar( float linearRoughness, float NoL, float NoV, float VoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float m2 = m * m;
             float VoL = 2.0 * VoH - 1.0;
             float c1 = 1.0 - 0.5 * m2 / ( m2 + 0.33 );
@@ -1784,7 +1785,7 @@ namespace STL
         // [Blinn 1977, "Models of light reflection for computer synthesized pictures"]
         float DistributionTerm_Blinn( float linearRoughness, float NoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float m2 = m * m;
             float alpha = 2.0 * Math::PositiveRcp( m2 ) - 2.0;
             float norm = ( alpha + 2.0 ) / 2.0;
@@ -1796,7 +1797,7 @@ namespace STL
         // [Beckmann 1963, "The scattering of electromagnetic waves from rough surfaces"]
         float DistributionTerm_Beckmann( float linearRoughness, float NoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float m2 = m * m;
             float b = NoH * NoH;
             float a = m2 * b;
@@ -1808,7 +1809,7 @@ namespace STL
         // GGX / Trowbridge-Reitz, [Walter et al. 2007, "Microfacet models for refraction through rough surfaces"]
         float DistributionTerm_GGX( float linearRoughness, float NoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float m2 = m * m;
 
             #if 1
@@ -1827,7 +1828,7 @@ namespace STL
         // Generalized Trowbridge-Reitz, [Burley 2012, "Physically-Based Shading at Disney"]
         float DistributionTerm_GTR( float linearRoughness, float NoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float m2 = m * m;
             float t = ( NoH * m2 - NoH ) * NoH + 1.0;
 
@@ -1855,7 +1856,7 @@ namespace STL
         // Known as "G1"
         float GeometryTerm_Smith( float linearRoughness, float NoVL )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float m2 = m * m;
             float a = NoVL + Math::Sqrt01( ( NoVL - m2 * NoVL ) * NoVL + m2 );
 
@@ -1881,7 +1882,7 @@ namespace STL
         // [Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"]
         float GeometryTermMod_Schlick( float linearRoughness, float NoL, float NoV, float VoH, float NoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
 
             // original form
             //float k = m * sqrt( 2.0 / Math::Pi( 1.0 ) );
@@ -1900,7 +1901,7 @@ namespace STL
         // Known as "G2 height correlated"
         float GeometryTermMod_SmithCorrelated( float linearRoughness, float NoL, float NoV, float VoH, float NoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float m2 = m * m;
             float a = NoV * Math::Sqrt01( ( NoL - m2 * NoL ) * NoL + m2 );
             float b = NoL * Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 );
@@ -1913,7 +1914,7 @@ namespace STL
         // Known as "G2 = G1( NoL ) * G1( NoV )"
         float GeometryTermMod_SmithUncorrelated( float linearRoughness, float NoL, float NoV, float VoH, float NoH )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
             float m2 = m * m;
             float a = NoL + Math::Sqrt01( ( NoL - m2 * NoL ) * NoL + m2 );
             float b = NoV + Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 );
@@ -2002,7 +2003,7 @@ namespace STL
         // http://miciwan.com/SIGGRAPH2015/course_notes_wip.pdf
         float3 EnvironmentTerm_Pesce( float3 Rf0, float NoV, float linearRoughness )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
 
             float a = 7.0 * NoV + 4.0 * m;
             float bias = exp2( -a );
@@ -2017,7 +2018,7 @@ namespace STL
         // https://hal.inria.fr/inria-00443630/file/article-1.pdf
         float3 EnvironmentTerm_Ross( float3 Rf0, float NoV, float linearRoughness )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
 
             float f = Math::Pow01( 1.0 - NoV, 5.0 * exp( -2.69 * m ) ) / ( 1.0 + 22.7 * Math::Pow01( m, 1.5 ) );
 
@@ -2030,7 +2031,7 @@ namespace STL
         // "Ray Tracing Gems", Chapter 32, Equation 4 - the approximation assumes GGX VNDF and Schlick's approximation
         float3 EnvironmentTerm_Rtg( float3 Rf0, float NoV, float linearRoughness )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
 
             float4 X;
             X.x = 1.0;
@@ -2101,7 +2102,7 @@ namespace STL
         // Defines a cone angle, where micro-normals are distributed
         float GetSpecularLobeHalfAngle( float linearRoughness, float percentOfVolume = 0.75 )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
 
             // Comparison of two methods:
             // https://www.desmos.com/calculator/4vvg1qrec7
@@ -2116,7 +2117,7 @@ namespace STL
 
         float GetSpecularLobeTanHalfAngle( float linearRoughness, float percentOfVolume = 0.75 )
         {
-            float m = linearRoughness * linearRoughness;
+            float m = saturate( linearRoughness * linearRoughness );
 
             #if 1
                 // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 72)
@@ -2249,7 +2250,7 @@ namespace STL
 
             float3 GetRay( float2 rnd, float linearRoughness )
             {
-                float m = linearRoughness * linearRoughness;
+                float m = saturate( linearRoughness * linearRoughness );
                 float m2 = m * m;
                 float t = ( m2 - 1.0 ) * rnd.y + 1.0;
                 float cosThetaSq = ( 1.0 - rnd.y ) * Math::PositiveRcp( t );
@@ -2267,40 +2268,61 @@ namespace STL
 
         //=================================================================================
         // GGX-VNDF
-        // http://jcgt.org/published/0007/04/01/paper.pdf
+        // STL_VNDF_VERSION == 1: http://jcgt.org/published/0007/04/01/paper.pdf
+        // STL_VNDF_VERSION == 2: https://diglib.eg.org/bitstream/handle/10.1111/cgf14867/v42i8_03_14867.pdf
+        // STL_VNDF_VERSION == 3: https://gpuopen.com/download/publications/Bounded_VNDF_Sampling_for_Smith-GGX_Reflections.pdf
         //=================================================================================
 
         namespace VNDF
         {
-            float GetPDF( float NoV, float NoH, float linearRoughness )
+            float GetPDF( float3 Vlocal, float NoH, float linearRoughness )
             {
-                /*
-                Eq 3  : Dv( H ) = G1 * D * VoH / NoV
-                Eq 17 : PDF = Dv( H ) / ( 4 * VoH )
+                float2 m = saturate( linearRoughness * linearRoughness );
 
-                Simplification:
-                    G1 = BRDF::GeometryTerm_Smith( materialProps.roughness, NoV )
-                    D = BRDF::DistributionTerm_GGX( materialProps.roughness, NoH )
-
-                    m2 = m * m
-                    G1mod = 1 / [ NoV + Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 ) ]
-                    G1 = 2 * G1mod * NoV
-
-                    => PDF = ( 2 * G1mod * NoV * D * VoH / NoV ) / ( 4 * VoH )
-                    => PDF = ( 2 * G1mod * D * VoH ) / ( 4 * VoH )
-                    => PDF = ( 2 * G1mod * D ) / 4
-                    => PDF = ( G1mod * D ) / 2
-                */
-
-                float m = linearRoughness * linearRoughness;
-                float m2 = m * m;
-                float G1mod = Math::PositiveRcp( NoV + Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 ) ); // see GeometryTerm_Smith
+                float a = min( m.x, m.y );
+                float a2 = a * a;
 
                 float D = BRDF::DistributionTerm_GGX( linearRoughness, NoH );
 
-                float pdf = G1mod * D * 0.5;
+                #if( STL_VNDF_VERSION == 1 )
+                    /*
+                    Eq 3  : Dv( H ) = G1 * D * VoH / NoV
+                    Eq 17 : PDF = Dv( H ) / ( 4 * VoH )
 
-                return max( pdf, 1e-7 );
+                    Simplification:
+                        G1 = BRDF::GeometryTerm_Smith( linearRoughness, NoV )
+                        D = BRDF::DistributionTerm_GGX( linearRoughness, NoH )
+
+                        m2 = m * m
+                        G1mod = 1 / [ NoV + Math::Sqrt01( ( NoV - m2 * NoV ) * NoV + m2 ) ]
+                        G1 = 2 * G1mod * NoV
+
+                        => PDF = ( 2 * G1mod * NoV * D * VoH / NoV ) / ( 4 * VoH )
+                        => PDF = ( 2 * G1mod * D * VoH ) / ( 4 * VoH )
+                        => PDF = ( 2 * G1mod * D ) / 4
+                        => PDF = ( G1mod * D ) / 2
+                    */
+                    float G1mod = Math::PositiveRcp( Vlocal.z + Math::Sqrt01( ( Vlocal.z - a2 * Vlocal.z ) * Vlocal.z + a2 ) ); // see GeometryTerm_Smith
+
+                    return 0.5 * G1mod * D;
+                #else
+                    float2 wi = m * Vlocal.xy;
+                    float lenSq = dot(wi, wi);
+                    float t = sqrt(lenSq + Vlocal.z * Vlocal.z);
+
+                    if( Vlocal.z < 0.0 )
+                        return 0.5 * D * ( t - Vlocal.z ) / lenSq;
+
+                    #if( STL_VNDF_VERSION == 3 )
+                        float s = 1.0 + length( Vlocal.xy );
+                        float s2 = s * s;
+                        float k = ( 1.0 - a2 ) * s2 / ( s2 + a2 * Vlocal.z * Vlocal.z );
+                    #else
+                        float k = 1.0;
+                    #endif
+
+                    return 0.5 * D / ( k * Vlocal.z + t );
+                #endif
             }
 
             float3 GetRay( float2 rnd, float2 linearRoughness, float3 Vlocal, float trimFactor = 1.0 )
@@ -2315,30 +2337,37 @@ namespace STL
 
                 // TODO: instead of using 2 roughness values introduce "anisotropy" parameter
                 // https://blog.selfshadow.com/publications/s2013-shading-course/rad/s2013_pbs_rad_notes.pdf (page 3)
-                float2 m = linearRoughness * linearRoughness;
+                float2 m = saturate( linearRoughness * linearRoughness );
 
                 // Warp to the hemisphere configuration
-                float3 wi = normalize( float3( m * Vlocal.xy, Vlocal.z ) );
+                float3 wi = normalize( float3( Vlocal.xy * m, Vlocal.z ) );
 
-                #if 0
-                    // Original
+                float phi = Math::Pi( 2.0 ) * rnd.x;
+                #if( STL_VNDF_VERSION == 1 )
                     float lenSq = dot( wi.xy, wi.xy );
                     float3 X = lenSq > STL_EPS ? float3( -wi.y, wi.x, 0.0 ) * rsqrt( lenSq ) : float3( 1.0, 0.0, 0.0 );
                     float3 Y = cross( wi, X );
 
                     float z = 0.5 * ( 1.0 + wi.z );
-                    float phi = STL::Math::Pi( 2.0 ) * rnd.x;
-                    float r = STL::Math::Sqrt01( rnd.y );
+                    float r = Math::Sqrt01( rnd.y );
                     float x = r * cos( phi );
-                    float y = lerp( STL::Math::Sqrt01( 1.0 - x * x ), r * sin( phi ), z );
+                    float y = lerp( Math::Sqrt01( 1.0 - x * x ), r * sin( phi ), z );
 
-                    float3 h = x * X + y * Y + STL::Math::Sqrt01( 1.0 - x * x - y * y ) * wi;
+                    float3 h = x * X + y * Y + Math::Sqrt01( 1.0 - x * x - y * y ) * wi;
                 #else
-                    // Optimized
-                    // https://diglib.eg.org/bitstream/handle/10.1111/cgf14867/v42i8_03_14867.pdf
-                    float z = 1.0 - rnd.y * ( 1.0 + wi.z );
-                    float phi = STL::Math::Pi( 2.0 ) * rnd.x;
-                    float r = STL::Math::Sqrt01( 1.0 - z * z );
+                    #if( STL_VNDF_VERSION == 2 )
+                        float b = wi.z;
+                    #elif( STL_VNDF_VERSION == 3 )
+                        float a = min( m.x, m.y );
+                        float s = 1.0 + length( Vlocal.xy );
+                        float a2 = a * a;
+                        float s2 = s * s;
+                        float k = ( 1.0 - a2 ) * s2 / ( s2 + a2 * Vlocal.z * Vlocal.z );
+                        float b = Vlocal.z > 0.0 ? k * wi.z : wi.z;
+                    #endif
+
+                    float z = 1.0 - rnd.y * ( 1.0 + b );
+                    float r = Math::Sqrt01( 1.0 - z * z );
                     float x = r * cos( phi );
                     float y = r * sin( phi );
 

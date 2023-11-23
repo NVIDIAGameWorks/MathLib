@@ -1,8 +1,8 @@
 #pragma once
 
 #define MATHLIB_VERSION_MAJOR 1
-#define MATHLIB_VERSION_MINOR 16
-#define MATHLIB_VERSION_DATE "4 July 2023"
+#define MATHLIB_VERSION_MINOR 17
+#define MATHLIB_VERSION_DATE "10 November 2023"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
@@ -200,7 +200,7 @@ template<class T> PLATFORM_INLINE T Sign(const T& x);
 template<class T> PLATFORM_INLINE T Abs(const T& x);
 template<class T> PLATFORM_INLINE T Floor(const T& x);
 template<class T> PLATFORM_INLINE T Round(const T& x);
-template<class T> PLATFORM_INLINE T Fract(const T& x);
+template<class T> PLATFORM_INLINE T Frac(const T& x);
 template<class T> PLATFORM_INLINE T Mod(const T& x, const T& y);
 template<class T> PLATFORM_INLINE T Snap(const T& x, const T& step);
 template<class T> PLATFORM_INLINE T Min(const T& x, const T& y);
@@ -1204,29 +1204,29 @@ template<> PLATFORM_INLINE double4 Round(const double4& x)
 
 //======================================================================================================================
 
-template<class T> PLATFORM_INLINE T Fract(const T& x)
+template<class T> PLATFORM_INLINE T Frac(const T& x)
 {
     return x - Floor(x);
 }
 
-template<> PLATFORM_INLINE float3 Fract(const float3& x)
+template<> PLATFORM_INLINE float3 Frac(const float3& x)
 {
-    return v4f_fract(x.xmm);
+    return v4f_frac(x.xmm);
 }
 
-template<> PLATFORM_INLINE float4 Fract(const float4& x)
+template<> PLATFORM_INLINE float4 Frac(const float4& x)
 {
-    return v4f_fract(x.xmm);
+    return v4f_frac(x.xmm);
 }
 
-template<> PLATFORM_INLINE double3 Fract(const double3& x)
+template<> PLATFORM_INLINE double3 Frac(const double3& x)
 {
-    return v4d_fract(x.ymm);
+    return v4d_frac(x.ymm);
 }
 
-template<> PLATFORM_INLINE double4 Fract(const double4& x)
+template<> PLATFORM_INLINE double4 Frac(const double4& x)
 {
-    return v4d_fract(x.ymm);
+    return v4d_frac(x.ymm);
 }
 
 //======================================================================================================================
@@ -2064,7 +2064,7 @@ template<class T> PLATFORM_INLINE T CurveSin(const T& x)
 
 template<class T> PLATFORM_INLINE T WaveTriangle(const T& x)
 {
-    return Abs( Fract( x + T(0.5) ) * T(2.0) - T(1.0) );
+    return Abs( Frac( x + T(0.5) ) * T(2.0) - T(1.0) );
 }
 
 template<class T> PLATFORM_INLINE T WaveTriangleSmooth(const T& x)
@@ -2826,7 +2826,7 @@ PLATFORM_INLINE void DecomposeProjection(uint8_t ucNdcOrigin, uint8_t ucNdcDepth
 
 PLATFORM_INLINE float2 Hammersley(uint32_t i, uint32_t uiSamples, uint32_t rnd0 = 0, uint32_t rnd1 = 0)
 {
-    float E1 = Fract( float(i) / float(uiSamples) + float(rnd0 & 0xffff) / float(1 << 16) );
+    float E1 = Frac( float(i) / float(uiSamples) + float(rnd0 & 0xffff) / float(1 << 16) );
     float E2 = float( ReverseBits32(i) ^ rnd1 ) * 2.3283064365386963e-10f;
 
     return float2(E1, E2);
