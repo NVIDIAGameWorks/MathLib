@@ -1,8 +1,8 @@
 #pragma once
 
 #define ML_VERSION_MAJOR 1
-#define ML_VERSION_MINOR 18
-#define ML_VERSION_DATE "23 November 2023"
+#define ML_VERSION_MINOR 19
+#define ML_VERSION_DATE "28 November 2023"
 
 // NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
 //       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]

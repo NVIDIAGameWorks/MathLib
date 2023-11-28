@@ -1625,7 +1625,7 @@ namespace STL
             }
 
             uint4 GetUint4( )
-            { return float4( GetUint2( ), GetUint2( ) ); }
+            { return uint4( GetUint2( ), GetUint2( ) ); }
 
             float GetFloat( )
             { uint x = GetUint( ); return _UintToFloat01( x ); }
@@ -1659,7 +1659,7 @@ namespace STL
             { return uint2( GetUint( ), GetUint( ) ); }
 
             uint4 GetUint4( )
-            { return float4( GetUint2( ), GetUint2( ) ); }
+            { return uint4( GetUint2( ), GetUint2( ) ); }
 
             float GetFloat( )
             { uint x = GetUint( ); return _UintToFloat01( x ); }
