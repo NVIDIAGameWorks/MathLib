@@ -1,31 +1,32 @@
 #pragma once
 
 #define ML_VERSION_MAJOR 1
-#define ML_VERSION_MINOR 19
-#define ML_VERSION_DATE "28 November 2023"
+#define ML_VERSION_MINOR 20
+#define ML_VERSION_DATE "6 December 2023"
 
-// NOTE: all random floating point functions doesn't return zero (because I hate zeroes)
-//       ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
+//======================================================================================================================
+//                                                 Constants
+//======================================================================================================================
 
-// NOTE: C standard rand() (15 bit, floating point with fixed step 1 / 0x7FFF)
-// perf: 1x
-// thread: safe
-#define ML_RND_CRT 0
+// Intrinsic level
+#define ML_INTRINSIC_SSE3   0 // NOTE: +SSSE3
+#define ML_INTRINSIC_SSE4   1
+#define ML_INTRINSIC_AVX1   2 // NOTE: +FP16C
+#define ML_INTRINSIC_AVX2   3 // NOTE: +FMA3
 
-// NOTE: extreme fast PRNG (32 bit)
-// perf: 15x
-// thread: NOT SAFE (but you can create your own instances of sFastRand in another threads)
-#define ML_RND_FAST 1
-
-// NOTE: slower, hardware implemented CSPRNG (cryptographically secure), "rdrand" instruction support is required
-// https://software.intel.com/sites/default/files/managed/4d/91/DRNG_Software_Implementation_Guide_2.0.pdf
-// perf: 0.4x
-// thread: safe
-#define ML_RND_HW 2
+// RND modes
+#define ML_RND_CRT          0 // NOTE: C standard rand() (15 bit, floating point with fixed step 1 / 0x7FFF), perf: 1x, thread: safe
+#define ML_RND_FAST         1 // NOTE: fast PRNG (32 bit), perf: 15x, thread: NOT SAFE (but you can create your own instances of sFastRand in another threads)
+#define ML_RND_HW           2 // NOTE: slower, hardware implemented CSPRNG (cryptographically secure), "rdrand" instruction support is required, perf: 0.4x, thread :safe
 
 //======================================================================================================================
 //                                                  Settings
 //======================================================================================================================
+
+// NOTE: allowed HW intrinsics (not supported are emulated)
+#ifndef ML_INTRINSIC_LEVEL // see above
+    //#define ML_INTRINSIC_LEVEL ML_INTRINSIC_SSE3
+#endif
 
 // NOTE: more precision (a little bit slower)
 #ifndef ML_NEWTONRAPHSON_APROXIMATION
@@ -47,8 +48,9 @@
     //#define ML_NAMESPACE
 #endif
 
-// NOTE: see RND modes above
-#ifndef ML_RND_MODE
+// NOTE: all random floating point functions doesn't return zero, ranges: uf - (0; 1], sf - [-1; 0) (0; 1]
+// ML_RND_HW: https://software.intel.com/sites/default/files/managed/4d/91/DRNG_Software_Implementation_Guide_2.0.pdf
+#ifndef ML_RND_MODE // see above
     #define ML_RND_MODE ML_RND_FAST
 #endif
 
@@ -122,19 +124,16 @@
 
 // NOTE: intrinsic level
 
-#define ML_INTRINSIC_SSE3                         0 // NOTE: +SSSE3
-#define ML_INTRINSIC_SSE4                         1
-#define ML_INTRINSIC_AVX1                         2 // NOTE: +FP16C
-#define ML_INTRINSIC_AVX2                         3 // NOTE: +FMA3
-
-#if defined ( __AVX2__ )
-    #define ML_INTRINSIC_LEVEL                    ML_INTRINSIC_AVX2
-#elif defined ( __AVX__ )
-    #define ML_INTRINSIC_LEVEL                    ML_INTRINSIC_AVX1
-#elif defined ( __SSE4_2__ ) || defined ( __SSE4_1__ )
-    #define ML_INTRINSIC_LEVEL                    ML_INTRINSIC_SSE4
-#else
-    #define ML_INTRINSIC_LEVEL                    ML_INTRINSIC_SSE3
+#ifndef ML_INTRINSIC_LEVEL
+    #if defined ( __AVX2__ )
+        #define ML_INTRINSIC_LEVEL                ML_INTRINSIC_AVX2
+    #elif defined ( __AVX__ )
+        #define ML_INTRINSIC_LEVEL                ML_INTRINSIC_AVX1
+    #elif defined ( __SSE4_2__ ) || defined ( __SSE4_1__ )
+        #define ML_INTRINSIC_LEVEL                ML_INTRINSIC_SSE4
+    #else
+        #define ML_INTRINSIC_LEVEL                ML_INTRINSIC_SSE3
+    #endif
 #endif
 
 #define ML_HAS_TRANSCENDENTAL_INTRINSICS          (_MSC_VER >= 1920 && __clang__ == 0)
@@ -161,13 +160,17 @@
     #define ML_NDC_NEAR_NO_REVERSE                -1.0f
     #define ML_DEPTH_C0                           (0.5f * (ML_DEPTH_RANGE_FAR - ML_DEPTH_RANGE_NEAR))
     #define ML_DEPTH_C1                           (0.5f * (ML_DEPTH_RANGE_FAR + ML_DEPTH_RANGE_NEAR))
-    #define ML_ModifyProjZ(c2, c3)                (c2)
+
+    template<class T> ML_INLINE T ML_ModifyProjZ(bool isReversed, T c2, T c3)
+    { return isReversed ? -c2 : c2; }
 #else
-    // depth range [0; 1], origin "upper left"        
+    // depth range [0; 1], origin "upper left"
     #define ML_NDC_NEAR_NO_REVERSE                0.0f
     #define ML_DEPTH_C0                           (ML_DEPTH_RANGE_FAR - ML_DEPTH_RANGE_NEAR)
     #define ML_DEPTH_C1                           ML_DEPTH_RANGE_NEAR
-    #define ML_ModifyProjZ(c2, c3)                (T(0.5) * (c2 + c3))
+
+    template<class T> ML_INLINE T ML_ModifyProjZ(bool isReversed, T c2, T c3)
+    { return T(0.5) * ((isReversed ? -c2 : c2) + c3); }
 #endif
 
 #define ML_NDC_FAR_NO_REVERSE                     1.0f
@@ -344,33 +347,6 @@ template<class T> ML_INLINE void Swap(T& x, T& y)
     x = y;
     y = t;
 }
-
-namespace Zbuffer
-{
-    template<class T> inline T ModifyProjZ(bool bReverse, T c2, T c3)
-    {
-        ML_UNUSED(bReverse);
-        ML_UNUSED(c3);
-
-        if( bReverse )
-            c2 = -c2;
-
-        return ML_ModifyProjZ(c2, c3);
-    }
-
-    inline void UnprojectZ(float* pfUnprojectZ2, float a22, float a23, float a32)
-    {
-        // z = u0 / (depth + u1)
-
-        pfUnprojectZ2[0] = ML_DEPTH_C0 * a23 / a32;
-        pfUnprojectZ2[1] = -(ML_DEPTH_C0 * a22 / a32 + ML_DEPTH_C1);
-
-        // z = 1 / (depth * u0 + u1);
-
-        //pfUnprojectZ2[0] = a32 / (ML_DEPTH_C0 * a23);
-        //pfUnprojectZ2[1] = -(a22 / a23 + ML_DEPTH_C1 / pfUnprojectZ2[0]);
-    }
-};
 
 #include "MathLib_f.h"
 #include "MathLib_d.h"
@@ -2340,26 +2316,22 @@ ML_INLINE bool MvpToPlanes(eStyle depthStyle, const float4x4& m, float4* pvPlane
         n += mt.GetCol3();
 
     // NOTE: side planes
-
     l *= Rsqrt( Dot33(l.xmm, l.xmm) );
     r *= Rsqrt( Dot33(r.xmm, r.xmm) );
     b *= Rsqrt( Dot33(b.xmm, b.xmm) );
     t *= Rsqrt( Dot33(t.xmm, t.xmm) );
 
     // NOTE: near & far planes
-
     n /= Max( Sqrt( Dot33(n.xmm, n.xmm) ), FLT_MIN );
     f /= Max( Sqrt( Dot33(f.xmm, f.xmm) ), FLT_MIN );
 
     // NOTE: handle reversed projection
-
     bool bReversed = Abs(n.w) > Abs(f.w);
 
     if( bReversed )
         Swap(n, f);
 
     // NOTE: handle infinite projection
-
     if( Dot33(f.xmm, f.xmm) <= FLT_MIN )
         f = float4(-n.x, -n.y, -n.z, f.w);
 
@@ -2400,7 +2372,6 @@ class cFrustum
         ML_INLINE void Translate(const float3& vPos)
         {
             // NOTE: update of m_vMask is not required, because only m_vMask.w can be changed, but this component doesn't affect results
-
             for( uint32_t i = 0; i < PLANES_NUM; i++ )
                 m_vPlane[i].w = Dot43(m_vPlane[i], vPos);
         }
@@ -2784,12 +2755,15 @@ ML_INLINE float RadicalInverse( uint32_t idx, uint32_t base )
     float val = 0.0f;
     float rcpBase = 1.0f / ( float ) base;
     float rcpBi = rcpBase;
-    while ( idx > 0 ) {
+
+    while ( idx > 0 )
+    {
         uint32_t d_i = idx % base;
         val += float( d_i  ) * rcpBi;
         idx = uint32_t( idx * rcpBase );
         rcpBi *= rcpBase;
     }
+
     return val;
 }
 
@@ -2845,7 +2819,17 @@ ML_INLINE void DecomposeProjection(eStyle originStyle, eStyle depthStyle, const 
     }
 
     if( pfUnproject2 )
-        Zbuffer::UnprojectZ(pfUnproject2, proj.a22, proj.a23, proj.a32);
+    {
+        // z = u0 / (depth + u1)
+
+        pfUnproject2[0] = ML_DEPTH_C0 * proj.a23 / proj.a32;
+        pfUnproject2[1] = -(ML_DEPTH_C0 * proj.a22 / proj.a32 + ML_DEPTH_C1);
+
+        // z = 1 / (depth * u0 + u1);
+
+        //pfUnproject2[0] = proj.a32 / (ML_DEPTH_C0 * proj.a23);
+        //pfUnproject2[1] = -(proj.a22 / proj.a23 + ML_DEPTH_C1 / pfUnproject2[0]);
+    }
 
     if( pfSafeNearZ )
     {
@@ -3055,48 +3039,40 @@ ML_INLINE bool IsOverlapBoxTriangle(const float3& boxcenter, const float3& exten
 ML_INLINE bool IsIntersectRayTriangle(const float3& origin, const float3& dir, const float3& v1, const float3& v2, const float3& v3, float3& out_tuv)
 {
     // find vectors for two edges sharing vert0
-
     float3 e1 = v2 - v1;
     float3 e2 = v3 - v1;
 
     // begin calculating determinant - also used to calculate U parameter
-
     float3 pvec = Cross(dir, e2);
 
     // if determinant is near zero, ray lies in plane of triangle
-
     float det = Dot33(e1, pvec);
 
     if( det < -c_fEps )
         return false;
 
     // calculate distance from vert0 to ray origin
-
     float3 tvec = origin - v1;
 
     // calculate U parameter and test bounds
-
     float u = Dot33(tvec, pvec);
 
     if( u < 0.0f || u > det )
         return false;
 
     // prepare to test V parameter
-
     float3 qvec = Cross(tvec, e1);
 
     // calculate V parameter and test bounds
-
     float v = Dot33(dir, qvec);
 
     if( v < 0.0f || u + v > det )
         return false;
 
     // calculate t, scale parameters, ray intersects triangle
-
     out_tuv.x = Dot33(e2, qvec);
-    out_tuv.y = u;          // v
-    out_tuv.z = v;          // 1 - (u + v)
+    out_tuv.y = u; // v
+    out_tuv.z = v; // 1 - (u + v)
 
     float idet = 1.0f / det;
     out_tuv *= idet;
@@ -3107,7 +3083,6 @@ ML_INLINE bool IsIntersectRayTriangle(const float3& origin, const float3& dir, c
 ML_INLINE bool IsIntersectRayTriangle(const float3& from, const float3& to, const float3& v1, const float3& v2, const float3& v3, float3& out_intersection, float3& out_normal)
 {
     // find vectors for two edges sharing vert0
-
     float3 e1 = v2 - v1;
     float3 e2 = v3 - v1;
 
@@ -3119,36 +3094,30 @@ ML_INLINE bool IsIntersectRayTriangle(const float3& from, const float3& to, cons
     float3 pvec = Cross(dir, e2);
 
     // if determinant is near zero, ray lies in plane of triangle
-
     float det = Dot33(e1, pvec);
 
     if( det < -c_fEps )
         return false;
 
     // calculate distance from vert0 to ray origin point "from"
-
     float3 tvec = from - v1;
 
     // calculate U parameter and test bounds
-
     float u = Dot33(tvec, pvec);
 
     if( u < 0.0f || u > det )
         return false;
 
     // prepare to test V parameter
-
     float3 qvec = Cross(tvec, e1);
 
     // calculate V parameter and test bounds
-
     float v = Dot33(dir, qvec);
 
     if( v < 0.0f || u + v > det )
         return false;
 
     // calculate t, scale parameters, ray intersects triangle
-
     float t = Dot33(e2, qvec) / det;
 
     if( t > length )

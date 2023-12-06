@@ -1789,8 +1789,8 @@ class float4x4
 
             bool bReverseZ = (uiProjFlags & PROJ_REVERSED_Z) != 0;
 
-            a22 = Zbuffer::ModifyProjZ(bReverseZ, a22, a32);
-            a23 = Zbuffer::ModifyProjZ(bReverseZ, a23, a33);
+            a22 = ML_ModifyProjZ(bReverseZ, a22, a32);
+            a23 = ML_ModifyProjZ(bReverseZ, a23, a33);
 
             if( uiProjFlags & PROJ_LEFT_HANDED )
                 col2 = v4f_negate(col2);
@@ -1827,8 +1827,8 @@ class float4x4
 
             bool bReverseZ = (uiProjFlags & PROJ_REVERSED_Z) != 0;
 
-            a22 = Zbuffer::ModifyProjZ(bReverseZ, a22, a32);
-            a23 = Zbuffer::ModifyProjZ(bReverseZ, a23, a33);
+            a22 = ML_ModifyProjZ(bReverseZ, a22, a32);
+            a23 = ML_ModifyProjZ(bReverseZ, a23, a33);
 
             if( uiProjFlags & PROJ_LEFT_HANDED )
                 col2 = v4f_negate(col2);
@@ -1864,8 +1864,8 @@ class float4x4
 
             bool bReverseZ = (uiProjFlags & PROJ_REVERSED_Z) != 0;
 
-            a22 = Zbuffer::ModifyProjZ(bReverseZ, a22, a32);
-            a23 = Zbuffer::ModifyProjZ(bReverseZ, a23, a33);
+            a22 = ML_ModifyProjZ(bReverseZ, a22, a32);
+            a23 = ML_ModifyProjZ(bReverseZ, a23, a33);
 
             if( uiProjFlags & PROJ_LEFT_HANDED )
                 col2 = v4f_negate(col2);
