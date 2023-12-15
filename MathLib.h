@@ -1,8 +1,8 @@
 #pragma once
 
 #define ML_VERSION_MAJOR 1
-#define ML_VERSION_MINOR 20
-#define ML_VERSION_DATE "6 December 2023"
+#define ML_VERSION_MINOR 21
+#define ML_VERSION_DATE "15 December 2023"
 
 //======================================================================================================================
 //                                                 Constants
@@ -1415,6 +1415,23 @@ template<eCmp cmp, class T> ML_INLINE bool All(const T&, const T&)
     return false;
 }
 
+template<eCmp cmp> ML_INLINE bool All(const float2& x, const float2& y)
+{
+    switch(cmp)
+    {
+        case CmpLess: return x.x < y.x && x.y < y.y;
+        case CmpLequal: return x.x <= y.x && x.y <= y.y;
+        case CmpGreater: return x.x > y.x && x.y > y.y;
+        case CmpGequal: return x.x >= y.x && x.y >= y.y;
+        case CmpEqual: return x.x == y.x && x.y == y.y;
+        case CmpNotequal: return x.x != y.x && x.y != y.y;
+    }
+
+    ML_AssertMsg(false, "'cmp' is invalid");
+
+    return false;
+}
+
 template<eCmp cmp> ML_INLINE bool All(const float3& x, const float3& y)
 {
     v4f t = _mm_cmp_ps(x.xmm, y.xmm, cmp);
@@ -1448,6 +1465,23 @@ template<eCmp cmp> ML_INLINE bool All(const double4& x, const double4& y)
 template<eCmp cmp, class T> ML_INLINE bool Any(const T&, const T&)
 {
     ML_StaticAssertMsg(sizeof(T) == 0, "Any::only vector types supported");
+
+    return false;
+}
+
+template<eCmp cmp> ML_INLINE bool Any(const float2& x, const float2& y)
+{
+    switch(cmp)
+    {
+        case CmpLess: return x.x < y.x || x.y < y.y;
+        case CmpLequal: return x.x <= y.x || x.y <= y.y;
+        case CmpGreater: return x.x > y.x || x.y > y.y;
+        case CmpGequal: return x.x >= y.x || x.y >= y.y;
+        case CmpEqual: return x.x == y.x || x.y == y.y;
+        case CmpNotequal: return x.x != y.x || x.y != y.y;
+    }
+
+    ML_AssertMsg(false, "'cmp' is invalid");
 
     return false;
 }

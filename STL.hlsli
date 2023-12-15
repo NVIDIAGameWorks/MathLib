@@ -15,6 +15,10 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 // Settings
 //===========================================================================================================================
 
+#define STL_D3D                                     0
+#define STL_OGL                                     1
+#define STL_WINDOW_ORIGIN                           STL_D3D
+
 // Math
 #define STL_SIGN_DEFAULT                            STL_SIGN_FAST
 #define STL_SQRT_DEFAULT                            STL_SQRT_SAFE
@@ -635,7 +639,12 @@ namespace STL
         float2 GetScreenUv( float4x4 worldToClip, float3 X, bool killBackprojection = false )
         {
             float4 clip = Geometry::ProjectiveTransform( worldToClip, X );
-            float2 uv = ( clip.xy / clip.w ) * float2( 0.5, -0.5 ) + 0.5;
+
+            #if( STL_WINDOW_ORIGIN == STL_OGL )
+                float2 uv = ( clip.xy / clip.w ) * 0.5 + 0.5;
+            #else
+                float2 uv = ( clip.xy / clip.w ) * float2( 0.5, -0.5 ) + 0.5;
+            #endif
 
             if( killBackprojection )
                 uv = clip.w < 0.0 ? 99999.0 : uv;
@@ -2474,6 +2483,19 @@ namespace STL
         #define X                           1
         #define _                           0
 
+    #if( STL_WINDOW_ORIGIN == STL_OGL )
+        #define CHAR( a1, a2, a3, a4, a5, \
+                      b1, b2, b3, b4, b5, \
+                      c1, c2, c3, c4, c5, \
+                      d1, d2, d3, d4, d5, \
+                      e1, e2, e3, e4, e5, \
+                      f1, f2, f3, f4, f5 )        ( ( f1 <<  0 ) | ( f2 <<  1 ) | ( f3 <<  2 ) | ( f4 <<  3 ) | ( f5 <<  4 ) | \
+                                                    ( e1 <<  5 ) | ( e2 <<  6 ) | ( e3 <<  7 ) | ( e4 <<  8 ) | ( e5 <<  9 ) | \
+                                                    ( d1 << 10 ) | ( d2 << 11 ) | ( d3 << 12 ) | ( d4 << 13 ) | ( d5 << 14 ) | \
+                                                    ( c1 << 15 ) | ( c2 << 16 ) | ( c3 << 17 ) | ( c4 << 18 ) | ( c5 << 19 ) | \
+                                                    ( b1 << 20 ) | ( b2 << 21 ) | ( b3 << 22 ) | ( b4 << 23 ) | ( b5 << 24 ) | \
+                                                    ( a1 << 25 ) | ( a2 << 26 ) | ( a3 << 27 ) | ( a4 << 28 ) | ( a5 << 29 ) )
+    #else
         #define CHAR( a1, a2, a3, a4, a5, \
                       b1, b2, b3, b4, b5, \
                       c1, c2, c3, c4, c5, \
@@ -2485,6 +2507,7 @@ namespace STL
                                                     ( d1 << 15 ) | ( d2 << 16 ) | ( d3 << 17 ) | ( d4 << 18 ) | ( d5 << 19 ) | \
                                                     ( e1 << 20 ) | ( e2 << 21 ) | ( e3 << 22 ) | ( e4 << 23 ) | ( e5 << 24 ) | \
                                                     ( f1 << 25 ) | ( f2 << 26 ) | ( f3 << 27 ) | ( f4 << 28 ) | ( f5 << 29 ) )
+    #endif
 
         static const uint font[ ] =
         {
