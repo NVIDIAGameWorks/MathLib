@@ -27,9 +27,6 @@ license agreement from NVIDIA CORPORATION is strictly prohibited.
 #define STL_SMALL_EPS                               1e-15
 #define STL_EPS                                     1e-6
 
-// Color
-#define STL_LUMINANCE_DEFAULT                       STL_LUMINANCE_BT709
-
 // BRDF
 #define STL_SPECULAR_DOMINANT_DIRECTION_DEFAULT     STL_SPECULAR_DOMINANT_DIRECTION_APPROX
 #define STL_RF0_DIELECTRICS                         0.04
@@ -682,113 +679,218 @@ namespace STL
     // COLOR
     //=======================================================================================================================
 
+    // https://chrisbrejon.com/cg-cinematography/chapter-1-color-management/
+    // https://viereck.ch/hue-xy-rgb/
+    // https://handwiki.org/wiki/Color_spaces_with_RGB_primaries
+
     namespace Color
     {
-        // Transformations
-        // https://en.wikipedia.org/wiki/Relative_luminance
-        #define STL_LUMINANCE_BT601 0
-        #define STL_LUMINANCE_BT709 1
-
-        float Luminance( float3 linearColor, compiletime const uint mode = STL_LUMINANCE_DEFAULT )
+        float Luminance( float3 x )
         {
-            return dot( linearColor, mode == STL_LUMINANCE_BT601 ? float3( 0.2990, 0.5870, 0.1140 ) : float3( 0.2126, 0.7152, 0.0722 ) );
+            // https://en.wikipedia.org/wiki/Relative_luminance
+
+            return dot( x, float3( 0.2126, 0.7152, 0.0722 ) );
         }
 
-        float3 Saturation( float3 color, float amount )
+        float3 Saturation( float3 x, float amount )
         {
-            float luma = Luminance( color );
+            float luma = Luminance( x );
 
-            return lerp( color, luma, amount );
+            return lerp( x, luma, amount );
         }
 
-        // Spaces
-        float3 LinearToGamma( float3 color, float gamma = 2.2 )
+        /*
+        Gamma ramps and encoding transfer functions
+        Taken from https://github.com/Microsoft/DirectX-Graphics-Samples/blob/master/MiniEngine/Core/Shaders/ColorSpaceUtility.hlsli
+
+        Orthogonal to color space though usually tightly coupled. For instance, sRGB is both a
+        color space (defined by three basis vectors and a white point) and a gamma ramp. Gamma
+        ramps are designed to reduce perceptual error when quantizing floats to integers with a
+        limited number of bits. More variation is needed in darker colors because our eyes are
+        more sensitive in the dark. The way the curve helps is that it spreads out dark values
+        across more code words allowing for more variation. Likewise, bright values are merged
+        together into fewer code words allowing for less variation.
+
+        The sRGB curve is not a true gamma ramp but rather a piecewise function comprising a linear
+        section and a power function. When sRGB-encoded colors are passed to an LCD monitor, they
+        look correct on screen because the monitor expects the colors to be encoded with sRGB, and it
+        removes the sRGB curve to linearize the values. When textures are encoded with sRGB, as many
+        are, the sRGB curve needs to be removed before involving the colors in linear mathematics such
+        as physically based lighting.
+        */
+
+        float3 ToGamma( float3 x, float gamma = 2.2 )
         {
-            return Math::Pow01( color, 1.0 / gamma );
+            return Math::Pow01( x, 1.0 / gamma );
         }
 
-        float4 LinearToGamma( float4 color, float gamma = 2.2 )
+        float3 FromGamma( float3 x, float gamma = 2.2 )
         {
-            return Math::Pow01( color, 1.0 / gamma );
+            return Math::Pow01( x, gamma );
         }
 
-        float3 GammaToLinear( float3 color, float gamma = 2.2 )
-        {
-            return Math::Pow01( color, gamma );
-        }
+        // "Full RGB": approximately pow( x, 1.0 / 2.2 )
 
-        float4 GammaToLinear( float4 color, float gamma = 2.2 )
-        {
-            return Math::Pow01( color, gamma );
-        }
-
-        float3 LinearToSrgb( float3 color )
+        float3 ToSrgb( float3 x )
         {
             const float4 consts = float4( 1.055, 0.41666, -0.055, 12.92 );
-            color = saturate( color );
-
-            return lerp( consts.x * Math::Pow( color, consts.yyy ) + consts.zzz, consts.w * color, color < 0.0031308 );
+            return lerp( consts.x * Math::Pow( x, consts.yyy ) + consts.z, consts.w * x, x < 0.0031308 );
         }
 
-        float3 SrgbToLinear( float3 color )
+        float3 FromSrgb( float3 x )
         {
-            const float4 consts = float4( 1.0 / 12.92, 1.0 / 1.055, 0.055 / 1.055, 2.4 );
-            color = saturate( color );
-
-            return lerp( color * consts.x, Math::Pow( color * consts.y + consts.zzz, consts.www ), color > 0.04045 );
+            const float4 consts = float4( 1.0 / 12.92, 1.0 / 1.055, 0.055 / 1.055, 1.0 / 0.41666 );
+            return lerp( x * consts.x, Math::Pow( x * consts.y + consts.z, consts.www ), x > 0.04045 );
         }
 
-        // https://en.wikipedia.org/wiki/High-dynamic-range_video#Perceptual_Quantizer
-        // https://nick-shaw.github.io/cinematiccolor/common-rgb-color-spaces.html
-        #define pq_m1 0.1593017578125
-        #define pq_m2 78.84375
-        #define pq_c1 0.8359375
-        #define pq_c2 18.8515625
-        #define pq_c3 18.6875
-        #define pq_C 10000.0
+        // "Limited RGB"
+        // The OETF (opto-electronic transfer function) recommended for content shown on HDTVs.
+        // This "gamma ramp" may increase contrast as appropriate for viewing in a dark environment.
+        // Always use this curve with "Limited RGB" as it is used in conjunction with HDTVs.
 
-        float3 LinearToPq( float3 color )
+        float3 ToRec709( float3 x )
         {
-            float3 L = color / pq_C;
-            float3 Lm = Math::Pow( L, pq_m1 );
-            float3 N = ( pq_c1 + pq_c2 * Lm ) * Math::PositiveRcp( 1.0 + pq_c3 * Lm );
-
-            return Math::Pow( N, pq_m2 );
+            const float4 consts = float4( 1.0993, 0.45, -0.0993, 4.5 );
+            return lerp( consts.x * Math::Pow( x, consts.yyy ) + consts.zzz, consts.w * x, x < 0.0181 );
         }
 
-        float3 PqToLinear( float3 color )
+        float3 FromRec709( float3 x )
         {
-            float3 Np = Math::Pow( color, 1.0 / pq_m2 );
-            float3 L = Np - pq_c1;
-            L *= Math::PositiveRcp( pq_c2 - pq_c3 * Np );
-            L = Math::Pow( L, 1.0 / pq_m1 );
-
-            return L * pq_C;
+            const float4 consts = float4( 1.0 / 4.5, 1.0 / 1.0993, 0.0993 / 1.0993, 1.0 / 0.45 );
+            return lerp( x * consts.x, Math::Pow( x * consts.y + consts.z, consts.www ), x > 0.08145 );
         }
 
-        float3 LinearToYCoCg( float3 color )
+        // This is the new HDR transfer function, also called "PQ" for perceptual quantizer. Note that REC2084
+        // does not also refer to a color space. REC2084 is typically used with the REC2020 color space.
+
+        float3 ToRec2084( float3 x )
         {
-            float Y = dot( color, float3( 0.25, 0.5, 0.25 ) );
-            float Co = dot( color, float3( 0.5, 0.0, -0.5 ) );
-            float Cg = dot( color, float3( -0.25, 0.5, -0.25 ) );
+            const float m1 = 2610.0 / 4096.0 / 4;
+            const float m2 = 2523.0 / 4096.0 * 128;
+            const float c1 = 3424.0 / 4096.0;
+            const float c2 = 2413.0 / 4096.0 * 32;
+            const float c3 = 2392.0 / 4096.0 * 32;
+
+            float3 Lp = pow( x, m1 );
+
+            return pow( ( c1 + c2 * Lp ) / ( 1.0 + c3 * Lp ), m2 );
+        }
+
+        float3 FromRec2084( float3 x )
+        {
+            const float m1 = 2610.0 / 4096.0 / 4;
+            const float m2 = 2523.0 / 4096.0 * 128;
+            const float c1 = 3424.0 / 4096.0;
+            const float c2 = 2413.0 / 4096.0 * 32;
+            const float c3 = 2392.0 / 4096.0 * 32;
+
+            float3 Np = pow( x, 1.0 / m2 );
+
+            return pow( max( Np - c1, 0.0 ) / ( c2 - c3 * Np ), 1.0 / m1 );
+        }
+
+        /*
+        Color space conversions:
+        Taken from https://github.com/Microsoft/DirectX-Graphics-Samples/blob/master/MiniEngine/Core/Shaders/ColorSpaceUtility.hlsli
+
+        These assume linear (not gamma-encoded) values. A color space conversion is a change
+        of basis (like in Linear Algebra). Since a color space is defined by three vectors,
+        the basis vectors, changing space involves a matrix-vector multiplication. Note that
+        changing the color space may result in colors that are "out of bounds" because some
+        color spaces have larger gamuts than others. When converting some colors from a wide
+        gamut to small gamut, negative values may result, which are inexpressible in that new
+        color space.
+
+        It would be ideal to build a color pipeline which never throws away inexpressible (but
+        perceivable) colors. This means using a color space that is as wide as possible. The
+        XYZ color space is the neutral, all-encompassing color space, but it has the unfortunate
+        property of having negative values (specifically in X and Z). To correct this, a further
+        transformation can be made to X and Z to make them always positive. They can have their
+        precision needs reduced by dividing by Y, allowing X and Z to be packed into two UNORM8s.
+        This color space is called YUV for lack of a better name.
+
+        Note: Rec.709 and sRGB share the same color primaries and white point. Their only difference
+        is the transfer curve used.
+        */
+
+        // YCoCg
+
+        float3 RgbToYCoCg( float3 x )
+        {
+            float Y = dot( x, float3( 0.25, 0.5, 0.25 ) );
+            float Co = dot( x, float3( 0.5, 0.0, -0.5 ) );
+            float Cg = dot( x, float3( -0.25, 0.5, -0.25 ) );
 
             return float3( Y, Co, Cg );
         }
 
-        float3 YCoCgToLinear( float3 color )
+        float3 YCoCgToRgb( float3 x )
         {
-            float t = color.x - color.z;
+            float t = x.x - x.z;
 
             float3 r;
-            r.y = color.x + color.z;
-            r.x = t + color.y;
-            r.z = t - color.y;
+            r.y = x.x + x.z;
+            r.x = t + x.y;
+            r.z = t - x.y;
 
             return r;
         }
 
-        // Rec.709 to / from CIE XYZ
-        float3 GammaToXyz( float3 color )
+        // REC2020
+
+        float3 RgbToRec2020( float3 x )
+        {
+            static const float3x3 M =
+            {
+                0.627402, 0.329292, 0.043306,
+                0.069095, 0.919544, 0.011360,
+                0.016394, 0.088028, 0.895578
+            };
+
+            return mul( M, x );
+        }
+
+        float3 Rec2020ToRgb( float3 x )
+        {
+            static const float3x3 M =
+            {
+                1.660496, -0.587656, -0.072840,
+                -0.124547, 1.132895, -0.008348,
+                -0.018154, -0.100597, 1.118751
+            };
+
+            return mul( M, x );
+        }
+
+         // DCIP3
+
+        float3 RgbToDcip3( float3 x )
+        {
+            static const float3x3 M =
+            {
+                0.822458, 0.177542, 0.000000,
+                0.033193, 0.966807, 0.000000,
+                0.017085, 0.072410, 0.910505
+            };
+
+            return mul( M, x );
+        }
+
+        float3 Dcip3ToRgb( float3 x )
+        {
+            static const float3x3 M =
+            {
+                1.224947, -0.224947, 0.000000,
+                -0.042056, 1.042056, 0.000000,
+                -0.019641, -0.078651, 1.098291
+            };
+
+            return mul( M, x );
+        }
+
+        // CIE XYZ
+
+        float3 RgbToXyz( float3 x )
         {
             static const float3x3 M =
             {
@@ -797,10 +899,10 @@ namespace STL
                 0.0193308187155918, 0.1191947797946259, 0.9505321522496608
             };
 
-            return mul( M, color );
+            return mul( M, x );
         }
 
-        float3 XyzToGamma( float3 color )
+        float3 XyzToRgb( float3 x )
         {
             static const float3x3 M =
             {
@@ -809,16 +911,16 @@ namespace STL
                 0.05563007969699373, -0.2039769588889765, 1.056971514242878
             };
 
-            return mul( M, color );
+            return mul( M, x );
         }
 
         // Encode an RGB color into a 32-bit LogLuv HDR format. The supported luminance range is roughly 10^-6..10^6 in 0.17% steps.
         // The log-luminance is encoded with 14 bits and chroma with 9 bits each. This was empirically more accurate than using 8 bit chroma.
         // Black (all zeros) is handled exactly
-        uint LinearToLogLuv( float3 color )
+        uint ToLogLuv( float3 x )
         {
             // Convert RGB to XYZ
-            float3 XYZ = GammaToXyz( color );
+            float3 XYZ = RgbToXyz( x );
 
             // Encode log2( Y ) over the range [ -20, 20 ) in 14 bits ( no sign bit ).
             // TODO: Fast path that uses the bits from the fp32 representation directly
@@ -849,10 +951,10 @@ namespace STL
         }
 
         // Decode an RGB color stored in a 32-bit LogLuv HDR format
-        float3 LogLuvToLinear( uint packedColor )
+        float3 FromLogLuv( uint x )
         {
             // Decode luminance Y from encoded log-luminance
-            uint Le = packedColor >> 18;
+            uint Le = x >> 18;
             if( Le == 0 )
                 return 0;
 
@@ -862,7 +964,7 @@ namespace STL
             // Decode normalized chromaticity xy from encoded chroma (u,v)
             //  x = 9u / (6u - 16v + 12)
             //  y = 4v / (6u - 16v + 12)
-            uint2 uve = uint2( packedColor >> 9, packedColor ) & 0x1ff;
+            uint2 uve = uint2( x >> 9, x ) & 0x1ff;
             float2 uv = ( float2( uve ) + 0.5 ) / 820.0;
 
             float invDenom = 1.0 / ( 6.0 * uv.x - 16.0 * uv.y + 12.0 );
@@ -875,55 +977,29 @@ namespace STL
             float3 XYZ = float3( s * xy.x, Y, s * ( 1.0 - xy.x - xy.y ) );
 
             // Convert back to RGB and clamp to avoid out-of-gamut colors
-            float3 color = max( XyzToGamma( XYZ ), 0.0 );
+            float3 color = max( XyzToRgb( XYZ ), 0.0 );
 
             return color;
         }
 
-        // HDR
-        float3 Compress( float3 color, float exposure = 1.0 )
+        // HDR compression ( tone mapping )
+        float3 HdrToLinear( float3 colorMulExposure )
+        {
+            float3 x0 = colorMulExposure * 0.38317;
+            float3 x1 = FromGamma( 1.0 - exp( -colorMulExposure ) );
+            float3 color = lerp( x0, x1, step( 1.413, colorMulExposure ) );
+
+            return color;
+        }
+
+        float3 HdrToLinear_Reinhard( float3 color, float exposure = 1.0 )
         {
             float luma = Luminance( color );
 
             return color * Math::PositiveRcp( 1.0 + luma * exposure );
         }
 
-        float3 Decompress( float3 color, float exposure = 1.0 )
-        {
-            float luma = Luminance( color );
-
-            return color * Math::PositiveRcp( 1.0 - luma * exposure );
-        }
-
-        float3 HdrToLinear( float3 colorMulExposure )
-        {
-            float3 x0 = colorMulExposure * 0.38317;
-            float3 x1 = GammaToLinear( 1.0 - exp( -colorMulExposure ) );
-            float3 color = lerp( x0, x1, step( 1.413, colorMulExposure ) );
-
-            return saturate( color );
-        }
-
-        float3 LinearToHdr( float3 color )
-        {
-            float3 x0 = color / 0.38317;
-            float3 x1 = -log( max( 1.0 - LinearToGamma( color ), STL_EPS ) );
-            float3 colorMulExposure = lerp( x0, x1, step( 1.413, x0 ) );
-
-            return colorMulExposure;
-        }
-
-        float3 HdrToGamma( float3 colorMulExposure )
-        {
-            float3 x0 = LinearToGamma( colorMulExposure * 0.38317 );
-            float3 x1 = 1.0 - exp( -colorMulExposure );
-
-            x0 = lerp( x0, x1, step( 1.413, colorMulExposure ) );
-
-            return saturate( x0 );
-        }
-
-        float3 _UnchartedCurve( float3 color )
+        float3 _UnchartedCurve( float3 x )
         {
             float A = 0.22; // Shoulder Strength
             float B = 0.3;  // Linear Strength
@@ -932,19 +1008,19 @@ namespace STL
             float E = 0.01; // Toe Numerator
             float F = 0.3;  // Toe Denominator
 
-            return saturate( ( ( color * ( A * color + C * B ) + D * E ) / ( color * ( A * color + B ) + D * F ) ) - ( E / F ) );
+            return ( ( x * ( A * x + C * B ) + D * E ) / ( x * ( A * x + B ) + D * F ) ) - ( E / F );
         }
 
-        float3 HdrToLinear_Uncharted( float3 color )
+        float3 HdrToLinear_Uncharted( float3 colorMulExposure, float whitePoint = 11.2 )
         {
-            // John Hable's Uncharted 2 filmic tone map (http://filmicgames.com/archives/75)
-            return saturate( _UnchartedCurve( color ) / _UnchartedCurve( 11.2 ).x );
+            // John Hable's Uncharted 2 filmic tone mappping
+            return _UnchartedCurve( colorMulExposure ) / _UnchartedCurve( whitePoint ).x;
         }
 
-        float3 HdrToLinear_Aces( float3 color )
+        float3 HdrToLinear_Aces( float3 colorMulExposure )
         {
             // Cancel out the pre-exposure mentioned in https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
-            color *= 0.6;
+            colorMulExposure *= 0.6;
 
             float A = 2.51;
             float B = 0.03;
@@ -952,7 +1028,24 @@ namespace STL
             float D = 0.59;
             float E = 0.14;
 
-            return saturate( ( color * ( A * color + B ) ) * Math::PositiveRcp( color * ( C * color + D ) + E ) );
+            return ( ( colorMulExposure * ( A * colorMulExposure + B ) ) * Math::PositiveRcp( colorMulExposure * ( C * colorMulExposure + D ) + E ) );
+        }
+
+        // HDR decompression
+        float3 LinearToHdr( float3 color )
+        {
+            float3 x0 = color / 0.38317;
+            float3 x1 = -log( max( 1.0 - ToGamma( color ), STL_EPS ) );
+            float3 colorMulExposure = lerp( x0, x1, step( 1.413, x0 ) );
+
+            return colorMulExposure;
+        }
+
+        float3 LinearToHdr_Reinhard( float3 color, float exposure = 1.0 )
+        {
+            float luma = Luminance( color );
+
+            return color * Math::PositiveRcp( 1.0 - luma * exposure );
         }
 
         // Blending functions
@@ -2405,7 +2498,7 @@ namespace STL
     {
         SH1 ConvertToSecondOrder( float3 color, float3 direction )
         {
-            float3 YCoCg = Color::LinearToYCoCg( color );
+            float3 YCoCg = Color::RgbToYCoCg( color );
 
             SH1 sh;
             sh.c0_chroma = YCoCg;
@@ -2416,7 +2509,7 @@ namespace STL
 
         float3 ExtractColor( SH1 sh )
         {
-            return Color::YCoCgToLinear( sh.c0_chroma );
+            return Color::YCoCgToRgb( sh.c0_chroma );
         }
 
         float3 ExtractDirection( SH1 sh )
@@ -2449,7 +2542,7 @@ namespace STL
             float modifier = ( Y + STL_EPS ) / ( sh.c0_chroma.x + STL_EPS );
             float2 CoCg = sh.c0_chroma.yz * modifier;
 
-            return Color::YCoCgToLinear( float3( Y, CoCg ) );
+            return Color::YCoCgToRgb( float3( Y, CoCg ) );
         }
     }
 

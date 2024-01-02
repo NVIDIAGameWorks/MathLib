@@ -1,8 +1,8 @@
 #pragma once
 
 #define ML_VERSION_MAJOR 1
-#define ML_VERSION_MINOR 21
-#define ML_VERSION_DATE "15 December 2023"
+#define ML_VERSION_MINOR 22
+#define ML_VERSION_DATE "2 January 2024"
 
 //======================================================================================================================
 //                                                 Constants
