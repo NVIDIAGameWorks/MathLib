@@ -1,3 +1,5 @@
+// © 2021 NVIDIA Corporation
+
 #pragma once
 
 // http://www.cs.rit.edu/usr/local/pub/wrc/courses/cg/doc/opengl/redbook/AppJ.pdf

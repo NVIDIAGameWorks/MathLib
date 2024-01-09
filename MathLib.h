@@ -1,8 +1,10 @@
+// © 2021 NVIDIA Corporation
+
 #pragma once
 
 #define ML_VERSION_MAJOR 1
-#define ML_VERSION_MINOR 22
-#define ML_VERSION_DATE "2 January 2024"
+#define ML_VERSION_MINOR 23
+#define ML_VERSION_DATE "9 January 2024"
 
 //======================================================================================================================
 //                                                 Constants
