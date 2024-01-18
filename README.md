@@ -18,3 +18,7 @@ Features:
 - sorting
 
 Also includes `STL.hlsli` file which is a standalone HLSL math library.
+
+## License
+
+MathLib is licensed under the MIT License.

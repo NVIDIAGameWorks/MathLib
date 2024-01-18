@@ -1839,11 +1839,32 @@ namespace STL
         // [Burley 2012, "Physically-Based Shading at Disney"]
         float DiffuseTerm_Burley( float linearRoughness, float NoL, float NoV, float VoH )
         {
-            float m = saturate( linearRoughness * linearRoughness );
-            float f = 2.0 * VoH * VoH * m - 0.5;
-            float FdV = f * Pow5( NoV ) + 1.0;
-            float FdL = f * Pow5( NoL ) + 1.0;
-            float d = FdV * FdL;
+            linearRoughness = saturate( linearRoughness );
+
+            float energyBias = 0.5;
+            float energyFactor = 1.0;
+
+            float f = 2.0 * VoH * VoH * linearRoughness + energyBias - 1.0; // yes, linear roughness
+            float FdV = 1.0 + f * Pow5( NoV );
+            float FdL = 1.0 + f * Pow5( NoL );
+            float d = FdV * FdL * energyFactor;
+
+            return d / Math::Pi( 1.0 );
+        }
+
+        // [Lagarde 2014, "Moving Frostbite to Physically Based Rendering 3.0"]
+        // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 10)
+        float DiffuseTerm_BurleyFrostbite( float linearRoughness, float NoL, float NoV, float VoH )
+        {
+            linearRoughness = saturate( linearRoughness );
+
+            float energyBias = lerp( 0.0, 0.5, linearRoughness );
+            float energyFactor = lerp( 1.0, 1.0 / 1.51, linearRoughness );
+
+            float f = 2.0 * VoH * VoH * linearRoughness + energyBias - 1.0; // yes, linear roughness
+            float FdV = 1.0 + f * Pow5( NoV );
+            float FdL = 1.0 + f * Pow5( NoL );
+            float d = FdV * FdL * energyFactor;
 
             return d / Math::Pi( 1.0 );
         }
@@ -1869,7 +1890,7 @@ namespace STL
             // DiffuseTerm_Burley
             // DiffuseTerm_OrenNayar
 
-            return DiffuseTerm_Burley( linearRoughness, NoL, NoV, VoH );
+            return DiffuseTerm_BurleyFrostbite( linearRoughness, NoL, NoV, VoH );
         }
 
         //======================================================================================================================
@@ -2201,6 +2222,7 @@ namespace STL
             // Comparison of two methods:
             // https://www.desmos.com/calculator/4vvg1qrec7
             #if 1
+                // [Lagarde 2014, "Moving Frostbite to Physically Based Rendering 3.0"]
                 // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 72)
                 // TODO: % of NDF volume - is it the trimming factor from VNDF sampling?
                 return atan( m * percentOfVolume / ( 1.0 - percentOfVolume ) );
@@ -2214,8 +2236,6 @@ namespace STL
             float m = saturate( linearRoughness * linearRoughness );
 
             #if 1
-                // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 72)
-                // TODO: % of NDF volume - is it the trimming factor from VNDF sampling?
                 return m * percentOfVolume / ( 1.0 - percentOfVolume );
             #else
                 return tan( Math::DegToRad( 180.0 ) * m / ( 1.0 + m ) );
@@ -2231,6 +2251,7 @@ namespace STL
             return normalize( L - closestPoint );
         }
 
+        // [Lagarde 2014, "Moving Frostbite to Physically Based Rendering 3.0"]
         // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 69)
         #define STL_SPECULAR_DOMINANT_DIRECTION_G1      0
         #define STL_SPECULAR_DOMINANT_DIRECTION_G2      1
