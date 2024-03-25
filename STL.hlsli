@@ -2215,33 +2215,20 @@ namespace STL
     namespace ImportanceSampling
     {
         // Defines a cone angle, where micro-normals are distributed
-        float GetSpecularLobeHalfAngle( float linearRoughness, float percentOfVolume = 0.75 )
-        {
-            float m = saturate( linearRoughness * linearRoughness );
-
-            // Comparison of two methods:
-            // https://www.desmos.com/calculator/4vvg1qrec7
-            #if 1
-                // [Lagarde 2014, "Moving Frostbite to Physically Based Rendering 3.0"]
-                // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 72)
-                // TODO: % of NDF volume - is it the trimming factor from VNDF sampling?
-                return atan( m * percentOfVolume / ( 1.0 - percentOfVolume ) );
-            #else
-                return Math::DegToRad( 180.0 ) * m / ( 1.0 + m );
-            #endif
-        }
-
+        // [Lagarde 2014, "Moving Frostbite to Physically Based Rendering 3.0"]
+        // Formula with typo:
+        //      https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf (page 72)
+        // Correct formula is here:
+        //      https://seblagarde.wordpress.com/2015/07/14/siggraph-2014-moving-frostbite-to-physically-based-rendering/ (4-9-3-DistanceBasedRoughnessLobeBounding.pdf, page 3)
+        // https://www.desmos.com/calculator/mv1fteycal
         float GetSpecularLobeTanHalfAngle( float linearRoughness, float percentOfVolume = 0.75 )
         {
-            float m = saturate( linearRoughness * linearRoughness );
+            percentOfVolume = saturate( percentOfVolume );
 
-            #if 1
-                return m * percentOfVolume / ( 1.0 - percentOfVolume );
-            #else
-                return tan( Math::DegToRad( 180.0 ) * m / ( 1.0 + m ) );
-            #endif
+            return saturate( linearRoughness ) * sqrt( percentOfVolume / ( 1.0 - percentOfVolume + STL_EPS ) );
         }
 
+        // TODO: add tube & rect lights, move the function to this section
         float3 CorrectDirectionToInfiniteSource( float3 N, float3 L, float3 V, float tanOfAngularSize )
         {
             float3 R = reflect( -V, N );
@@ -2259,6 +2246,8 @@ namespace STL
 
         float GetSpecularDominantFactor( float NoV, float linearRoughness, compiletime const uint mode = STL_SPECULAR_DOMINANT_DIRECTION_DEFAULT )
         {
+            linearRoughness = saturate( linearRoughness );
+
             float dominantFactor;
             if( mode == STL_SPECULAR_DOMINANT_DIRECTION_G2 )
             {
