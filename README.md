@@ -1,6 +1,6 @@
 # MathLib (ML)
 
-*ML* is a cross-platform header-only *SSE/AVX/NEON*-accelerated math library, designed for computer graphics. It serves to goals:
+*ML* is a cross-platform header-only *SSE/AVX/NEON*-accelerated math library, designed for computer graphics. It serves two goals:
 - accelerate performance using *SSE/AVX/NEON* intrinsics
 - be HLSL compatible and deliver functionality to both CPU and shader code without code duplication
 
