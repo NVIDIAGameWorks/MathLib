@@ -303,11 +303,8 @@ ML_INLINE v4i v4i_select(const v4i& x, const v4i& y, const v4i& mask) {
 // v4f
 //======================================================================================================================
 
-const float c_fEps = 1.1920928955078125e-7f; // pow(2, -23)
-const float c_fInf = -logf(0.0f);
-
-const v4f c_v4f_Inf = _mm_set1_ps(c_fInf);
-const v4f c_v4f_InfMinus = _mm_set1_ps(-c_fInf);
+const v4f c_v4f_Inf = _mm_set1_ps(-logf(0.0f));
+const v4f c_v4f_InfMinus = _mm_set1_ps(logf(0.0f));
 const v4f c_v4f_0001 = _mm_setr_ps(0.0f, 0.0f, 0.0f, 1.0f);
 const v4f c_v4f_1111 = _mm_set1_ps(1.0f);
 const v4f c_v4f_Sign = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
@@ -519,11 +516,8 @@ ML_INLINE v4f v4f_normalize(const v4f& x) {
 // v4d
 //======================================================================================================================
 
-const double c_dEps = 1.11022302462515654042e-16; // pow(2, -52)
-const double c_dInf = -log(0.0);
-
-const v4d c_v4d_Inf = _mm256_set1_pd(c_dInf);
-const v4d c_v4d_InfMinus = _mm256_set1_pd(-c_dInf);
+const v4d c_v4d_Inf = _mm256_set1_pd(-log(0.0));
+const v4d c_v4d_InfMinus = _mm256_set1_pd(log(0.0));
 const v4d c_v4d_0001 = _mm256_setr_pd(0.0, 0.0, 0.0, 1.0);
 const v4d c_v4d_1111 = _mm256_set1_pd(1.0);
 const v4d c_v4d_Sign = _mm256_castsi256_pd(_mm256_set_epi32(0x80000000, 0x00000000, 0x80000000, 0x00000000, 0x80000000, 0x00000000, 0x80000000, 0x00000000));

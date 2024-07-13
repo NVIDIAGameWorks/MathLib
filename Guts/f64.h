@@ -548,7 +548,7 @@ ML_INLINE double3 Snap(const double3& x, const double3& step) {
     return round(x / step) * step;
 }
 
-ML_INLINE bool IsPointsNear(const double3& p1, const double3& p2, double eps = c_dEps) {
+ML_INLINE bool IsPointsNear(const double3& p1, const double3& p2, double eps) {
     v4d r = _mm256_sub_pd(p1.ymm, p2.ymm);
     r = v4d_abs(r);
     r = _mm256_cmple_pd(r, _mm256_set1_pd(eps));
@@ -813,22 +813,22 @@ ML_INLINE double4 SinCos(const double4& x, double4* pCos) {
 // TODO: add "class Quaternion"
 ML_INLINE double4 Slerp(const double4& a, const double4& b, double x) {
     ML_Assert(x >= 0.0 && x <= 1.0);
-    ML_Assert(abs(dot(a, a) - 1.0) < c_dEps);
-    ML_Assert(abs(dot(b, b) - 1.0) < c_dEps);
+    ML_Assert(abs(dot(a, a) - 1.0) < 1e-5);
+    ML_Assert(abs(dot(b, b) - 1.0) < 1e-5);
 
     double4 r;
 
     double theta = dot(a, b);
     if (theta > 0.9995)
-        r = lerp(a, b, double4(x));
+        r = lerp(a, b, x);
     else {
         theta = acos(theta);
 
-        double k = 1.0 - x;
-        double3 s = sin(double3(theta, k * theta, x * theta));
+        double3 s = sin(theta * double3(1.0, 1.0 - x, x));
         double sn = 1.0 / s.x;
         double wa = s.y * sn;
         double wb = s.z * sn;
+
         r = a * wa + b * wb;
     }
 

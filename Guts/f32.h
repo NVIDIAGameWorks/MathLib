@@ -545,7 +545,7 @@ ML_INLINE float3 Snap(const float3& x, const float3& step) {
     return round(x / step) * step;
 }
 
-ML_INLINE bool IsPointsNear(const float3& p1, const float3& p2, float eps = c_fEps) {
+ML_INLINE bool IsPointsNear(const float3& p1, const float3& p2, float eps) {
     v4f r = _mm_sub_ps(p1.xmm, p2.xmm);
     r = v4f_abs(r);
     r = _mm_cmple_ps(r, _mm_set1_ps(eps));
@@ -810,22 +810,22 @@ ML_INLINE float4 SinCos(const float4& x, float4* pCos) {
 // TODO: add "class Quaternion"
 ML_INLINE float4 Slerp(const float4& a, const float4& b, float x) {
     ML_Assert(x >= 0.0f && x <= 1.0f);
-    ML_Assert(abs(dot(a, a) - 1.0f) < c_fEps);
-    ML_Assert(abs(dot(b, b) - 1.0f) < c_fEps);
+    ML_Assert(abs(dot(a, a) - 1.0f) < 1e-5f);
+    ML_Assert(abs(dot(b, b) - 1.0f) < 1e-5f);
 
     float4 r;
 
     float theta = dot(a, b);
     if (theta > 0.9995f)
-        r = lerp(a, b, float4(x));
+        r = lerp(a, b, x);
     else {
         theta = acos(theta);
 
-        float k = 1.0f - x;
-        float3 s = sin(float3(theta, k * theta, x * theta));
+        float3 s = sin(theta * float3(1.0f, 1.0f - x, x));
         float sn = 1.0f / s.x;
         float wa = s.y * sn;
         float wb = s.z * sn;
+
         r = a * wa + b * wb;
     }
 

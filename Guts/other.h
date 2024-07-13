@@ -153,7 +153,7 @@ ML_INLINE bool IsIntersectRayTriangle(const float3& origin, const float3& dir, c
     // if determinant is near zero, ray lies in plane of triangle
     float det = dot(e1, pvec);
 
-    if (det < -c_fEps)
+    if (det < -1e-6f)
         return false;
 
     // calculate distance from vert0 to ray origin
@@ -179,8 +179,7 @@ ML_INLINE bool IsIntersectRayTriangle(const float3& origin, const float3& dir, c
     out_tuv.y = u; // v
     out_tuv.z = v; // 1 - (u + v)
 
-    float idet = 1.0f / det;
-    out_tuv *= idet;
+    out_tuv /= det;
 
     return true;
 }
@@ -200,7 +199,7 @@ ML_INLINE bool IsIntersectRayTriangle(const float3& from, const float3& to, cons
     // if determinant is near zero, ray lies in plane of triangle
     float det = dot(e1, pvec);
 
-    if (det < -c_fEps)
+    if (det < -1e-6f)
         return false;
 
     // calculate distance from vert0 to ray origin point "from"
