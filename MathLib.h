@@ -89,6 +89,7 @@
     #include <x86intrin.h>
 #elif( defined(__arm__) || defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM) )
     #include "External/sse2neon/sse2neon.h"
+    #define __NEON__
 #else
     #include <intrin.h>
 #endif
@@ -131,7 +132,7 @@
         #define ML_INTRINSIC_LEVEL                ML_INTRINSIC_AVX2
     #elif defined ( __AVX__ )
         #define ML_INTRINSIC_LEVEL                ML_INTRINSIC_AVX1
-    #elif defined ( __SSE4_2__ ) || defined ( __SSE4_1__ )
+    #elif defined ( __SSE4_2__ ) || defined ( __SSE4_1__ ) || defined ( __NEON__ )
         #define ML_INTRINSIC_LEVEL                ML_INTRINSIC_SSE4
     #else
         #define ML_INTRINSIC_LEVEL                ML_INTRINSIC_SSE3
