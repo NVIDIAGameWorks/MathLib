@@ -114,19 +114,63 @@ ML_INLINE float f16tof32(uint32_t x) {
 }
 
 struct float16_t {
-    uint16_t us;
+    uint16_t x;
 
-    ML_INLINE float16_t() = default;
-
-    ML_INLINE float16_t(uint16_t x) {
-        us = x;
+    ML_INLINE float16_t() : x(0) {
     }
 
-    ML_INLINE float16_t(float x) {
-        us = (uint16_t)f32tof16(x);
+    ML_INLINE void operator=(const float16_t& v) {
+        x = v.x;
+    }
+
+    ML_INLINE float16_t(float v) {
+        x = (uint16_t)f32tof16(v);
     }
 
     ML_INLINE operator float() const {
-        return f16tof32(us);
+        return f16tof32(x);
+    }
+};
+
+struct float16_t2 {
+    union {
+        struct {
+            float16_t x, y;
+        };
+
+        struct {
+            uint32_t xy;
+        };
+    };
+
+    ML_INLINE float16_t2() : xy(0) {
+    }
+
+    ML_INLINE void operator=(const float16_t2& v) {
+        xy = v.xy;
+    }
+};
+
+struct float16_t4 {
+    union {
+        struct {
+            float16_t x, y, z, w;
+        };
+
+        struct {
+            float16_t2 xy;
+            float16_t2 zw;
+        };
+
+        struct {
+            uint2 xyzw;
+        };
+    };
+
+    ML_INLINE float16_t4() : xyzw(0) {
+    }
+
+    ML_INLINE void operator=(const float16_t4& v) {
+        xyzw = v.xyzw;
     }
 };

@@ -122,29 +122,29 @@ ML_INLINE uint32_t float2_to_snorm_16_16(const float2& v) {
     return p;
 }
 
-ML_INLINE uint32_t float2_to_sfloat_16_16(const float2& v) {
+ML_INLINE float16_t2 float2_to_float16_t2(const float2& v) {
+    float16_t2 r;
 #if (ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
     v4f t = v4f_set(v.x, v.y, 0.0f, 0.0f);
     v4i p = v4f_to_h4(t);
 
-    uint32_t r = _mm_cvtsi128_si32(p);
+    r.xy = _mm_cvtsi128_si32(p);
 #else
-    uint32_t r = ToSmallFloat<F16_M_BITS, F16_E_BITS, F16_S_MASK>(v.x);
-    r |= ToSmallFloat<F16_M_BITS, F16_E_BITS, F16_S_MASK>(v.y) << 16;
+    r.x = float16_t(v.x);
+    r.y = float16_t(v.y);
 #endif
 
     return r;
 }
 
-ML_INLINE uint2 float4_to_sfloat_16_16_x2(const float4& v) {
-    uint2 r;
-
+ML_INLINE float16_t4 float4_to_float16_t4(const float4& v) {
+    float16_t4 r;
 #if (ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
     v4i p = v4f_to_h4(v.xmm);
     *((uint64_t*)&r) = _mm_extract_epi64(p, 0);
 #else
-    r.x = float2_to_sfloat_16_16(v.xy);
-    r.y = float2_to_sfloat_16_16(v.zw);
+    r.xy = float2_to_float16_t2(v.xy);
+    r.zw = float2_to_float16_t2(v.zw);
 #endif
 
     return r;
@@ -245,33 +245,31 @@ ML_INLINE float4 snorm_to_float4<8, 8, 8, 8>(uint32_t p) {
     return t;
 }
 
-ML_INLINE float2 sfloat_16_16_to_float2(uint32_t p) {
+ML_INLINE float2 float16_t2_to_float2(const float16_t2& p) {
     float2 r;
-
 #if (ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
-    v4i t = _mm_cvtsi32_si128(p);
+    v4i t = _mm_cvtsi32_si128(p.xy);
     v4f f = _mm_cvtph_ps(t);
 
     _mm_storel_pi(&r.mm, f);
 #else
-    r.x = FromSmallFloat<F16_M_BITS, F16_E_BITS, F16_S_MASK>(p & 0xFFFF);
-    r.y = FromSmallFloat<F16_M_BITS, F16_E_BITS, F16_S_MASK>(p >> 16);
+    r.x = float(p.x);
+    r.y = float(p.y);
 #endif
 
     return r;
 }
 
-ML_INLINE float4 sfloat_16_16_x2_to_float4(const uint2& p) {
+ML_INLINE float4 float16_t4_to_float4(const float16_t4& p) {
     float4 f;
-
 #if (ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
     v4i t = _mm_loadu_si64(&p);
     f.xmm = _mm_cvtph_ps(t);
 #else
-    f.x = FromSmallFloat<F16_M_BITS, F16_E_BITS, F16_S_MASK>(p.x & 0xFFFF);
-    f.y = FromSmallFloat<F16_M_BITS, F16_E_BITS, F16_S_MASK>(p.x >> 16);
-    f.z = FromSmallFloat<F16_M_BITS, F16_E_BITS, F16_S_MASK>(p.y & 0xFFFF);
-    f.w = FromSmallFloat<F16_M_BITS, F16_E_BITS, F16_S_MASK>(p.y >> 16);
+    f.x = float(p.x);
+    f.y = float(p.y);
+    f.z = float(p.z);
+    f.w = float(p.w);
 #endif
 
     return f;
