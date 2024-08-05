@@ -1013,7 +1013,7 @@ ML_INLINE void DecomposeProjection(eStyle originStyle, eStyle depthStyle, const 
     // const float3& col2 = bReversedZ ? proj.col3 : proj.col2;
     float4 clip = proj * float4(0.0f, 0.0f, fNearZ, 1.0f);
     float3 col2 = bIsOrtho ? float3(proj.col2) * (bReversedZ ? -1.0f : 1.0f) : float3(0.0f, 0.0f, clip.w > 0.0f ? 1.0f : -1.0f);
-    bool cmp = dot(cross(proj.col0.xyz, proj.col1.xyz), col2.xyz) > 0.0f;
+    bool cmp = dot(cross(float3(proj.col0), float3(proj.col1)), col2.xyz) > 0.0f;
     bool bLeftHanded = proj.a11 > 0.0f ? cmp : !cmp;
 
     if (puiFlags) {

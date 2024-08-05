@@ -828,12 +828,21 @@ ML_INLINE double4 Slerp(const double4& a, const double4& b, double x) {
 
 // IMPORTANT: store - "column-major", math - "row-major" (vector is column)
 union double4x4 {
+#if defined(__GNUC__)
     struct {
         v4d col0;
         v4d col1;
         v4d col2;
         v4d col3;
     };
+#else
+    struct {
+        double4 col0;
+        double4 col1;
+        double4 col2;
+        double4 col3;
+    };
+#endif
 
     struct {
         double4 cols[4];
@@ -862,15 +871,26 @@ union double4x4 {
     };
 
 public:
-    ML_INLINE double4x4() : col0(_mm256_setzero_pd()), col1(_mm256_setzero_pd()), col2(_mm256_setzero_pd()), col3(_mm256_setzero_pd()) {
+    ML_INLINE double4x4() {
+        col0 = _mm256_setzero_pd();
+        col1 = _mm256_setzero_pd();
+        col2 = _mm256_setzero_pd();
+        col3 = _mm256_setzero_pd();
     }
 
     ML_INLINE double4x4(double m00, double m01, double m02, double m03, double m10, double m11, double m12, double m13, double m20, double m21, double m22, double m23, double m30,
-        double m31, double m32, double m33) :
-        col0(v4d_set(m00, m10, m20, m30)), col1(v4d_set(m01, m11, m21, m31)), col2(v4d_set(m02, m12, m22, m32)), col3(v4d_set(m03, m13, m23, m33)) {
+        double m31, double m32, double m33) {
+        col0 = v4d_set(m00, m10, m20, m30);
+        col1 = v4d_set(m01, m11, m21, m31);
+        col2 = v4d_set(m02, m12, m22, m32);
+        col3 = v4d_set(m03, m13, m23, m33);
     }
 
-    ML_INLINE double4x4(const double4& c0, const double4& c1, const double4& c2, const double4& c3) : col0(c0.ymm), col1(c1.ymm), col2(c2.ymm), col3(c3.ymm) {
+    ML_INLINE double4x4(const double4& c0, const double4& c1, const double4& c2, const double4& c3) {
+        col0 = c0.ymm;
+        col1 = c1.ymm;
+        col2 = c2.ymm;
+        col3 = c3.ymm;
     }
 
     ML_INLINE double4x4(const double4x4& m) = default;
@@ -1074,9 +1094,9 @@ public:
     }
 
     ML_INLINE bool IsLeftHanded() const {
-        double3 v1 = cross(col0, col1);
+        double3 v1 = cross(double3(col0), double3(col1));
 
-        return dot(v1, col2) < 0.0;
+        return dot(v1, double3(col2)) < 0.0;
     }
 
     ML_INLINE void TransposeTo(double4x4& m) const {
@@ -1683,7 +1703,7 @@ ML_INLINE void double4x4::PreTranslation(const double3& p) {
 ML_INLINE void double4x4::InvertOrtho() {
     Transpose3x4();
 
-    col3 = Rotate(*this, col3).ymm;
+    col3 = Rotate(*this, double3(col3)).ymm;
     col3 = v4d_negate(col3);
 
     col0 = v4d_setw0(col0);

@@ -825,12 +825,21 @@ ML_INLINE float4 Slerp(const float4& a, const float4& b, float x) {
 
 // IMPORTANT: store - "column-major", usage - "row-major" (vector is a column)
 union float4x4 {
+#if defined(__GNUC__)
+    struct {
+        v4f col0;
+        v4f col1;
+        v4f col2;
+        v4f col3;
+    };
+#else
     struct {
         float4 col0;
         float4 col1;
         float4 col2;
         float4 col3;
     };
+#endif
 
     struct {
         float4 cols[4];
@@ -859,15 +868,26 @@ union float4x4 {
     };
 
 public:
-    ML_INLINE float4x4() : col0(_mm_setzero_ps()), col1(_mm_setzero_ps()), col2(_mm_setzero_ps()), col3(_mm_setzero_ps()) {
+    ML_INLINE float4x4() {
+        col0 = _mm_setzero_ps();
+        col1 = _mm_setzero_ps();
+        col2 = _mm_setzero_ps();
+        col3 = _mm_setzero_ps();
     }
 
     ML_INLINE float4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20, float m21, float m22, float m23, float m30, float m31,
-        float m32, float m33) :
-        col0(v4f_set(m00, m10, m20, m30)), col1(v4f_set(m01, m11, m21, m31)), col2(v4f_set(m02, m12, m22, m32)), col3(v4f_set(m03, m13, m23, m33)) {
+        float m32, float m33) {
+        col0 = v4f_set(m00, m10, m20, m30);
+        col1 = v4f_set(m01, m11, m21, m31);
+        col2 = v4f_set(m02, m12, m22, m32);
+        col3 = v4f_set(m03, m13, m23, m33);
     }
 
-    ML_INLINE float4x4(const float4& c0, const float4& c1, const float4& c2, const float4& c3) : col0(c0.xmm), col1(c1.xmm), col2(c2.xmm), col3(c3.xmm) {
+    ML_INLINE float4x4(const float4& c0, const float4& c1, const float4& c2, const float4& c3) {
+        col0 = c0;
+        col1 = c1;
+        col2 = c2;
+        col3 = c3;
     }
 
     ML_INLINE float4x4(const float4x4& m) = default;
@@ -1071,9 +1091,9 @@ public:
     }
 
     ML_INLINE bool IsLeftHanded() const {
-        float3 v1 = cross(col0.xyz, col1.xyz);
+        float3 v1 = cross(float3(col0), float3(col1));
 
-        return dot(v1, col2.xyz) < 0.0f;
+        return dot(v1, float3(col2)) < 0.0f;
     }
 
     ML_INLINE void TransposeTo(float4x4& m) const {
@@ -1680,7 +1700,7 @@ ML_INLINE void float4x4::PreTranslation(const float3& p) {
 ML_INLINE void float4x4::InvertOrtho() {
     Transpose3x4();
 
-    col3 = Rotate(*this, col3.xyz).xmm;
+    col3 = Rotate(*this, float3(col3)).xmm;
     col3 = v4f_negate(col3);
 
     col0 = v4f_setw0(col0);
