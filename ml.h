@@ -11,7 +11,7 @@ IMPORTANT:
 
 #define ML_VERSION_MAJOR 1
 #define ML_VERSION_MINOR 0
-#define ML_VERSION_DATE "4 August 2024"
+#define ML_VERSION_DATE "5 August 2024"
 
 //======================================================================================================================
 // Constants
@@ -201,7 +201,7 @@ ML_INLINE T ML_ModifyProjZ(bool isReversed, T c2, T c3) {
 - add some missing HLSL-compatible math functionality
 - find a way to improve emulation of intrinsics currently using "for (size_t i = 0;"
 - minimize "#ifndef __cplusplus" usage in "ml.hlsli"
-- try to improve workarounds for GCC
+- GCC doesn't support "members with constructors in anonymous aggregates"
 - search for TODO
 */
 

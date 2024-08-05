@@ -113,13 +113,6 @@ ML_INLINE float f16tof32(uint32_t x) {
 #endif
 }
 
-#if defined(__GNUC__)
-
-// TODO: GCC doesn't support "members with constructors in anonymous aggregates".
-// But "float16_t(float v)" is needed for conversion. Dumb GCC can't understand
-// that the structure is still POD and that the constructor can only be called
-// explicitly. Well, limited support then...
-
 struct float16_t {
     uint16_t x;
 
@@ -139,6 +132,9 @@ struct float16_t {
 struct float16_t2 {
     float16_t x, y;
 
+    ML_INLINE float16_t2(const float16_t& x, const float16_t& y) : x(x), y(y) {
+    }
+
     ML_INLINE float16_t2() = default;
     ML_INLINE float16_t2(const float16_t2&) = default;
     ML_INLINE float16_t2& operator=(const float16_t2&) = default;
@@ -147,65 +143,15 @@ struct float16_t2 {
 struct float16_t4 {
     float16_t x, y, z, w;
 
+    ML_INLINE float16_t4(const float16_t& x, const float16_t& y, const float16_t& z, const float16_t& w) : x(x), y(y), z(z), w(w) {
+    }
+
+    ML_INLINE float16_t4(const float16_t2& xy, const float16_t2& zw) {
+        *((float16_t2*)&x) = xy;
+        *((float16_t2*)&z) = zw;
+    }
+
     ML_INLINE float16_t4() = default;
     ML_INLINE float16_t4(const float16_t4&) = default;
     ML_INLINE float16_t4& operator=(const float16_t4&) = default;
 };
-
-#else
-
-struct float16_t {
-    uint16_t x;
-
-    ML_INLINE float16_t() : x(0) {
-    }
-
-    ML_INLINE void operator=(const float16_t& v) {
-        x = v.x;
-    }
-
-    ML_INLINE float16_t(float v) {
-        x = (uint16_t)f32tof16(v);
-    }
-
-    ML_INLINE operator float() const {
-        return f16tof32(x);
-    }
-};
-
-union float16_t2 {
-    uint32_t xy;
-
-    struct {
-        float16_t x, y;
-    };
-
-    ML_INLINE float16_t2() : xy(0) {
-    }
-
-    ML_INLINE void operator=(const float16_t2& v) {
-        xy = v.xy;
-    }
-};
-
-union float16_t4 {
-    uint2 xyzw;
-
-    struct {
-        float16_t x, y, z, w;
-    };
-
-    struct {
-        float16_t2 xy;
-        float16_t2 zw;
-    };
-
-    ML_INLINE float16_t4() : xyzw(0) {
-    }
-
-    ML_INLINE void operator=(const float16_t4& v) {
-        xyzw = v.xyzw;
-    }
-};
-
-#endif

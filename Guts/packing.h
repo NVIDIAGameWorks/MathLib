@@ -128,7 +128,7 @@ ML_INLINE float16_t2 float2_to_float16_t2(const float2& v) {
     v4f t = v4f_set(v.x, v.y, 0.0f, 0.0f);
     v4i p = v4f_to_h4(t);
 
-    r.xy = _mm_cvtsi128_si32(p);
+    *((int32_t*)&r) = _mm_cvtsi128_si32(p);
 #else
     r.x = float16_t(v.x);
     r.y = float16_t(v.y);
@@ -141,20 +141,12 @@ ML_INLINE float16_t4 float4_to_float16_t4(const float4& v) {
     float16_t4 r;
 #if (ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
     v4i p = v4f_to_h4(v.xmm);
-    *((uint64_t*)&r) = _mm_extract_epi64(p, 0);
+    *((int64_t*)&r) = _mm_extract_epi64(p, 0);
 #else
     float16_t2 xy = float2_to_float16_t2(v.xy);
     float16_t2 zw = float2_to_float16_t2(v.zw);
 
-    #if defined(__GNUC__)
-        r.x = xy.x;
-        r.y = xy.y;
-        r.z = zw.x;
-        r.w = zw.y;
-    #else
-        r.xy = xy;
-        r.zw = zw;
-    #endif
+    r = float16_t4(xy, zw);
 #endif
 
     return r;
@@ -258,7 +250,7 @@ ML_INLINE float4 snorm_to_float4<8, 8, 8, 8>(uint32_t p) {
 ML_INLINE float2 float16_t2_to_float2(const float16_t2& p) {
     float2 r;
 #if (ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
-    v4i t = _mm_cvtsi32_si128(p.xy);
+    v4i t = _mm_cvtsi32_si128(*(int32_t*)&p);
     v4f f = _mm_cvtph_ps(t);
 
     _mm_storel_pi((__m64*)&r.mm, f);
