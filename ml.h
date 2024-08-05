@@ -713,8 +713,8 @@ ML_INLINE bool MvpToPlanes(eStyle depthStyle, const float4x4& m, float4* pvPlane
     t *= rsqrt(dot(t.xyz, t.xyz));
 
     // Near & far planes
-    n /= max(sqrt(dot(n.xyz, n.xyz)), eps);
-    f /= max(sqrt(dot(f.xyz, f.xyz)), eps);
+    n /= max(length(n.xyz), eps);
+    f /= max(length(f.xyz), eps);
 
     // Handle reversed projection
     bool bReversed = abs(n.w) > abs(f.w);
@@ -723,7 +723,7 @@ ML_INLINE bool MvpToPlanes(eStyle depthStyle, const float4x4& m, float4* pvPlane
         Swap(n, f);
 
     // Handle infinite projection
-    if (dot(f.xyz, f.xyz) < eps)
+    if (length(f.xyz) < eps)
         f = float4(-n.x, -n.y, -n.z, f.w);
 
     pvPlane6[PLANE_LEFT] = l;
