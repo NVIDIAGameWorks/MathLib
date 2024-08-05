@@ -6,23 +6,18 @@
 // double2
 //======================================================================================================================
 
-class double2 {
-public:
-    union {
-        struct {
-            v2d xmm;
-        };
+union double2 {
+    v2d xmm;
 
-        struct {
-            double a[COORD_2D];
-        };
-
-        struct {
-            double x, y;
-        };
-
-        ML_SWIZZLE_2(double2, double);
+    struct {
+        double a[COORD_2D];
     };
+
+    struct {
+        double x, y;
+    };
+
+    ML_SWIZZLE_2(double2, double);
 
 public:
     ML_INLINE double2() : x(0.0), y(0.0) {
@@ -247,23 +242,18 @@ ML_INLINE double2 Rotate(const double2& v, double angle) {
 // double3
 //======================================================================================================================
 
-class double3 {
-public:
-    union {
-        struct {
-            v4d ymm;
-        };
+union double3 {
+    v4d ymm;
 
-        struct {
-            double a[COORD_3D];
-        };
-
-        struct {
-            double x, y, z;
-        };
-
-        ML_SWIZZLE_3(v4d_swizzle2, double2, v4d_swizzle3, double3);
+    struct {
+        double a[COORD_3D];
     };
+
+    struct {
+        double x, y, z;
+    };
+
+    ML_SWIZZLE_3(v4d_swizzle2, double2, v4d_swizzle3, double3);
 
 public:
     ML_INLINE double3() : ymm(_mm256_setzero_pd()) {
@@ -560,23 +550,18 @@ ML_INLINE bool IsPointsNear(const double3& p1, const double3& p2, double eps) {
 // double4
 //======================================================================================================================
 
-class double4 {
-public:
-    union {
-        struct {
-            v4d ymm;
-        };
+union double4 {
+    v4d ymm;
 
-        struct {
-            double a[COORD_4D];
-        };
-
-        struct {
-            double x, y, z, w;
-        };
-
-        ML_SWIZZLE_4(v4d_swizzle2, double2, v4d_swizzle3, double3, v4d_swizzle4, double4);
+    struct {
+        double a[COORD_4D];
     };
+
+    struct {
+        double x, y, z, w;
+    };
+
+    ML_SWIZZLE_4(v4d_swizzle2, double2, v4d_swizzle3, double3, v4d_swizzle4, double4);
 
 public:
     ML_INLINE double4() : ymm(_mm256_setzero_pd()) {
@@ -810,7 +795,7 @@ ML_INLINE double4 SinCos(const double4& x, double4* pCos) {
     return _mm256_sincos_pd(&pCos->ymm, x.ymm);
 }
 
-// TODO: add "class Quaternion"
+// TODO: add "Quaternion"
 ML_INLINE double4 Slerp(const double4& a, const double4& b, double x) {
     ML_Assert(x >= 0.0 && x <= 1.0);
     ML_Assert(abs(dot(a, a) - 1.0) < 1e-5);
@@ -842,40 +827,37 @@ ML_INLINE double4 Slerp(const double4& a, const double4& b, double x) {
 //======================================================================================================================
 
 // IMPORTANT: store - "column-major", math - "row-major" (vector is column)
-class double4x4 {
-public:
-    union {
+union double4x4 {
+    struct {
+        v4d col0;
+        v4d col1;
+        v4d col2;
+        v4d col3;
+    };
+
+    struct {
+        double4 cols[4];
+    };
+
+    struct {
+        double a[16];
+    };
+
+    struct {
         struct {
-            v4d col0;
-            v4d col1;
-            v4d col2;
-            v4d col3;
+            double a00, a10, a20, a30;
         };
 
         struct {
-            double4 cols[4];
+            double a01, a11, a21, a31;
         };
 
         struct {
-            double a[16];
+            double a02, a12, a22, a32;
         };
 
         struct {
-            struct {
-                double a00, a10, a20, a30;
-            };
-
-            struct {
-                double a01, a11, a21, a31;
-            };
-
-            struct {
-                double a02, a12, a22, a32;
-            };
-
-            struct {
-                double a03, a13, a23, a33;
-            };
+            double a03, a13, a23, a33;
         };
     };
 
@@ -1714,7 +1696,7 @@ ML_INLINE void double4x4::InvertOrtho() {
 // cBoxd
 //======================================================================================================================
 
-class cBoxd {
+struct cBoxd {
 public:
     double3 vMin;
     double3 vMax;

@@ -2,8 +2,7 @@
 
 #pragma once
 
-class bool2 {
-public:
+struct bool2 {
     int32_t mask;
 
 public:
@@ -16,8 +15,7 @@ public:
     ML_INLINE operator double2() const;
 };
 
-class bool3 {
-public:
+struct bool3 {
     int32_t mask;
 
 public:
@@ -30,8 +28,7 @@ public:
     ML_INLINE operator double3() const;
 };
 
-class bool4 {
-public:
+struct bool4 {
     int32_t mask;
 
 public:

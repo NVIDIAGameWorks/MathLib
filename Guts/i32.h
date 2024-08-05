@@ -6,26 +6,21 @@
 // int2
 //======================================================================================================================
 
-class int2 {
-public:
-    union {
-        struct {
-            v2i mm;
-        };
+union int2 {
+    v2i mm;
 
-        struct {
-            int32_t a[COORD_2D];
-        };
-
-        struct {
-            int32_t x, y;
-        };
-
-        ML_SWIZZLE_2(int2, int32_t);
+    struct {
+        int32_t a[COORD_2D];
     };
 
+    struct {
+        int32_t x, y;
+    };
+
+    ML_SWIZZLE_2(int2, int32_t);
+
 public:
-    ML_INLINE int2() : x(0), y(0) {
+    ML_INLINE int2() : mm(0) {
     }
 
     ML_INLINE int2(int32_t c) : x(c), y(c) {
@@ -87,23 +82,18 @@ ML_INLINE int2 max(const int2& x, const int2& y) {
 // int3
 //======================================================================================================================
 
-class int3 {
-public:
-    union {
-        struct {
-            v4i xmm;
-        };
+union int3 {
+    v4i xmm;
 
-        struct {
-            int32_t a[COORD_3D];
-        };
-
-        struct {
-            int32_t x, y, z;
-        };
-
-        ML_SWIZZLE_3(v4i_swizzle2, int2, v4i_swizzle3, int3);
+    struct {
+        int32_t a[COORD_3D];
     };
+
+    struct {
+        int32_t x, y, z;
+    };
+
+    ML_SWIZZLE_3(v4i_swizzle2, int2, v4i_swizzle3, int3);
 
 public:
     ML_INLINE int3() : xmm(_mm_setzero_si128()) {
@@ -190,23 +180,18 @@ ML_INLINE int3 max(const int3& x, const int3& y) {
 // int4
 //======================================================================================================================
 
-class int4 {
-public:
-    union {
-        struct {
-            v4i xmm;
-        };
+union int4 {
+    v4i xmm;
 
-        struct {
-            int32_t a[COORD_4D];
-        };
-
-        struct {
-            int32_t x, y, z, w;
-        };
-
-        ML_SWIZZLE_4(v4i_swizzle2, int2, v4i_swizzle3, int3, v4i_swizzle4, int4);
+    struct {
+        int32_t a[COORD_4D];
     };
+
+    struct {
+        int32_t x, y, z, w;
+    };
+
+    ML_SWIZZLE_4(v4i_swizzle2, int2, v4i_swizzle3, int3, v4i_swizzle4, int4);
 
 public:
     ML_INLINE int4() : xmm(_mm_setzero_si128()) {

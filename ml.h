@@ -3,15 +3,15 @@
 /*
 IMPORTANT:
 - intrinsic related headers must not be included *AFTER* ML inclusion
-- if "cstdlib" and "cmath" are included explicitly or implicitly, they must be included *BEFORE* ML
 - "ML_NAMESPACE" macro can be defined to put the entire ML into "ml" namespace
+- sizeof(3-component vector) == sizeof(4-component vector) because of SSE
 */
 
 #pragma once
 
 #define ML_VERSION_MAJOR 1
 #define ML_VERSION_MINOR 0
-#define ML_VERSION_DATE "11 July 2024"
+#define ML_VERSION_DATE "4 August 2024"
 
 //======================================================================================================================
 // Constants
@@ -27,7 +27,7 @@ IMPORTANT:
 // Settings
 //======================================================================================================================
 
-// Allowed HW intrinsics (not supported are emulated)
+// Allowed HW intrinsics (emulated if not supported)
 #ifndef ML_INTRINSIC_LEVEL // see above
 #    if defined(__AVX2__)
 #        define ML_INTRINSIC_LEVEL ML_INTRINSIC_AVX2
@@ -42,7 +42,7 @@ IMPORTANT:
 
 // SVML availability
 #ifndef ML_SVML_AVAILABLE
-#    define ML_SVML_AVAILABLE (_MSC_VER >= 1920 && __clang__ == 0) // only VS 2019+ supports Intel's SVML
+#    define ML_SVML_AVAILABLE (_MSC_VER >= 1920 && __clang__ == 0) // only MSVC 2019+ supports Intel's SVML
 #endif
 
 // Can be set in the project settings to wrap the library into namespace "ml". Can be applied to "ml.hlsli" too
@@ -113,7 +113,9 @@ IMPORTANT:
 
 // Headers
 
-#include <math.h>
+#include <cstdlib> // overloaded abs
+#include <cmath> // overloaded floor, round, ceil, fmod, sin, cos, tan, asin, acos, atan, atan2, sqrt, pow, log, log2, exp, exp2
+
 #include <stdint.h>
 
 #if (defined(__i386__) || defined(__x86_64__) || defined(__SCE__))
@@ -121,6 +123,7 @@ IMPORTANT:
 #elif (defined(__arm__) || defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM))
 #    include "External/sse2neon/sse2neon.h"
 #else
+#include <mmintrin.h>
 #    if (ML_SVML_AVAILABLE || ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
 #        include <immintrin.h> // SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2, FMA, SVML
 #    elif (ML_INTRINSIC_LEVEL >= ML_INTRINSIC_SSE4)
@@ -198,6 +201,8 @@ ML_INLINE T ML_ModifyProjZ(bool isReversed, T c2, T c3) {
 - add some missing HLSL-compatible math functionality
 - find a way to improve emulation of intrinsics currently using "for (size_t i = 0;"
 - minimize "#ifndef __cplusplus" usage in "ml.hlsli"
+- try to improve workarounds for GCC
+- search for TODO
 */
 
 //======================================================================================================================
@@ -212,28 +217,28 @@ namespace ml {
 // Forward declarations
 //======================================================================================================================
 
-class bool2;
-class bool3;
-class bool4;
+struct bool2;
+struct bool3;
+struct bool4;
 
-class int2;
-class int3;
-class int4;
+union int2;
+union int3;
+union int4;
 
 typedef uint32_t uint;
-class uint2;
-class uint3;
-class uint4;
+union uint2;
+union uint3;
+union uint4;
 
-class float2;
-class float3;
-class float4;
-class float4x4;
+union float2;
+union float3;
+union float4;
+union float4x4;
 
-class double2;
-class double3;
-class double4;
-class double4x4;
+union double2;
+union double3;
+union double4;
+union double4x4;
 
 //======================================================================================================================
 // Enums

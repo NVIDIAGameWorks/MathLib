@@ -1,6 +1,6 @@
 #pragma once
 
-typedef __m64 v2i;
+typedef uint64_t v2i;
 typedef __m128d v2d;
 
 typedef __m128 v4f;

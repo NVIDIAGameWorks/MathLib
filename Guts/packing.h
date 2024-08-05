@@ -143,8 +143,18 @@ ML_INLINE float16_t4 float4_to_float16_t4(const float4& v) {
     v4i p = v4f_to_h4(v.xmm);
     *((uint64_t*)&r) = _mm_extract_epi64(p, 0);
 #else
-    r.xy = float2_to_float16_t2(v.xy);
-    r.zw = float2_to_float16_t2(v.zw);
+    float16_t2 xy = float2_to_float16_t2(v.xy);
+    float16_t2 zw = float2_to_float16_t2(v.zw);
+
+    #if defined(__GNUC__)
+        r.x = xy.x;
+        r.y = xy.y;
+        r.z = zw.x;
+        r.w = zw.y;
+    #else
+        r.xy = xy;
+        r.zw = zw;
+    #endif
 #endif
 
     return r;
@@ -251,7 +261,7 @@ ML_INLINE float2 float16_t2_to_float2(const float16_t2& p) {
     v4i t = _mm_cvtsi32_si128(p.xy);
     v4f f = _mm_cvtph_ps(t);
 
-    _mm_storel_pi(&r.mm, f);
+    _mm_storel_pi((__m64*)&r.mm, f);
 #else
     r.x = float(p.x);
     r.y = float(p.y);

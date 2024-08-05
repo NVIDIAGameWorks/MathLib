@@ -6,26 +6,21 @@
 // float2
 //======================================================================================================================
 
-class float2 {
-public:
-    union {
-        struct {
-            v2i mm;
-        };
+union float2 {
+    v2i mm;
 
-        struct {
-            float a[COORD_2D];
-        };
-
-        struct {
-            float x, y;
-        };
-
-        ML_SWIZZLE_2(float2, float);
+    struct {
+        float a[COORD_2D];
     };
 
+    struct {
+        float x, y;
+    };
+
+    ML_SWIZZLE_2(float2, float);
+
 public:
-    ML_INLINE float2() : x(0.0f), y(0.0f) {
+    ML_INLINE float2() : mm(0) {
     }
 
     ML_INLINE float2(float c) : x(c), y(c) {
@@ -244,23 +239,18 @@ ML_INLINE float2 Rotate(const float2& v, float angle) {
 // float3
 //======================================================================================================================
 
-class float3 {
-public:
-    union {
-        struct {
-            v4f xmm;
-        };
+union float3 {
+    v4f xmm;
 
-        struct {
-            float a[COORD_3D];
-        };
-
-        struct {
-            float x, y, z;
-        };
-
-        ML_SWIZZLE_3(v4f_swizzle2, float2, v4f_swizzle3, float3);
+    struct {
+        float a[COORD_3D];
     };
+
+    struct {
+        float x, y, z;
+    };
+
+    ML_SWIZZLE_3(v4f_swizzle2, float2, v4f_swizzle3, float3);
 
 public:
     ML_INLINE float3() : xmm(_mm_setzero_ps()) {
@@ -557,23 +547,18 @@ ML_INLINE bool IsPointsNear(const float3& p1, const float3& p2, float eps) {
 // float4
 //======================================================================================================================
 
-class float4 {
-public:
-    union {
-        struct {
-            v4f xmm;
-        };
+union float4 {
+    v4f xmm;
 
-        struct {
-            float a[COORD_4D];
-        };
-
-        struct {
-            float x, y, z, w;
-        };
-
-        ML_SWIZZLE_4(v4f_swizzle2, float2, v4f_swizzle3, float3, v4f_swizzle4, float4);
+    struct {
+        float a[COORD_4D];
     };
+
+    struct {
+        float x, y, z, w;
+    };
+
+    ML_SWIZZLE_4(v4f_swizzle2, float2, v4f_swizzle3, float3, v4f_swizzle4, float4);
 
 public:
     ML_INLINE float4() : xmm(_mm_setzero_ps()) {
@@ -807,7 +792,7 @@ ML_INLINE float4 SinCos(const float4& x, float4* pCos) {
     return _mm_sincos_ps(&pCos->xmm, x.xmm);
 }
 
-// TODO: add "class Quaternion"
+// TODO: add "Quaternion"
 ML_INLINE float4 Slerp(const float4& a, const float4& b, float x) {
     ML_Assert(x >= 0.0f && x <= 1.0f);
     ML_Assert(abs(dot(a, a) - 1.0f) < 1e-5f);
@@ -839,40 +824,37 @@ ML_INLINE float4 Slerp(const float4& a, const float4& b, float x) {
 //======================================================================================================================
 
 // IMPORTANT: store - "column-major", usage - "row-major" (vector is a column)
-class float4x4 {
-public:
-    union {
+union float4x4 {
+    struct {
+        float4 col0;
+        float4 col1;
+        float4 col2;
+        float4 col3;
+    };
+
+    struct {
+        float4 cols[4];
+    };
+
+    struct {
+        float a[16];
+    };
+
+    struct {
         struct {
-            float4 col0;
-            float4 col1;
-            float4 col2;
-            float4 col3;
+            float a00, a10, a20, a30;
         };
 
         struct {
-            float4 cols[4];
+            float a01, a11, a21, a31;
         };
 
         struct {
-            float a[16];
+            float a02, a12, a22, a32;
         };
 
         struct {
-            struct {
-                float a00, a10, a20, a30;
-            };
-
-            struct {
-                float a01, a11, a21, a31;
-            };
-
-            struct {
-                float a02, a12, a22, a32;
-            };
-
-            struct {
-                float a03, a13, a23, a33;
-            };
+            float a03, a13, a23, a33;
         };
     };
 
@@ -1711,8 +1693,7 @@ ML_INLINE void float4x4::InvertOrtho() {
 // cBoxf
 //======================================================================================================================
 
-class cBoxf {
-public:
+struct cBoxf {
     float3 vMin;
     float3 vMax;
 

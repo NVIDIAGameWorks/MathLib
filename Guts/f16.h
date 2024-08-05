@@ -113,6 +113,47 @@ ML_INLINE float f16tof32(uint32_t x) {
 #endif
 }
 
+#if defined(__GNUC__)
+
+// TODO: GCC doesn't support "members with constructors in anonymous aggregates".
+// But "float16_t(float v)" is needed for conversion. Dumb GCC can't understand
+// that the structure is still POD and that the constructor can only be called
+// explicitly. Well, limited support then...
+
+struct float16_t {
+    uint16_t x;
+
+    ML_INLINE float16_t(float v) {
+        x = (uint16_t)f32tof16(v);
+    }
+
+    ML_INLINE operator float() const {
+        return f16tof32(x);
+    }
+
+    ML_INLINE float16_t() = default;
+    ML_INLINE float16_t(const float16_t&) = default;
+    ML_INLINE float16_t& operator=(const float16_t&) = default;
+};
+
+struct float16_t2 {
+    float16_t x, y;
+
+    ML_INLINE float16_t2() = default;
+    ML_INLINE float16_t2(const float16_t2&) = default;
+    ML_INLINE float16_t2& operator=(const float16_t2&) = default;
+};
+
+struct float16_t4 {
+    float16_t x, y, z, w;
+
+    ML_INLINE float16_t4() = default;
+    ML_INLINE float16_t4(const float16_t4&) = default;
+    ML_INLINE float16_t4& operator=(const float16_t4&) = default;
+};
+
+#else
+
 struct float16_t {
     uint16_t x;
 
@@ -132,15 +173,11 @@ struct float16_t {
     }
 };
 
-struct float16_t2 {
-    union {
-        struct {
-            float16_t x, y;
-        };
+union float16_t2 {
+    uint32_t xy;
 
-        struct {
-            uint32_t xy;
-        };
+    struct {
+        float16_t x, y;
     };
 
     ML_INLINE float16_t2() : xy(0) {
@@ -151,20 +188,16 @@ struct float16_t2 {
     }
 };
 
-struct float16_t4 {
-    union {
-        struct {
-            float16_t x, y, z, w;
-        };
+union float16_t4 {
+    uint2 xyzw;
 
-        struct {
-            float16_t2 xy;
-            float16_t2 zw;
-        };
+    struct {
+        float16_t x, y, z, w;
+    };
 
-        struct {
-            uint2 xyzw;
-        };
+    struct {
+        float16_t2 xy;
+        float16_t2 zw;
     };
 
     ML_INLINE float16_t4() : xyzw(0) {
@@ -174,3 +207,5 @@ struct float16_t4 {
         xyzw = v.xyzw;
     }
 };
+
+#endif
