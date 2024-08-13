@@ -1641,6 +1641,16 @@ namespace Sequence
 
     ML_INLINE float2 Halton2D( uint index )
     { return float2( RadicalInverse( index + 1, 3 ), Math::ReverseBits32( index + 1 ) * 2.3283064365386963e-10f ); }
+
+    // https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
+    ML_INLINE float Weyl1D( float p, int n )
+    { return frac( p + float( n * 10368889 ) / exp2( 24.0f ) ); }
+
+    ML_INLINE float2 Weyl2D( float2 p, int n )
+    { return frac( p + float2( float( n * 12664745 ), float( n * 9560333 ) ) / exp2( 24.0f ) ); }
+
+    ML_INLINE float3 Weyl3D( float3 p, int n )
+    { return frac( p + float3( float( n * 13743434 ), float( n * 11258243 ), float( n * 9222443 ) ) / exp2( 24.0f ) ); }
 }
 
 //=======================================================================================================================
