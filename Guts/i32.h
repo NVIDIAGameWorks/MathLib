@@ -20,13 +20,16 @@ union int2 {
     ML_SWIZZLE_2(int2, int32_t);
 
 public:
-    ML_INLINE int2() : mm(0) {
+    ML_INLINE int2()
+        : mm(0) {
     }
 
-    ML_INLINE int2(int32_t c) : x(c), y(c) {
+    ML_INLINE int2(int32_t c)
+        : x(c), y(c) {
     }
 
-    ML_INLINE int2(int32_t _x, int32_t _y) : x(_x), y(_y) {
+    ML_INLINE int2(int32_t _x, int32_t _y)
+        : x(_x), y(_y) {
     }
 
     ML_INLINE int2(const int2& v) = default;
@@ -96,25 +99,32 @@ union int3 {
     ML_SWIZZLE_3(v4i_swizzle2, int2, v4i_swizzle3, int3);
 
 public:
-    ML_INLINE int3() : xmm(_mm_setzero_si128()) {
+    ML_INLINE int3()
+        : xmm(_mm_setzero_si128()) {
     }
 
-    ML_INLINE int3(int32_t c) : xmm(_mm_set1_epi32(c)) {
+    ML_INLINE int3(int32_t c)
+        : xmm(_mm_set1_epi32(c)) {
     }
 
-    ML_INLINE int3(int32_t _x, int32_t _y, int32_t _z) : xmm(v4i_set(_x, _y, _z, 1)) {
+    ML_INLINE int3(int32_t _x, int32_t _y, int32_t _z)
+        : xmm(v4i_set(_x, _y, _z, 1)) {
     }
 
-    ML_INLINE int3(const int2& v, int32_t _z) : xmm(v4i_set(v.x, v.y, _z, 1)) {
+    ML_INLINE int3(const int2& v, int32_t _z)
+        : xmm(v4i_set(v.x, v.y, _z, 1)) {
     }
 
-    ML_INLINE int3(int32_t _x, const int2& v) : xmm(v4i_set(_x, v.x, v.y, 1)) {
+    ML_INLINE int3(int32_t _x, const int2& v)
+        : xmm(v4i_set(_x, v.x, v.y, 1)) {
     }
 
-    ML_INLINE int3(const v4i& v) : xmm(v) {
+    ML_INLINE int3(const v4i& v)
+        : xmm(v) {
     }
 
-    ML_INLINE int3(const int32_t* v3) : xmm(v4i_set(v3[0], v3[1], v3[2], 1)) {
+    ML_INLINE int3(const int32_t* v3)
+        : xmm(v4i_set(v3[0], v3[1], v3[2], 1)) {
     }
 
     ML_INLINE int3(const int3& v) = default;
@@ -194,25 +204,32 @@ union int4 {
     ML_SWIZZLE_4(v4i_swizzle2, int2, v4i_swizzle3, int3, v4i_swizzle4, int4);
 
 public:
-    ML_INLINE int4() : xmm(_mm_setzero_si128()) {
+    ML_INLINE int4()
+        : xmm(_mm_setzero_si128()) {
     }
 
-    ML_INLINE int4(int32_t c) : xmm(_mm_set1_epi32(c)) {
+    ML_INLINE int4(int32_t c)
+        : xmm(_mm_set1_epi32(c)) {
     }
 
-    ML_INLINE int4(int32_t _x, int32_t _y, int32_t _z, int32_t _w) : xmm(v4i_set(_x, _y, _z, _w)) {
+    ML_INLINE int4(int32_t _x, int32_t _y, int32_t _z, int32_t _w)
+        : xmm(v4i_set(_x, _y, _z, _w)) {
     }
 
-    ML_INLINE int4(const int3& v, int32_t _w) : xmm(v4i_set(v.x, v.y, v.z, _w)) {
+    ML_INLINE int4(const int3& v, int32_t _w)
+        : xmm(v4i_set(v.x, v.y, v.z, _w)) {
     }
 
-    ML_INLINE int4(const int2& a, const int2& b) : xmm(v4i_set(a.x, a.y, b.x, b.y)) {
+    ML_INLINE int4(const int2& a, const int2& b)
+        : xmm(v4i_set(a.x, a.y, b.x, b.y)) {
     }
 
-    ML_INLINE int4(int32_t _x, const int3& v) : xmm(v4i_set(_x, v.x, v.y, v.z)) {
+    ML_INLINE int4(int32_t _x, const int3& v)
+        : xmm(v4i_set(_x, v.x, v.y, v.z)) {
     }
 
-    ML_INLINE int4(const v4i& v) : xmm(v) {
+    ML_INLINE int4(const v4i& v)
+        : xmm(v) {
     }
 
     ML_INLINE int4(const int4& v) = default;

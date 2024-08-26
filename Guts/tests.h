@@ -29,28 +29,23 @@
     ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1)) - C(func((T)x1), func((T)y1), func((T)z1))) <= abs(C(func((T)x1), func((T)y1), func((T)z1))) * (T)Test_Eps))
 
 #define Test1_x4_eps(C, T, func) \
-    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1, (T)w1)) - C(func((T)x1), func((T)y1), func((T)z1), func((T)w1))) <= \
-                  abs(C(func((T)x1), func((T)y1), func((T)z1), func((T)w1))) * (T)Test_Eps))
+    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1, (T)w1)) - C(func((T)x1), func((T)y1), func((T)z1), func((T)w1))) <= abs(C(func((T)x1), func((T)y1), func((T)z1), func((T)w1))) * (T)Test_Eps))
 
 #define Test2_x3_eps(C, T, func) \
-    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1), C((T)x2, (T)y2, (T)z2)) - C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2))) <= \
-                  abs(C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2))) * (T)Test_Eps))
+    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1), C((T)x2, (T)y2, (T)z2)) - C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2))) <= abs(C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2))) * (T)Test_Eps))
 #define Test2_x4_eps(C, T, func) \
-    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1, (T)w1), C((T)x2, (T)y2, (T)z2, (T)w2)) - C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2), func((T)w1, (T)w2))) <= \
-                  abs(C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2), func((T)w1, (T)w2))) * (T)Test_Eps))
+    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1, (T)w1), C((T)x2, (T)y2, (T)z2, (T)w2)) - C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2), func((T)w1, (T)w2))) <= abs(C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2), func((T)w1, (T)w2))) * (T)Test_Eps))
 
 #define Test1_x3_ceps(C, T, func) \
     ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1)) - C(func((T)x1), func((T)y1), func((T)z1))) <= abs(C(func((T)x1), func((T)y1), func((T)z1))) * (T)Test_Eps))
 
 #define Test1_x4_ceps(C, T, func) \
-    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1, (T)w1)) - C(func((T)x1), func((T)y1), func((T)z1), func((T)w1))) <= \
-                  abs(C(func((T)x1), func((T)y1), func((T)z1), func((T)w1))) * (T)Test_Eps))
+    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1, (T)w1)) - C(func((T)x1), func((T)y1), func((T)z1), func((T)w1))) <= abs(C(func((T)x1), func((T)y1), func((T)z1), func((T)w1))) * (T)Test_Eps))
 
 #define Test2_x3_ceps(C, T, func) \
     ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1), C((T)x2, (T)y2, (T)z2)) - C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2))) <= (T)Test_ConstantEps))
 #define Test2_x4_ceps(C, T, func) \
-    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1, (T)w1), C((T)x2, (T)y2, (T)z2, (T)w2)) - C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2), func((T)w1, (T)w2))) <= \
-                  (T)Test_ConstantEps))
+    ML_Assert(all(abs(func(C((T)x1, (T)y1, (T)z1, (T)w1), C((T)x2, (T)y2, (T)z2, (T)w2)) - C(func((T)x1, (T)x2), func((T)y1, (T)y2), func((T)z1, (T)z2), func((T)w1, (T)w2))) <= (T)Test_ConstantEps))
 
 #include "../ml.hlsli"
 

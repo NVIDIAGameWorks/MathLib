@@ -6,7 +6,8 @@ struct bool2 {
     int32_t mask;
 
 public:
-    ML_INLINE bool2(int32_t m) : mask(m) {
+    ML_INLINE bool2(int32_t m)
+        : mask(m) {
     }
 
     ML_INLINE operator int2() const;
@@ -19,7 +20,8 @@ struct bool3 {
     int32_t mask;
 
 public:
-    ML_INLINE bool3(int32_t m) : mask(m) {
+    ML_INLINE bool3(int32_t m)
+        : mask(m) {
     }
 
     ML_INLINE operator int3() const;
@@ -32,7 +34,8 @@ struct bool4 {
     int32_t mask;
 
 public:
-    ML_INLINE bool4(int32_t m) : mask(m) {
+    ML_INLINE bool4(int32_t m)
+        : mask(m) {
     }
 
     ML_INLINE operator int4() const;

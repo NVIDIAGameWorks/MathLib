@@ -132,7 +132,8 @@ struct float16_t {
 struct float16_t2 {
     float16_t x, y;
 
-    ML_INLINE float16_t2(const float16_t& x, const float16_t& y) : x(x), y(y) {
+    ML_INLINE float16_t2(const float16_t& x, const float16_t& y)
+        : x(x), y(y) {
     }
 
     ML_INLINE float16_t2() = default;
@@ -143,7 +144,8 @@ struct float16_t2 {
 struct float16_t4 {
     float16_t x, y, z, w;
 
-    ML_INLINE float16_t4(const float16_t& x, const float16_t& y, const float16_t& z, const float16_t& w) : x(x), y(y), z(z), w(w) {
+    ML_INLINE float16_t4(const float16_t& x, const float16_t& y, const float16_t& z, const float16_t& w)
+        : x(x), y(y), z(z), w(w) {
     }
 
     ML_INLINE float16_t4(const float16_t2& xy, const float16_t2& zw) {

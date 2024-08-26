@@ -20,13 +20,16 @@ union float2 {
     ML_SWIZZLE_2(float2, float);
 
 public:
-    ML_INLINE float2() : mm(0) {
+    ML_INLINE float2()
+        : mm(0) {
     }
 
-    ML_INLINE float2(float c) : x(c), y(c) {
+    ML_INLINE float2(float c)
+        : x(c), y(c) {
     }
 
-    ML_INLINE float2(float _x, float _y) : x(_x), y(_y) {
+    ML_INLINE float2(float _x, float _y)
+        : x(_x), y(_y) {
     }
 
     ML_INLINE float2(const float2& v) = default;
@@ -253,25 +256,32 @@ union float3 {
     ML_SWIZZLE_3(v4f_swizzle2, float2, v4f_swizzle3, float3);
 
 public:
-    ML_INLINE float3() : xmm(_mm_setzero_ps()) {
+    ML_INLINE float3()
+        : xmm(_mm_setzero_ps()) {
     }
 
-    ML_INLINE float3(float c) : xmm(_mm_set1_ps(c)) {
+    ML_INLINE float3(float c)
+        : xmm(_mm_set1_ps(c)) {
     }
 
-    ML_INLINE float3(float _x, float _y, float _z) : xmm(v4f_set(_x, _y, _z, 0.0f)) {
+    ML_INLINE float3(float _x, float _y, float _z)
+        : xmm(v4f_set(_x, _y, _z, 0.0f)) {
     }
 
-    ML_INLINE float3(const float2& v, float _z) : xmm(v4f_set(v.x, v.y, _z, 0.0f)) {
+    ML_INLINE float3(const float2& v, float _z)
+        : xmm(v4f_set(v.x, v.y, _z, 0.0f)) {
     }
 
-    ML_INLINE float3(float _x, const float2& v) : xmm(v4f_set(_x, v.x, v.y, 0.0f)) {
+    ML_INLINE float3(float _x, const float2& v)
+        : xmm(v4f_set(_x, v.x, v.y, 0.0f)) {
     }
 
-    ML_INLINE float3(const v4f& v) : xmm(v) {
+    ML_INLINE float3(const v4f& v)
+        : xmm(v) {
     }
 
-    ML_INLINE float3(const float* v3) : xmm(v4f_set(v3[0], v3[1], v3[2], 0.0f)) {
+    ML_INLINE float3(const float* v3)
+        : xmm(v4f_set(v3[0], v3[1], v3[2], 0.0f)) {
     }
 
     ML_INLINE float3(const float3& v) = default;
@@ -561,28 +571,36 @@ union float4 {
     ML_SWIZZLE_4(v4f_swizzle2, float2, v4f_swizzle3, float3, v4f_swizzle4, float4);
 
 public:
-    ML_INLINE float4() : xmm(_mm_setzero_ps()) {
+    ML_INLINE float4()
+        : xmm(_mm_setzero_ps()) {
     }
 
-    ML_INLINE float4(float c) : xmm(_mm_set1_ps(c)) {
+    ML_INLINE float4(float c)
+        : xmm(_mm_set1_ps(c)) {
     }
 
-    ML_INLINE float4(float _x, float _y, float _z, float _w) : xmm(v4f_set(_x, _y, _z, _w)) {
+    ML_INLINE float4(float _x, float _y, float _z, float _w)
+        : xmm(v4f_set(_x, _y, _z, _w)) {
     }
 
-    ML_INLINE float4(const float3& v, float _w) : xmm(v4f_set(v.x, v.y, v.z, _w)) {
+    ML_INLINE float4(const float3& v, float _w)
+        : xmm(v4f_set(v.x, v.y, v.z, _w)) {
     }
 
-    ML_INLINE float4(const float2& a, const float2& b) : xmm(v4f_set(a.x, a.y, b.x, b.y)) {
+    ML_INLINE float4(const float2& a, const float2& b)
+        : xmm(v4f_set(a.x, a.y, b.x, b.y)) {
     }
 
-    ML_INLINE float4(float _x, const float3& v) : xmm(v4f_set(_x, v.x, v.y, v.z)) {
+    ML_INLINE float4(float _x, const float3& v)
+        : xmm(v4f_set(_x, v.x, v.y, v.z)) {
     }
 
-    ML_INLINE float4(const v4f& v) : xmm(v) {
+    ML_INLINE float4(const v4f& v)
+        : xmm(v) {
     }
 
-    ML_INLINE float4(const float* v4) : xmm(_mm_loadu_ps(v4)) {
+    ML_INLINE float4(const float* v4)
+        : xmm(_mm_loadu_ps(v4)) {
     }
 
     ML_INLINE float4(const float4& v) = default;
@@ -1646,8 +1664,7 @@ public:
         // Do not check a20 and a21 to allow off-centered projections
         // Do not check a22 to allow reverse infinite projections
 
-        return ((a00 != 0.0f && a10 == 0.0f && a20 == 0.0f && a30 == 0.0f) && (a01 == 0.0f && a11 != 0.0f && a21 == 0.0f && a31 == 0.0f) && (a32 == 1.0f || a32 == -1.0f) &&
-                (a03 == 0.0f && a13 == 0.0f && a23 != 0.0f && a33 == 0.0f));
+        return ((a00 != 0.0f && a10 == 0.0f && a20 == 0.0f && a30 == 0.0f) && (a01 == 0.0f && a11 != 0.0f && a21 == 0.0f && a31 == 0.0f) && (a32 == 1.0f || a32 == -1.0f) && (a03 == 0.0f && a13 == 0.0f && a23 != 0.0f && a33 == 0.0f));
     }
 };
 

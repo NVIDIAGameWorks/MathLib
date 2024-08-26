@@ -577,122 +577,152 @@ template <int32_t imm>
 ML_INLINE __m128 emu_mm_cmp_ps(const __m128&, const __m128&) {
     return _mm_setzero_ps();
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_EQ_OQ>(const __m128& a, const __m128& b) {
     return _mm_cmpeq_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_EQ_UQ>(const __m128& a, const __m128& b) {
     return _mm_cmpeq_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_EQ_US>(const __m128& a, const __m128& b) {
     return _mm_cmpeq_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_EQ_OS>(const __m128& a, const __m128& b) {
     return _mm_cmpeq_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_LT_OS>(const __m128& a, const __m128& b) {
     return _mm_cmplt_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_LT_OQ>(const __m128& a, const __m128& b) {
     return _mm_cmplt_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_LE_OS>(const __m128& a, const __m128& b) {
     return _mm_cmple_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_LE_OQ>(const __m128& a, const __m128& b) {
     return _mm_cmple_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_GE_OS>(const __m128& a, const __m128& b) {
     return _mm_cmpge_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_GE_OQ>(const __m128& a, const __m128& b) {
     return _mm_cmpge_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_GT_OS>(const __m128& a, const __m128& b) {
     return _mm_cmpgt_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_GT_OQ>(const __m128& a, const __m128& b) {
     return _mm_cmpgt_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NEQ_UQ>(const __m128& a, const __m128& b) {
     return _mm_cmpneq_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NEQ_OQ>(const __m128& a, const __m128& b) {
     return _mm_cmpneq_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NEQ_US>(const __m128& a, const __m128& b) {
     return _mm_cmpneq_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NEQ_OS>(const __m128& a, const __m128& b) {
     return _mm_cmpneq_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NLT_US>(const __m128& a, const __m128& b) {
     return _mm_cmpnlt_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NLT_UQ>(const __m128& a, const __m128& b) {
     return _mm_cmpnlt_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NLE_US>(const __m128& a, const __m128& b) {
     return _mm_cmpnle_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NLE_UQ>(const __m128& a, const __m128& b) {
     return _mm_cmpnle_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NGT_US>(const __m128& a, const __m128& b) {
     return _mm_cmpngt_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NGT_UQ>(const __m128& a, const __m128& b) {
     return _mm_cmpngt_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NGE_US>(const __m128& a, const __m128& b) {
     return _mm_cmpnge_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_NGE_UQ>(const __m128& a, const __m128& b) {
     return _mm_cmpnge_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_ORD_Q>(const __m128& a, const __m128& b) {
     return _mm_cmpord_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_ORD_S>(const __m128& a, const __m128& b) {
     return _mm_cmpord_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_UNORD_Q>(const __m128& a, const __m128& b) {
     return _mm_cmpunord_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_UNORD_S>(const __m128& a, const __m128& b) {
     return _mm_cmpunord_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_TRUE_UQ>(const __m128& a, const __m128& b) {
     return _mm_cmpunord_ps(a, b);
 }
+
 template <>
 ML_INLINE __m128 emu_mm_cmp_ps<_CMP_TRUE_US>(const __m128&, const __m128&) {
     return _mm_castsi128_ps(_mm_setr_epi32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF));
@@ -702,122 +732,152 @@ template <int32_t imm>
 ML_INLINE __m128d emu_mm_cmp_pd(const __m128d&, const __m128d&) {
     return _mm_setzero_pd();
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_EQ_OQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpeq_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_EQ_UQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpeq_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_EQ_US>(const __m128d& a, const __m128d& b) {
     return _mm_cmpeq_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_EQ_OS>(const __m128d& a, const __m128d& b) {
     return _mm_cmpeq_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_LT_OS>(const __m128d& a, const __m128d& b) {
     return _mm_cmplt_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_LT_OQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmplt_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_LE_OS>(const __m128d& a, const __m128d& b) {
     return _mm_cmple_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_LE_OQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmple_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_GE_OS>(const __m128d& a, const __m128d& b) {
     return _mm_cmpge_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_GE_OQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpge_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_GT_OS>(const __m128d& a, const __m128d& b) {
     return _mm_cmpgt_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_GT_OQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpgt_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NEQ_UQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpneq_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NEQ_OQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpneq_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NEQ_US>(const __m128d& a, const __m128d& b) {
     return _mm_cmpneq_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NEQ_OS>(const __m128d& a, const __m128d& b) {
     return _mm_cmpneq_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NLT_US>(const __m128d& a, const __m128d& b) {
     return _mm_cmpnlt_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NLT_UQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpnlt_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NLE_US>(const __m128d& a, const __m128d& b) {
     return _mm_cmpnle_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NLE_UQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpnle_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NGT_US>(const __m128d& a, const __m128d& b) {
     return _mm_cmpngt_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NGT_UQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpngt_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NGE_US>(const __m128d& a, const __m128d& b) {
     return _mm_cmpnge_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_NGE_UQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpnge_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_ORD_Q>(const __m128d& a, const __m128d& b) {
     return _mm_cmpord_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_ORD_S>(const __m128d& a, const __m128d& b) {
     return _mm_cmpord_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_UNORD_Q>(const __m128d& a, const __m128d& b) {
     return _mm_cmpunord_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_UNORD_S>(const __m128d& a, const __m128d& b) {
     return _mm_cmpunord_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_TRUE_UQ>(const __m128d& a, const __m128d& b) {
     return _mm_cmpunord_pd(a, b);
 }
+
 template <>
 ML_INLINE __m128d emu_mm_cmp_pd<_CMP_TRUE_US>(const __m128d&, const __m128d&) {
     return _mm_castsi128_pd(_mm_setr_epi32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF));
@@ -879,6 +939,7 @@ ML_INLINE __m128 emu_mm_permutevar_ps(const __m128& a, __m128i control) {
 
     return (*(__m128*)dest);
 }
+
 __EMU_M256_IMPL2_M2T(__m256, __m256i, permutevar_ps);
 
 ML_INLINE __m128d emu_mm_permutevar_pd(const __m128d& a, const __m128i& control) {
@@ -891,6 +952,7 @@ ML_INLINE __m128d emu_mm_permutevar_pd(const __m128d& a, const __m128i& control)
 
     return (*(__m128d*)dest);
 }
+
 __EMU_M256_IMPL2_M2T(__m256d, __m256i, permutevar_pd);
 
 ML_INLINE __m128d emu_mm_permute_pd(const __m128d& a, int32_t control) {
@@ -902,6 +964,7 @@ ML_INLINE __m128d emu_mm_permute_pd(const __m128d& a, int32_t control) {
 
     return (*(__m128d*)dest);
 }
+
 __EMU_M256_IMPL2_M1I_SHIFT(__m256d, permute_pd, 2);
 
 #    define emu_mm256_permute2f128_impl(name, m128_type, m256_type) \

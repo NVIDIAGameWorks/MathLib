@@ -20,16 +20,20 @@ union double2 {
     ML_SWIZZLE_2(double2, double);
 
 public:
-    ML_INLINE double2() : x(0.0), y(0.0) {
+    ML_INLINE double2()
+        : x(0.0), y(0.0) {
     }
 
-    ML_INLINE double2(double c) : x(c), y(c) {
+    ML_INLINE double2(double c)
+        : x(c), y(c) {
     }
 
-    ML_INLINE double2(double _x, double _y) : x(_x), y(_y) {
+    ML_INLINE double2(double _x, double _y)
+        : x(_x), y(_y) {
     }
 
-    ML_INLINE double2(const v2d& v) : xmm(v) {
+    ML_INLINE double2(const v2d& v)
+        : xmm(v) {
     }
 
     ML_INLINE double2(const double2& v) = default;
@@ -256,25 +260,32 @@ union double3 {
     ML_SWIZZLE_3(v4d_swizzle2, double2, v4d_swizzle3, double3);
 
 public:
-    ML_INLINE double3() : ymm(_mm256_setzero_pd()) {
+    ML_INLINE double3()
+        : ymm(_mm256_setzero_pd()) {
     }
 
-    ML_INLINE double3(double c) : ymm(_mm256_set1_pd(c)) {
+    ML_INLINE double3(double c)
+        : ymm(_mm256_set1_pd(c)) {
     }
 
-    ML_INLINE double3(double _x, double _y, double _z) : ymm(v4d_set(_x, _y, _z, 0.0)) {
+    ML_INLINE double3(double _x, double _y, double _z)
+        : ymm(v4d_set(_x, _y, _z, 0.0)) {
     }
 
-    ML_INLINE double3(const double2& v, double _z) : ymm(v4d_set(v.x, v.y, _z, 0.0)) {
+    ML_INLINE double3(const double2& v, double _z)
+        : ymm(v4d_set(v.x, v.y, _z, 0.0)) {
     }
 
-    ML_INLINE double3(double _x, const double2& v) : ymm(v4d_set(_x, v.x, v.y, 0.0)) {
+    ML_INLINE double3(double _x, const double2& v)
+        : ymm(v4d_set(_x, v.x, v.y, 0.0)) {
     }
 
-    ML_INLINE double3(const v4d& v) : ymm(v) {
+    ML_INLINE double3(const v4d& v)
+        : ymm(v) {
     }
 
-    ML_INLINE double3(const double* v3) : ymm(v4d_set(v3[0], v3[1], v3[2], 0.0)) {
+    ML_INLINE double3(const double* v3)
+        : ymm(v4d_set(v3[0], v3[1], v3[2], 0.0)) {
     }
 
     ML_INLINE double3(const double3& v) = default;
@@ -564,28 +575,36 @@ union double4 {
     ML_SWIZZLE_4(v4d_swizzle2, double2, v4d_swizzle3, double3, v4d_swizzle4, double4);
 
 public:
-    ML_INLINE double4() : ymm(_mm256_setzero_pd()) {
+    ML_INLINE double4()
+        : ymm(_mm256_setzero_pd()) {
     }
 
-    ML_INLINE double4(double c) : ymm(_mm256_set1_pd(c)) {
+    ML_INLINE double4(double c)
+        : ymm(_mm256_set1_pd(c)) {
     }
 
-    ML_INLINE double4(double _x, double _y, double _z, double _w) : ymm(v4d_set(_x, _y, _z, _w)) {
+    ML_INLINE double4(double _x, double _y, double _z, double _w)
+        : ymm(v4d_set(_x, _y, _z, _w)) {
     }
 
-    ML_INLINE double4(const float3& v, double _w) : ymm(v4d_set(v.x, v.y, v.z, _w)) {
+    ML_INLINE double4(const float3& v, double _w)
+        : ymm(v4d_set(v.x, v.y, v.z, _w)) {
     }
 
-    ML_INLINE double4(const float2& a, const float2& b) : ymm(v4d_set(a.x, a.y, b.x, b.y)) {
+    ML_INLINE double4(const float2& a, const float2& b)
+        : ymm(v4d_set(a.x, a.y, b.x, b.y)) {
     }
 
-    ML_INLINE double4(double _x, const float3& v) : ymm(v4d_set(_x, v.x, v.y, v.z)) {
+    ML_INLINE double4(double _x, const float3& v)
+        : ymm(v4d_set(_x, v.x, v.y, v.z)) {
     }
 
-    ML_INLINE double4(const v4d& v) : ymm(v) {
+    ML_INLINE double4(const v4d& v)
+        : ymm(v) {
     }
 
-    ML_INLINE double4(const double* v4) : ymm(_mm256_loadu_pd(v4)) {
+    ML_INLINE double4(const double* v4)
+        : ymm(_mm256_loadu_pd(v4)) {
     }
 
     ML_INLINE double4(const double4& v) = default;
@@ -1649,8 +1668,7 @@ public:
         // Do not check a20 and a21 to allow off-centered projections
         // Do not check a22 to allow reverse infinite projections
 
-        return ((a00 != 0.0 && a10 == 0.0 && a20 == 0.0 && a30 == 0.0) && (a01 == 0.0 && a11 != 0.0 && a21 == 0.0 && a31 == 0.0) && (a32 == 1.0 || a32 == -1.0) &&
-                (a03 == 0.0 && a13 == 0.0 && a23 != 0.0 && a33 == 0.0));
+        return ((a00 != 0.0 && a10 == 0.0 && a20 == 0.0 && a30 == 0.0) && (a01 == 0.0 && a11 != 0.0 && a21 == 0.0 && a31 == 0.0) && (a32 == 1.0 || a32 == -1.0) && (a03 == 0.0 && a13 == 0.0 && a23 != 0.0 && a33 == 0.0));
     }
 };
 

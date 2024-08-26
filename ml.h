@@ -113,8 +113,8 @@ IMPORTANT:
 
 // Headers
 
+#include <cmath>   // overloaded floor, round, ceil, fmod, sin, cos, tan, asin, acos, atan, atan2, sqrt, pow, log, log2, exp, exp2
 #include <cstdlib> // overloaded abs
-#include <cmath> // overloaded floor, round, ceil, fmod, sin, cos, tan, asin, acos, atan, atan2, sqrt, pow, log, log2, exp, exp2
 
 #include <stdint.h>
 
@@ -123,7 +123,7 @@ IMPORTANT:
 #elif (defined(__arm__) || defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM))
 #    include "External/sse2neon/sse2neon.h"
 #else
-#include <mmintrin.h>
+#    include <mmintrin.h>
 #    if (ML_SVML_AVAILABLE || ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
 #        include <immintrin.h> // SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX, AVX2, FMA, SVML
 #    elif (ML_INTRINSIC_LEVEL >= ML_INTRINSIC_SSE4)
@@ -344,13 +344,16 @@ union uFloat {
     float f;
     uint32_t i;
 
-    ML_INLINE uFloat() : i(0) {
+    ML_INLINE uFloat()
+        : i(0) {
     }
 
-    ML_INLINE uFloat(float x) : f(x) {
+    ML_INLINE uFloat(float x)
+        : f(x) {
     }
 
-    ML_INLINE uFloat(uint32_t x) : i(x) {
+    ML_INLINE uFloat(uint32_t x)
+        : i(x) {
     }
 
     ML_INLINE void abs() {
@@ -396,13 +399,16 @@ union uDouble {
     double f;
     uint64_t i;
 
-    ML_INLINE uDouble() : i(0) {
+    ML_INLINE uDouble()
+        : i(0) {
     }
 
-    ML_INLINE uDouble(double x) : f(x) {
+    ML_INLINE uDouble(double x)
+        : f(x) {
     }
 
-    ML_INLINE uDouble(uint64_t x) : i(x) {
+    ML_INLINE uDouble(uint64_t x)
+        : i(x) {
     }
 
     ML_INLINE bool IsNegative() const {
