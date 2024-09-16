@@ -113,6 +113,7 @@ ML_INLINE float f16tof32(uint32_t x) {
 #endif
 }
 
+#ifndef __ARM_NEON
 struct float16_t {
     uint16_t x;
 
@@ -128,6 +129,7 @@ struct float16_t {
     ML_INLINE float16_t(const float16_t&) = default;
     ML_INLINE float16_t& operator=(const float16_t&) = default;
 };
+#endif
 
 struct float16_t2 {
     float16_t x, y;

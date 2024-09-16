@@ -926,11 +926,11 @@ public:
     // Compare
 
     ML_INLINE bool operator==(const float4x4& m) const {
-        return all(float4(col0) == m.col0) && all(float4(col1) == m.col1) && all(float4(col2) == m.col2) && all(float4(col3) == m.col3);
+        return all(float4(col0) == float4(m.col0)) && all(float4(col1) == float4(m.col1)) && all(float4(col2) == float4(m.col2)) && all(float4(col3) == float4(m.col3));
     }
 
     ML_INLINE bool operator!=(const float4x4& m) const {
-        return any(float4(col0) != m.col0) || any(float4(col1) != m.col1) || any(float4(col2) != m.col2) || any(float4(col3) != m.col3);
+        return any(float4(col0) != float4(m.col0)) || any(float4(col1) != float4(m.col1)) || any(float4(col2) != float4(m.col2)) || any(float4(col3) != float4(m.col3));
     }
 
     // NOTE: *
