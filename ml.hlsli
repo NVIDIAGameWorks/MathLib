@@ -479,6 +479,12 @@ namespace Geometry
     ML_INLINE float4 CombineRotators( float4 r1, float4 r2 )
     { return float4( r1.xyxy ) * r2.xxzz + float4( r1.zwzw ) * r2.yyww; }
 
+    ML_INLINE float4 ScaleRotator( float4 r, float scale )
+    { return r * scale; }
+
+    ML_INLINE float4 ScaleRotator( float4 r, float2 scale )
+    { return float4( scale.x * r.xz, scale.y * r.yw ); }
+
     ML_INLINE float2 RotateVector( float4 rotator, float2 v )
     { return v.x * rotator.xz + v.y * rotator.yw; }
 
