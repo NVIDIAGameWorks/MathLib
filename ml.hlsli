@@ -1628,25 +1628,34 @@ namespace Sequence
     ML_INLINE uint HashCombine( uint seed, uint value )
     { return seed ^ ( Hash( value ) + 0x9E3779B9 + ( seed << 6 ) + ( seed >> 2 ) ); }
 
-    ML_INLINE float RadicalInverse( uint index, uint base )
+    // Halton
+    ML_INLINE float Halton( uint n, uint base )
     {
-        float val = 0.0f;
-        float rcpBase = 1.0f / ( float )base;
-        float rcpBi = rcpBase;
+        float a = 1.0f;
+        float b = 0.0f;
+        float baseInv = 1.0f / ( float )base;
 
-        while( index > 0 )
+        while( n )
         {
-            uint m = index % base;
-            val += float( m ) * rcpBi;
-            index = uint( index * rcpBase );
-            rcpBi *= rcpBase;
+            a *= baseInv;
+            b += a * float( n % base );
+            n = uint( n * baseInv );
         }
 
-        return val;
+        return b;
     }
 
-    ML_INLINE float2 Halton2D( uint index )
-    { return float2( RadicalInverse( index + 1, 3 ), Math::ReverseBits32( index + 1 ) * 2.3283064365386963e-10f ); }
+    ML_INLINE float Halton2( uint n ) // optimized Halton( n, 2 )
+    { return Math::ReverseBits32( n ) * 2.3283064365386963e-10f; }
+
+    ML_INLINE float Halton1D( uint n )
+    { return Halton2( n ); }
+
+    ML_INLINE float2 Halton2D( uint n )
+    { return float2( Halton2( n ), Halton( n, 3 ) ); }
+
+    ML_INLINE float3 Halton3D( uint n )
+    { return float3( Halton2( n ), Halton( n, 3 ), Halton( n, 5 ) ); }
 
     // https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
     ML_INLINE float Weyl1D( float p, int n )
