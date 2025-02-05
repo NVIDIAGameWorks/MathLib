@@ -10,8 +10,8 @@ IMPORTANT:
 #pragma once
 
 #define ML_VERSION_MAJOR 1
-#define ML_VERSION_MINOR 0
-#define ML_VERSION_DATE "5 August 2024"
+#define ML_VERSION_MINOR 1
+#define ML_VERSION_DATE "5 February 2025"
 
 //======================================================================================================================
 // Constants
@@ -121,7 +121,7 @@ IMPORTANT:
 #if (defined(__i386__) || defined(__x86_64__) || defined(__SCE__))
 #    include <x86intrin.h>
 #elif (defined(__arm__) || defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM))
-#    include "External/sse2neon/sse2neon.h"
+#    include "sse2neon.h"
 #else
 #    include <mmintrin.h>
 #    if (ML_SVML_AVAILABLE || ML_INTRINSIC_LEVEL >= ML_INTRINSIC_AVX1)
