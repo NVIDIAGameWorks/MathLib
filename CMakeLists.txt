@@ -13,7 +13,12 @@ source_group("MathLib/Guts" FILES ${MATHLIB_GUTS})
 
 set_property(SOURCE "ml.hlsli" PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
 
-add_library(MathLib INTERFACE ${MATHLIB_H} ${MATHLIB_GUTS})
+if(WIN32)
+    add_library(MathLib INTERFACE ${MATHLIB_H} ${MATHLIB_GUTS})
+else()
+    add_library(MathLib INTERFACE)
+endif()
+
 target_include_directories(MathLib INTERFACE .)
 set_property(TARGET MathLib PROPERTY FOLDER "MathLib")
 
